@@ -465,7 +465,7 @@ export default function Dashboard() {
                     flex h-7 w-7 items-center justify-center
                     rounded-full text-xs
                     bg-white/10 text-white/80
-                    hover:bg-white/20 hover:text.white
+                    hover:bg-white/20 hover:text-white
                     transition
                   "
                 >
@@ -917,7 +917,7 @@ function NewTransactionModal({
               </button>
               <button
                 type="submit"
-                className="rounded-full bg-[#715B64] px-4 py-2 text-xs font-semibold text.white hover:bg-[#5d4953]"
+                className="rounded-full bg-[#715B64] px-4 py-2 text-xs font-semibold text-white hover:bg-[#5d4953]"
               >
                 Save Transaction
               </button>
@@ -1055,7 +1055,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
               </button>
               <button
                 type="submit"
-                className="rounded-full bg-[#715B64] px-4 py-2 text-xs font-semibold text.white hover:bg-[#5d4953]"
+                className="rounded-full bg-[#715B64] px-4 py-2 text-xs font-semibold text-white hover:bg-[#5d4953]"
               >
                 Save Account
               </button>
@@ -1193,7 +1193,7 @@ function EditAccountModal({
               </button>
               <button
                 type="submit"
-                className="rounded-full bg-[#715B64] px-4 py-2 text-xs font-semibold text.white hover:bg-[#5d4953]"
+                className="rounded-full bg-[#715B64] px-4 py-2 text-xs font-semibold text-white hover:bg-[#5d4953]"
               >
                 Save Changes
               </button>
@@ -1391,7 +1391,7 @@ function NewTransferModal({
               </button>
               <button
                 type="submit"
-                className="rounded-full bg-[#715B64] px-4 py-2 text-xs font-semibold text.white hover:bg-[#5d4953]"
+                className="rounded-full bg-[#715B64] px-4 py-2 text-xs font-semibold text-white hover:bg-[#5d4953]"
               >
                 Save Transfer
               </button>
@@ -1627,7 +1627,7 @@ function EditTransactionDetailsModal({
             </button>
             <button
               type="submit"
-              className="rounded-full bg-[#715B64] px-4 py-2 text-xs font-semibold text.white hover:bg-[#5d4953]"
+              className="rounded-full bg-[#715B64] px-4 py-2 text-xs font-semibold text-white hover:bg-[#5d4953]"
             >
               Save Changes
             </button>
@@ -1712,7 +1712,7 @@ function EditTransactionAmountModal({
             </button>
             <button
               type="submit"
-              className="rounded-full bg-[#715B64] px-4 py-2 text-xs font-semibold text.white hover:bg-[#5d4953]"
+              className="rounded-full bg-[#715B64] px-4 py-2 text-xs font-semibold text-white hover:bg-[#5d4953]"
             >
               Save Amount
             </button>
@@ -1826,7 +1826,7 @@ function NumberPad({ value, onChange, onClose }: NumberPadProps) {
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 rounded-full bg-[#715B64] px-3 py-2 text-xs font-semibold text.white hover:bg[#5d4953]"
+            className="flex-1 rounded-full bg-[#715B64] px-3 py-2 text-xs font-semibold text-white hover:bg[#5d4953]"
           >
             Done
           </button>
