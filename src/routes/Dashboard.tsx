@@ -442,7 +442,7 @@ export default function Dashboard() {
                     text-[#454545]
                     shadow-sm
                     hover:bg-[#454545]
-                    hover:text-[#F5FEVA]
+                    hover:text-[#F5FEFA]
                     transition
                   "
                 >
