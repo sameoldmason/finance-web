@@ -1,0 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Make the gradient belong to the page itself */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  /* matches Tailwind gray-800 -> gray-900 */
+  background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+  background-repeat: no-repeat;
+  background-attachment: fixed; /* prevents a seam on some GPUs */
+  min-height: 100svh;           /* fills the visual viewport */
+  overflow-x: hidden;           /* avoid sub-pixel scrollbars */
+  color-scheme: dark;
+}
+/* Dashboard action button labels */
+.btn-label-wrap {
+  display: none;
+}
+
+@media (max-width: 1150px) {
+  .btn-label-full {
+    display: none;
+  }
+  .btn-label-wrap {
+    display: inline-block;
+    line-height: 1.1;
+    text-align: center;
+  }
+}
+html, body {
+  @apply font-outfit;
+}
+
+/* Make native date pickers match our light modal aesthetic */
+input[type="date"] {
+  color-scheme: light;
+}
+
+/* Style the calendar icon (Brave/Chrome/Edge/WebKit) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  background-color: #715B64;      /* brand accent */
+  border-radius: 9999px;
+  padding: 4px;
+  cursor: pointer;
+  filter: invert(1);              /* make icon white on dark background */
+  opacity: 0.85;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
