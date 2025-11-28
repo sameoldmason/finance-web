@@ -1,73 +1,102 @@
-# React + TypeScript + Vite
+# Finance Web App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A personal finance dashboard built with **React + Vite**, designed for simple, fast, and local budgeting.  
+Each profile stores its own data securely in the browser using `localStorage`, with no external database required.
 
-Currently, two official plugins are available:
+Live site:  
+➡️ **https://finance-web-delta.vercel.app**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 🚀 Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Profiles
+- Create up to 3 profiles
+- Password-protected unlock screen
+- Local data stored separately per profile
+- Auto-locking behavior planned for future versions
 
-## Expanding the ESLint configuration
+### Dashboard
+#### Accounts
+- Add, edit, and manage multiple accounts
+- Two-pill carousel navigation
+- Automatic balance tracking
+- Balance adjustment transactions created automatically
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+#### Transactions
+- Add income or expense transactions
+- Quick number pad input
+- Edit title, date, and amount
+- 3-item preview on dashboard
+- Full history modal with:
+  - Sort by date
+  - Sort by expenses first
+  - Sort by income first
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+#### Transfers
+- Move money between accounts
+- Automatically generates outgoing + incoming entries
+- Account balances update instantly
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+#### Upcoming Bills (coming soon)
+- Add recurring bills
+- Monthly/bi-weekly due dates
+- Upcoming bill alerts
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+#### Net Worth (coming soon)
+- Automatic net worth calculation
+- Trends and history planned
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+#### Debt Payoff Progress (coming soon)
+- Track credit cards, loans, and installment plans
+- Snowball and avalanche payoff modes
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+---
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## 🗂 Project Structure
+
+src/
+├─ routes/ # App pages (Dashboard, Welcome, CreateProfile, etc.)
+├─ lib/ # Shared types + storage helpers
+├─ ThemeProvider.tsx # Light/Dark theme context
+└─ ActiveProfileContext.tsx
+
+
+---
+
+## 💾 Storage
+
+All data is stored per-profile using `localStorage`:
+
+- Accounts
+- Transactions
+- (Bills, Debts coming soon)
+
+If the browser storage is cleared, the profile's data resets.
+
+---
+
+## 🛠 Tech Stack
+
+- **React**
+- **Vite**
+- **TypeScript**
+- **TailwindCSS**
+- **LocalStorage**
+- **Vercel** (deployments)
+- **GitHub** (version control)
+
+---
+
+## 🧩 Development
+
+Clone the project:
+
+```bash
+git clone https://github.com/sameoldmason/finance-web
+cd finance-web
+npm install
+npm run dev
+
+To Build for production:
+npm run build

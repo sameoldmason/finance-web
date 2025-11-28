@@ -25,4 +25,16 @@ export type TransferInput = {
 export type DashboardData = {
   accounts: Account[];
   transactions: Transaction[];
+  bills: Bill[];
+};
+
+
+export type Bill = {
+  id: string;
+  name: string;
+  amount: number;      // positive number (we’ll treat as expense)
+  dueDate: string;     // "YYYY-MM-DD"
+  accountId: string;   // which account it usually comes from
+  frequency?: "once" | "weekly" | "biweekly" | "monthly"; // for later
+  isPaid?: boolean;    // for marking a specific occurrence paid
 };

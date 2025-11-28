@@ -19,12 +19,14 @@ export function loadDashboardData(profileId: string): DashboardData | null {
     const parsed = JSON.parse(raw) as Partial<DashboardData> | null;
     if (!parsed || typeof parsed !== "object") return null;
 
-    return {
-      accounts: Array.isArray(parsed.accounts) ? parsed.accounts : [],
-      transactions: Array.isArray(parsed.transactions)
-        ? parsed.transactions
-        : [],
-    };
+return {
+  accounts: Array.isArray(parsed.accounts) ? parsed.accounts : [],
+  transactions: Array.isArray(parsed.transactions)
+    ? parsed.transactions
+    : [],
+  bills: Array.isArray(parsed.bills) ? parsed.bills : [],
+};
+
   } catch (err) {
     console.error("Failed to read dashboard data:", err);
     return null;
@@ -39,10 +41,12 @@ export function saveDashboardData(
   data: DashboardData
 ): void {
   try {
-    const payload: DashboardData = {
-      accounts: data.accounts ?? [],
-      transactions: data.transactions ?? [],
-    };
+const payload: DashboardData = {
+  accounts: data.accounts ?? [],
+  transactions: data.transactions ?? [],
+  bills: data.bills ?? [],
+};
+
     localStorage.setItem(key(profileId), JSON.stringify(payload));
   } catch (err) {
     console.error("Failed to save dashboard data:", err);

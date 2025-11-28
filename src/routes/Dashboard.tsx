@@ -2,15 +2,9 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useTheme } from "../ThemeProvider";
 import { useActiveProfile } from "../ActiveProfileContext";
-import {
-  Account,
-  Transaction,
-  TransferInput,
-} from "../lib/financeTypes";
-import {
-  loadDashboardData,
-  saveDashboardData,
-} from "../lib/dashboardStore";
+import { Account, Transaction, TransferInput } from "../lib/financeTypes";
+import { loadDashboardData, saveDashboardData } from "../lib/dashboardStore";
+import type { Bill } from "../lib/financeTypes";
 
 const MONTHS = [
   "January",
@@ -54,12 +48,18 @@ export default function Dashboard() {
   // Transactions
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
+  // Bills
+  const [bills, setBills] = useState<Bill[]>([]);
+
   // Modals
   const [isNewTxOpen, setIsNewTxOpen] = useState(false);
   const [isTransferOpen, setIsTransferOpen] = useState(false);
   const [isNewAccountOpen, setIsNewAccountOpen] = useState(false);
   const [isTransactionsModalOpen, setIsTransactionsModalOpen] =
     useState(false);
+  const [isNewBillOpen, setIsNewBillOpen] = useState(false);
+  const [isBillsModalOpen, setIsBillsModalOpen] = useState(false);
+  const [editingBill, setEditingBill] = useState<Bill | null>(null);
 
   // Edit-transaction modals
   const [editingDetailsTx, setEditingDetailsTx] = useState<Transaction | null>(
@@ -73,56 +73,57 @@ export default function Dashboard() {
   useEffect(() => {
     const profileId = activeProfile?.id;
 
-    // No profile selected → fall back to empty in memory
     if (!profileId) {
-      setAccounts([]);
-      setSelectedAccountId("");
-      setTransactions([]);
+      setAccounts(INITIAL_ACCOUNTS);
+      setSelectedAccountId(INITIAL_ACCOUNTS[0]?.id ?? "");
       setCarouselStartIndex(0);
+      setTransactions([]);
+      setBills([]);
       setEditButtonForId(null);
-      setEditingAccount(null);
       return;
     }
 
     const loaded = loadDashboardData(profileId);
 
-    // Nothing in storage yet → start with no accounts
     if (!loaded) {
-      setAccounts([]);
-      setSelectedAccountId("");
-      setTransactions([]);
+      setAccounts(INITIAL_ACCOUNTS);
+      setSelectedAccountId(INITIAL_ACCOUNTS[0]?.id ?? "");
       setCarouselStartIndex(0);
+      setTransactions([]);
+      setBills([]);
       setEditButtonForId(null);
-      setEditingAccount(null);
       return;
     }
 
-    const accountsFromStore = Array.isArray(loaded.accounts)
-      ? loaded.accounts
-      : [];
-    const txFromStore = Array.isArray(loaded.transactions)
-      ? loaded.transactions
-      : [];
+    const accountsFromStore =
+      loaded.accounts && loaded.accounts.length > 0
+        ? loaded.accounts
+        : INITIAL_ACCOUNTS;
+
+    const txFromStore = loaded.transactions ?? [];
+    const billsFromStore = loaded.bills ?? [];
 
     setAccounts(accountsFromStore);
     setSelectedAccountId(accountsFromStore[0]?.id ?? "");
-    setTransactions(txFromStore);
     setCarouselStartIndex(0);
+    setTransactions(txFromStore);
+    setBills(billsFromStore);
     setEditButtonForId(null);
-    setEditingAccount(null);
   }, [activeProfile?.id]);
 
-  // Save whenever accounts or transactions change
+  // Save whenever accounts / transactions / bills change
   useEffect(() => {
     const profileId = activeProfile?.id;
     if (!profileId) return;
 
-    saveDashboardData(profileId, { accounts, transactions });
-  }, [accounts, transactions, activeProfile?.id]);
+    saveDashboardData(profileId, { accounts, transactions, bills });
+  }, [accounts, transactions, bills, activeProfile?.id]);
 
-  // Selected account derived from state
+  // Derived bits
   const selectedAccount =
     accounts.find((a) => a.id === selectedAccountId) || accounts[0];
+
+  const unpaidBills = bills.filter((b) => !b.isPaid);
 
   const visibleTransactions = selectedAccount
     ? transactions.filter((tx) => tx.accountId === selectedAccount.id)
@@ -133,6 +134,7 @@ export default function Dashboard() {
   const darkBg =
     "bg-[#1E3A5F] bg-gradient-to-b from-[#2E517F] via-[#1E3A5F] to-[#10263F]";
 
+  // Account carousel
   const handlePrevAccount = () => {
     if (accounts.length <= 1) return;
     const nextStart =
@@ -161,7 +163,7 @@ export default function Dashboard() {
     setEditButtonForId((current) => (current === id ? null : id));
   };
 
-  // Add a new transaction + update account balance
+  // Transactions
   function addTransaction(t: Transaction) {
     setTransactions((prev) => [...prev, t]);
 
@@ -174,7 +176,61 @@ export default function Dashboard() {
     );
   }
 
-  // Update an existing transaction (amount / date / description)
+  // Bills
+  function handleAddBill(newBill: Bill) {
+    setBills((prev) => [...prev, newBill]);
+  }
+
+  function handleUpdateBill(updatedBill: Bill) {
+    setBills((prev) =>
+      prev.map((bill) => (bill.id === updatedBill.id ? updatedBill : bill))
+    );
+  }
+
+  function handleMarkBillPaid(bill: Bill) {
+    const today = new Date().toISOString().slice(0, 10);
+    const amount = Math.abs(bill.amount);
+
+    // 1) Create a transaction (expense)
+    const tx: Transaction = {
+      id: crypto.randomUUID(),
+      accountId: bill.accountId,
+      amount: -amount,
+      date: today,
+      description: bill.name || "Bill payment",
+    };
+
+    setTransactions((prev) => [...prev, tx]);
+
+    // 2) Update account balance
+    setAccounts((prev) =>
+      prev.map((acc) =>
+        acc.id === bill.accountId
+          ? { ...acc, balance: acc.balance - amount }
+          : acc
+      )
+    );
+
+    // 3) Update bill: move monthly forward, hide one-time bills
+    setBills((prev) =>
+      prev.map((b) => {
+        if (b.id !== bill.id) return b;
+
+        if (b.frequency === "monthly") {
+          const base = (b.dueDate || today) + "T00:00:00";
+          const d = new Date(base);
+          d.setMonth(d.getMonth() + 1);
+          const nextDue = d.toISOString().slice(0, 10);
+          return { ...b, dueDate: nextDue, isPaid: false };
+        }
+
+        // one-time bill → mark as paid so it disappears from “upcoming”
+        return { ...b, isPaid: true };
+      })
+    );
+  }
+
+  // Update existing transaction (and adjust account balance if amount changed)
   function handleUpdateTransaction(
     id: string,
     updates: Partial<Pick<Transaction, "amount" | "date" | "description">>
@@ -214,6 +270,7 @@ export default function Dashboard() {
     }
   }
 
+  // Add account
   function handleAddAccount(newAccount: Account) {
     setAccounts((prev) => [...prev, newAccount]);
     setSelectedAccountId(newAccount.id);
@@ -222,6 +279,7 @@ export default function Dashboard() {
     }
   }
 
+  // Transfer between accounts
   function handleTransfer({
     fromAccountId,
     toAccountId,
@@ -267,7 +325,7 @@ export default function Dashboard() {
     ]);
   }
 
-  // When an account is edited (name + balance)
+  // Save edited account (and create a balance adjustment transaction if needed)
   function handleSaveEditedAccount(
     original: Account,
     updates: { name: string; balance: number }
@@ -276,7 +334,6 @@ export default function Dashboard() {
     const nextBalance = updates.balance;
     const delta = nextBalance - original.balance;
 
-    // Update account name + balance
     setAccounts((prev) =>
       prev.map((acc) =>
         acc.id === original.id
@@ -285,7 +342,6 @@ export default function Dashboard() {
       )
     );
 
-    // If balance changed, create a single adjustment transaction
     if (delta !== 0) {
       const today = new Date().toISOString().slice(0, 10);
       setTransactions((prev) => [
@@ -329,14 +385,7 @@ export default function Dashboard() {
             <button
               key={m}
               type="button"
-              className="
-                w-full mb-2 flex items-center
-                rounded-xl px-3 py-2
-                text-base font-bold tracking-wide
-                bg-transparent text-[#F5FEFA]/80
-                hover:bg-white/10 hover:text-white
-                transition-all duration-150
-              "
+              className="w-full mb-2 flex items-center rounded-xl px-3 py-2 text-base font-bold tracking-wide bg-transparent text-[#F5FEFA]/80 hover:bg-white/10 hover:text-white transition-all duration-150"
             >
               <span className="mr-3 h-6 w-1.5 rounded-full bg-white/10" />
               <span className="truncate">{m}</span>
@@ -409,18 +458,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={() => setIsNewTxOpen(true)}
-                  className="
-                    w-full
-                    rounded-full
-                    bg-[#F5FEFA]
-                    py-3
-                    text-sm font-semibold
-                    text-[#454545]
-                    shadow-sm
-                    hover:bg-[#454545]
-                    hover:text-[#F5FEFA]
-                    transition
-                  "
+                  className="w-full rounded-full bg-[#F5FEFA] py-3 text-sm font-semibold text-[#454545] shadow-sm hover:bg-[#454545] hover:text-[#F5FEFA] transition"
                 >
                   <span className="btn-label-full">New Transaction</span>
                   <span className="btn-label-wrap">
@@ -433,18 +471,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={() => setIsTransferOpen(true)}
-                  className="
-                    w-full
-                    rounded-full
-                    bg-[#F5FEFA]
-                    py-3
-                    text-sm font-semibold
-                    text-[#454545]
-                    shadow-sm
-                    hover:bg-[#454545]
-                    hover:text-[#F5FEFA]
-                    transition
-                  "
+                  className="w-full rounded-full bg-[#F5FEFA] py-3 text-sm font-semibold text-[#454545] shadow-sm hover:bg-[#454545] hover:text-[#F5FEFA] transition"
                 >
                   <span className="btn-label-full">New Transfer</span>
                   <span className="btn-label-wrap">
@@ -461,13 +488,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={handlePrevAccount}
-                  className="
-                    flex h-7 w-7 items-center justify-center
-                    rounded-full text-xs
-                    bg-white/10 text-white/80
-                    hover:bg-white/20 hover:text-white
-                    transition
-                  "
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition"
                 >
                   {"<"}
                 </button>
@@ -483,15 +504,12 @@ export default function Dashboard() {
                         <button
                           type="button"
                           onClick={() => handleAccountClick(account.id)}
-                          className={`
-                            h-10 w-full rounded-2xl text-sm font-semibold transition
-                            ${
-                              selectedAccount &&
-                              account.id === selectedAccount.id
-                                ? "bg-white/20 text-[#F5FEFA]"
-                                : "bg-white/10 text-[#F5FEFA]/80 hover:bg-white/16"
-                            }
-                          `}
+                          className={`h-10 w-full rounded-2xl text-sm font-semibold transition ${
+                            selectedAccount &&
+                            account.id === selectedAccount.id
+                              ? "bg-white/20 text-[#F5FEFA]"
+                              : "bg-white/10 text-[#F5FEFA]/80 hover:bg-white/16"
+                          }`}
                         >
                           {account.name}
                         </button>
@@ -501,7 +519,7 @@ export default function Dashboard() {
                             <button
                               type="button"
                               onClick={() => setEditingAccount(account)}
-                              className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-xs text-[#F5FEFA] hover:bg-white/30"
+                              className="flex h-7 w-7 items-center justify-center rounded-full bg.white/20 text-xs text-[#F5FEFA] hover:bg-white/30"
                               title="Edit account"
                             >
                               ✎
@@ -516,13 +534,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={handleNextAccount}
-                  className="
-                    flex h-7 w-7 items-center justify-center
-                    rounded-full text-xs
-                    bg-white/10 text-white/80
-                    hover:bg-white/20 hover:text-white
-                    transition
-                  "
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition"
                 >
                   {">"}
                 </button>
@@ -561,9 +573,7 @@ export default function Dashboard() {
                       <span>{tx.description || "Transaction"}</span>
                       <span
                         className={
-                          tx.amount < 0
-                            ? "text-red-200"
-                            : "text-emerald-200"
+                          tx.amount < 0 ? "text-red-200" : "text-emerald-200"
                         }
                       >
                         {formatCurrency(tx.amount)}
@@ -576,6 +586,7 @@ export default function Dashboard() {
 
           {/* MIDDLE ROW: NET WORTH + UPCOMING BILLS */}
           <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-6">
+            {/* NET WORTH CARD (placeholder) */}
             <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md">
               <p className="mb-3 text-sm font-semibold">Net Worth</p>
               <div className="flex h-40 items-center justify-center rounded-xl bg-white/5 text-xs opacity-60">
@@ -583,15 +594,98 @@ export default function Dashboard() {
               </div>
             </section>
 
+            {/* UPCOMING BILLS CARD */}
             <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md">
-              <p className="mb-3 text-sm font-semibold">Upcoming Bills</p>
-              <div className="flex h-40 items-center justify-center rounded-xl bg-white/5 text-xs opacity-60">
-                Upcoming bills list placeholder
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-sm font-semibold">Upcoming Bills</p>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      accounts.length > 0 && setIsNewBillOpen(true)
+                    }
+                    disabled={accounts.length === 0}
+                    className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold transition ${
+                      accounts.length === 0
+                        ? "bg-white/10 text-white/30 cursor-not-allowed"
+                        : "bg-white/20 text-[#F5FEFA] hover:bg-white/30"
+                    }`}
+                    aria-label="Add bill"
+                    title={
+                      accounts.length === 0
+                        ? "Create an account first"
+                        : "Add new bill"
+                    }
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsBillsModalOpen(true)}
+                    className="text-xs text-white/60 hover:text-white transition"
+                  >
+                    more
+                  </button>
+                </div>
               </div>
+
+              {unpaidBills.length === 0 ? (
+                <div className="flex h-40 items-center justify-center rounded-xl bg-white/5 text-xs text-white/60">
+                  No upcoming bills yet. Add your first bill to get reminders
+                  here.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {[...unpaidBills]
+                    .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
+                    .slice(0, 3)
+                    .map((bill) => (
+                      <div
+                        key={bill.id}
+                        className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-3 text-xs"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setEditingBill(bill)}
+                          className="flex flex-1 flex-col text-left"
+                        >
+                          <span className="font-semibold">{bill.name}</span>
+                          <span className="text-[11px] text-white/60">
+                            Due {bill.dueDate}
+                          </span>
+                        </button>
+
+                        <div className="ml-4 text-right">
+                          <div className="text-sm font-semibold text-[#E89A9A]">
+                            -$
+                            {bill.amount.toLocaleString("en-CA", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleMarkBillPaid(bill)}
+                            className="mt-1 rounded-full border border-white/30 px-3 py-1 text-[11px] font-semibold text-white/80 hover:bg-white/10"
+                          >
+                            Mark paid
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+
+                  {unpaidBills.length > 3 && (
+                    <p className="pt-1 text-[11px] text-white/60">
+                      + {unpaidBills.length - 3} more bill
+                      {unpaidBills.length - 3 === 1 ? "" : "s"} not shown
+                    </p>
+                  )}
+                </div>
+              )}
             </section>
           </div>
 
-          {/* BOTTOM ROW: DEBT PAYOFF PROGRESS */}
+          {/* BOTTOM ROW: DEBT PAYOFF PROGRESS (placeholder) */}
           <section className="mb-2 flex items-center justify-between rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md">
             <div className="flex flex-1 flex-col gap-2">
               <p className="text-sm font-semibold">Debt Payoff Progress</p>
@@ -653,6 +747,43 @@ export default function Dashboard() {
         />
       )}
 
+      {/* NEW BILL MODAL */}
+      {isNewBillOpen && accounts.length > 0 && (
+        <NewBillModal
+          onClose={() => setIsNewBillOpen(false)}
+          accounts={accounts}
+          selectedAccountId={selectedAccountId}
+          onSave={handleAddBill}
+        />
+      )}
+
+      {/* FULL BILLS MODAL */}
+      {isBillsModalOpen && bills.length > 0 && (
+        <BillsListModal
+          bills={bills}
+          accounts={accounts}
+          onClose={() => setIsBillsModalOpen(false)}
+          onEdit={(bill) => {
+            setEditingBill(bill);
+            setIsBillsModalOpen(false);
+          }}
+          onMarkPaid={(bill) => handleMarkBillPaid(bill)}
+        />
+      )}
+
+      {/* EDIT BILL MODAL */}
+      {editingBill && (
+        <EditBillModal
+          bill={editingBill}
+          accounts={accounts}
+          onClose={() => setEditingBill(null)}
+          onSave={(updated) => {
+            handleUpdateBill(updated);
+            setEditingBill(null);
+          }}
+        />
+      )}
+
       {/* FULL TRANSACTIONS MODAL */}
       {isTransactionsModalOpen && selectedAccount && (
         <TransactionsHistoryModal
@@ -666,7 +797,7 @@ export default function Dashboard() {
         />
       )}
 
-      {/* EDIT TRANSACTION – DETAILS (title + date) */}
+      {/* EDIT TRANSACTION – DETAILS */}
       {editingDetailsTx && (
         <EditTransactionDetailsModal
           transaction={editingDetailsTx}
@@ -852,28 +983,22 @@ function NewTransactionModal({
                   <button
                     type="button"
                     onClick={() => setTxType("expense")}
-                    className={`
-                      flex-1 rounded-full px-3 py-2 text-xs font-semibold transition
-                      ${
-                        txType === "expense"
-                          ? "bg-[#715B64] text-white shadow-sm"
-                          : "bg-white text-[#454545] border border-[#C2D0D6] hover:bg-[#F3F6F8]"
-                      }
-                    `}
+                    className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold transition ${
+                      txType === "expense"
+                        ? "bg-[#715B64] text-white shadow-sm"
+                        : "bg-white text-[#454545] border border-[#C2D0D6] hover:bg-[#F3F6F8]"
+                    }`}
                   >
                     Expense
                   </button>
                   <button
                     type="button"
                     onClick={() => setTxType("income")}
-                    className={`
-                      flex-1 rounded-full px-3 py-2 text-xs font-semibold transition
-                      ${
-                        txType === "income"
-                          ? "bg-[#715B64] text-white shadow-sm"
-                          : "bg-white text-[#454545] border border-[#C2D0D6] hover:bg-[#F3F6F8]"
-                      }
-                    `}
+                    className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold transition ${
+                      txType === "income"
+                        ? "bg-[#715B64] text-white shadow-sm"
+                        : "bg-white text-[#454545] border border-[#C2D0D6] hover:bg-[#F3F6F8]"
+                    }`}
                   >
                     Income
                   </button>
@@ -911,7 +1036,7 @@ function NewTransactionModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full px-4 py-2 text-xs font-semibold text-[#454545]/80 hover:bg.black/5"
+                className="rounded-full px-4 py-2 text-xs font-semibold text-[#454545]/80 hover:bg-black/5"
               >
                 Cancel
               </button>
@@ -985,7 +1110,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
 
   return (
     <>
-      <div className="fixed inset-0 z-20 flex items-center justify-center bg.black/50 px-4">
+      <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
         <div className="w-full max-w-md rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-[#454545]">
@@ -1049,7 +1174,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full px-4 py-2 text-xs font-semibold text-[#454545]/80 hover:bg.black/5"
+                className="rounded-full px-4 py-2 text-xs font-semibold text-[#454545]/80 hover:bg-black/5"
               >
                 Cancel
               </button>
@@ -1125,7 +1250,7 @@ function EditAccountModal({
 
   return (
     <>
-      <div className="fixed inset-0 z-30 flex items-center justify-center bg.black/50 px-4">
+      <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4">
         <div className="w-full max-w-md rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-[#454545]">
@@ -1187,7 +1312,7 @@ function EditAccountModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full px-4 py-2 text-xs font-semibold text-[#454545]/80 hover:bg.black/5"
+                className="rounded-full px-4 py-2 text-xs font-semibold text-[#454545]/80 hover:bg-black/5"
               >
                 Cancel
               </button>
@@ -1274,7 +1399,7 @@ function NewTransferModal({
 
   return (
     <>
-      <div className="fixed inset-0 z-20 flex items-center justify-center bg.black/50 px-4">
+      <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
         <div className="w-full max-w-md rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-[#454545]">
@@ -1385,7 +1510,7 @@ function NewTransferModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full px-4 py-2 text-xs font-semibold text-[#454545]/80 hover:bg.black/5"
+                className="rounded-full px-4 py-2 text-xs font-semibold text-[#454545]/80 hover:bg-black/5"
               >
                 Cancel
               </button>
@@ -1408,6 +1533,482 @@ function NewTransferModal({
         />
       )}
     </>
+  );
+}
+
+type NewBillModalProps = ModalPropsBase & {
+  onSave: (bill: Bill) => void;
+};
+
+function NewBillModal({
+  onClose,
+  accounts,
+  selectedAccountId,
+  onSave,
+}: NewBillModalProps) {
+  const [amount, setAmount] = useState("");
+  const [amountError, setAmountError] = useState("");
+  const [isPadOpen, setIsPadOpen] = useState(false);
+
+  const today = new Date().toISOString().slice(0, 10);
+  const [frequency, setFrequency] = useState<Bill["frequency"]>("monthly");
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+
+    const name = String(formData.get("name") || "").trim();
+    const accountId =
+      String(formData.get("accountId") || "") || selectedAccountId;
+    const dueDate = String(formData.get("dueDate") || today);
+
+    const rawAmount = amount;
+    const amountNumber = parseFloat(rawAmount);
+
+    if (!name) return;
+    if (!accountId) return;
+
+    if (Number.isNaN(amountNumber) || amountNumber <= 0) {
+      setAmountError("Enter a valid amount");
+      return;
+    }
+
+    const newBill: Bill = {
+      id: crypto.randomUUID(),
+      name,
+      amount: amountNumber,
+      dueDate,
+      accountId,
+      frequency,
+      isPaid: false,
+    };
+
+    onSave(newBill);
+    onClose();
+  };
+
+  return (
+    <>
+      <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
+        <div className="w-full max-w-md rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-[#454545]">New Bill</h2>
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-sm text-[#454545]/70 hover:text-[#454545]"
+            >
+              ✕
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                Bill name
+              </label>
+              <input
+                name="name"
+                placeholder="e.g. Phone bill"
+                className="w-full rounded-lg border border-[#C2D3DA] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                  Amount
+                </label>
+                <div className="flex flex-col gap-1">
+                  <input
+                    name="amount"
+                    value={amount}
+                    onChange={(e) =>
+                      setAmount(e.target.value.replace(/[^0-9.]/g, ""))
+                    }
+                    placeholder="0.00"
+                    className="w-full rounded-lg border border-[#C2D3DA] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setIsPadOpen(true)}
+                    className="self-start text-[11px] text-[#715B64] underline"
+                  >
+                    Open number pad
+                  </button>
+                  {amountError && (
+                    <p className="text-[11px] text-[#C95454]">{amountError}</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                  Due date
+                </label>
+                <input
+                  type="date"
+                  name="dueDate"
+                  defaultValue={today}
+                  className="w-full rounded-lg border border-[#C2D3DA] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                  Pay from
+                </label>
+                <select
+                  name="accountId"
+                  defaultValue={selectedAccountId}
+                  className="w-full rounded-lg border border-[#C2D3DA] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                >
+                  {accounts.map((acc) => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                  Frequency
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFrequency("once")}
+                    className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
+                      frequency === "once"
+                        ? "bg-[#715B64] text-[#F5FEFA]"
+                        : "bg-white text-[#454545]"
+                    }`}
+                  >
+                    Once
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFrequency("monthly")}
+                    className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
+                      frequency === "monthly"
+                        ? "bg-[#715B64] text-[#F5FEFA]"
+                        : "bg-white text-[#454545]"
+                    }`}
+                  >
+                    Monthly
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-full px-4 py-2 text-xs font-semibold text-[#715B64] hover:bg-[#D9C9D2]/60"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="rounded-full bg-[#715B64] px-5 py-2 text-xs font-semibold text-[#F5FEVA] shadow-sm hover:bg-[#5E4A54]"
+              >
+                Save Bill
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {isPadOpen && (
+        <NumberPad
+          value={amount}
+          onChange={setAmount}
+          onClose={() => setIsPadOpen(false)}
+        />
+      )}
+    </>
+  );
+}
+
+type BillsListModalProps = {
+  bills: Bill[];
+  accounts: Account[];
+  onClose: () => void;
+  onEdit: (bill: Bill) => void;
+  onMarkPaid: (bill: Bill) => void;
+};
+
+type EditBillModalProps = {
+  bill: Bill;
+  accounts: Account[];
+  onClose: () => void;
+  onSave: (bill: Bill) => void;
+};
+
+function BillsListModal({
+  bills,
+  accounts,
+  onClose,
+  onEdit,
+  onMarkPaid,
+}: BillsListModalProps) {
+  const sorted = [...bills].sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+
+  const accountName = (id: string) =>
+    accounts.find((a) => a.id === id)?.name || "Unknown";
+
+  return (
+    <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
+      <div className="flex w-full max-w-2xl max-h-[70vh] flex-col rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-[#454545]">All Bills</h2>
+            <p className="mt-1 text-xs text-[#454545]/70">
+              Tap a bill to edit it, or mark it as paid.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-sm text-[#454545]/70 hover:text-[#454545]"
+          >
+            ✕
+          </button>
+        </div>
+
+        {sorted.length === 0 ? (
+          <div className="flex flex-1 items-center justify-center text-xs text-[#454545]/60">
+            No bills added yet.
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto pr-1">
+            <div className="space-y-2 text-sm">
+              {sorted.map((bill) => {
+                const isOneTimePaid =
+                  bill.frequency === "once" && bill.isPaid;
+
+                return (
+                  <div
+                    key={bill.id}
+                    className="flex items-center justify-between rounded-xl bg-white px-3 py-2 text-sm text-[#454545]"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => onEdit(bill)}
+                      className="flex flex-1 flex-col text-left"
+                    >
+                      <span className="font-semibold">{bill.name}</span>
+                      <span className="text-[11px] text-[#454545]/70">
+                        Due {bill.dueDate} · {accountName(bill.accountId)}
+                      </span>
+                    </button>
+
+                    <div className="ml-4 text-right">
+                      <div className="text-sm font-semibold text-[#C95454]">
+                        -$
+                        {bill.amount.toLocaleString("en-CA", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+                      </div>
+                      <div className="text-[11px] text-[#454545]/60">
+                        {bill.frequency === "monthly" ? "Monthly" : "Once"}
+                        {isOneTimePaid && " · Paid"}
+                      </div>
+
+                      {!isOneTimePaid && (
+                        <button
+                          type="button"
+                          onClick={() => onMarkPaid(bill)}
+                          className="mt-1 rounded-full border border-[#C2D3DA] px-3 py-1 text-[11px] font-semibold text-[#454545]/80 hover:bg-[#F3F6F8]"
+                        >
+                          Mark paid
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EditBillModal({
+  bill,
+  accounts,
+  onClose,
+  onSave,
+}: EditBillModalProps) {
+  const [name, setName] = useState(bill.name);
+  const [amount, setAmount] = useState(bill.amount.toString());
+  const [dueDate, setDueDate] = useState(bill.dueDate);
+  const [accountId, setAccountId] = useState(bill.accountId);
+  const [frequency, setFrequency] = useState<Bill["frequency"]>(
+    bill.frequency || "monthly"
+  );
+  const [amountError, setAmountError] = useState("");
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const trimmedName = name.trim() || "Bill";
+    const parsedAmount = parseFloat(amount);
+
+    if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
+      setAmountError("Enter a valid amount");
+      return;
+    }
+
+    const updated: Bill = {
+      ...bill,
+      name: trimmedName,
+      amount: parsedAmount,
+      dueDate,
+      accountId,
+      frequency,
+    };
+
+    onSave(updated);
+  };
+
+  return (
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4">
+      <div className="w-full max-w-md rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-[#454545]">
+            Edit Bill
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-sm text-[#454545]/70 hover:text-[#454545]"
+          >
+            ✕
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+              Bill name
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full rounded-lg border border-[#C2D3DA] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                Amount
+              </label>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={amount}
+                onChange={(e) =>
+                  setAmount(e.target.value.replace(/[^0-9.]/g, ""))
+                }
+                placeholder="0.00"
+                className="w-full rounded-lg border border-[#C2D3DA] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+              />
+              {amountError && (
+                <p className="mt-1 text-xs text-[#C95454]">{amountError}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                Due date
+              </label>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="w-full rounded-lg border border-[#C2D3DA] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                Pay from
+              </label>
+              <select
+                value={accountId}
+                onChange={(e) => setAccountId(e.target.value)}
+                className="w-full rounded-lg border border-[#C2D3DA] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+              >
+                {accounts.map((acc) => (
+                  <option key={acc.id} value={acc.id}>
+                    {acc.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                Frequency
+              </label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFrequency("once")}
+                  className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
+                    frequency === "once"
+                      ? "bg-[#715B64] text-[#F5FEFA]"
+                      : "bg-white text-[#454545]"
+                  }`}
+                >
+                  Once
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFrequency("monthly")}
+                  className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
+                    frequency === "monthly"
+                      ? "bg-[#715B64] text-[#F5FEFA]"
+                      : "bg-white text-[#454545]"
+                  }`}
+                >
+                  Monthly
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full px-4 py-2 text-xs font-semibold text-[#715B64] hover:bg-[#D9C9D2]/60"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="rounded-full bg-[#715B64] px-5 py-2 text-xs font-semibold text-[#F5FEFA] shadow-sm hover:bg-[#5E4A54]"
+            >
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
 
@@ -1454,10 +2055,10 @@ function TransactionsHistoryModal({
   });
 
   const sortBtnBase =
-    "ml-2 rounded-full border border-[#C2D0D6] px-2 py-1 text-xs font-semibold text-[#454545]/80 hover:bg.black/5";
+    "ml-2 rounded-full border border-[#C2D0D6] px-2 py-1 text-xs font-semibold text-[#454545]/80 hover:bg-black/5";
 
   return (
-    <div className="fixed inset-0 z-20 flex items-center justify-center bg.black/50 px-4">
+    <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
       <div className="flex w-full max-w-2xl max-h-[70vh] flex-col rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
         <div className="mb-4 flex items-center justify-between">
           <div>
@@ -1468,7 +2069,7 @@ function TransactionsHistoryModal({
               <button
                 type="button"
                 className={`${sortBtnBase} ${
-                  sortMode === "date" ? "bg.black/5" : ""
+                  sortMode === "date" ? "bg-black/5" : ""
                 }`}
                 onClick={() => setSortMode("date")}
                 title="Sort by date"
@@ -1478,7 +2079,7 @@ function TransactionsHistoryModal({
               <button
                 type="button"
                 className={`${sortBtnBase} ${
-                  sortMode === "expense" ? "bg.black/5" : ""
+                  sortMode === "expense" ? "bg-black/5" : ""
                 }`}
                 onClick={() => setSortMode("expense")}
                 title="Show expenses first"
@@ -1488,7 +2089,7 @@ function TransactionsHistoryModal({
               <button
                 type="button"
                 className={`${sortBtnBase} ${
-                  sortMode === "income" ? "bg.black/5" : ""
+                  sortMode === "income" ? "bg-black/5" : ""
                 }`}
                 onClick={() => setSortMode("income")}
                 title="Show income first"
@@ -1577,7 +2178,7 @@ function EditTransactionDetailsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg.black/50 px-4">
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4">
       <div className="w-full max-w-md rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-[#454545]">
@@ -1595,7 +2196,7 @@ function EditTransactionDetailsModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
-              Title
+              Description
             </label>
             <input
               type="text"
@@ -1604,7 +2205,6 @@ function EditTransactionDetailsModal({
               className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
             />
           </div>
-
           <div>
             <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
               Date
@@ -1617,17 +2217,17 @@ function EditTransactionDetailsModal({
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="mt-4 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full px-4 py-2 text-xs font-semibold text-[#454545]/80 hover:bg.black/5"
+              className="rounded-full px-4 py-2 text-xs font-semibold text-[#715B64] hover:bg-[#D9C9D2]/60"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="rounded-full bg-[#715B64] px-4 py-2 text-xs font-semibold text-white hover:bg-[#5d4953]"
+              className="rounded-full bg-[#715B64] px-5 py-2 text-xs font-semibold text-[#F5FEFA] shadow-sm hover:bg-[#5E4A54]"
             >
               Save Changes
             </button>
@@ -1651,119 +2251,132 @@ function EditTransactionAmountModal({
   onClose,
   onSave,
 }: EditTransactionAmountModalProps) {
-  const [amountStr, setAmountStr] = useState(
-    Math.abs(transaction.amount).toString()
-  );
+  const [amountStr, setAmountStr] = useState(transaction.amount.toString());
   const [error, setError] = useState("");
-
-  const isExpense = transaction.amount < 0;
+  const [isPadOpen, setIsPadOpen] = useState(false);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const parsed = parseFloat(amountStr);
-    if (!amountStr || Number.isNaN(parsed) || parsed === 0) {
-      setError("Enter an amount");
+
+    const raw = amountStr.trim();
+    const parsed = parseFloat(raw);
+
+    if (raw === "" || Number.isNaN(parsed) || parsed === 0) {
+      setError("Enter a valid amount");
       return;
     }
-    const finalAmount = isExpense ? -Math.abs(parsed) : Math.abs(parsed);
-    onSave(finalAmount);
+
+    setError("");
+    onSave(parsed);
   };
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg.black/50 px-4">
-      <div className="w-full max-w-sm rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-[#454545]">
-            Edit Amount
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-sm text-[#454545]/70 hover:text-[#454545]"
-          >
-            ✕
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
-              Amount ({isExpense ? "expense" : "income"})
-            </label>
-            <input
-              type="text"
-              inputMode="decimal"
-              value={amountStr}
-              onChange={(e) => setAmountStr(e.target.value)}
-              className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
-            />
-            {error && (
-              <p className="mt-1 text-xs text-red-500">{error}</p>
-            )}
-          </div>
-
-          <div className="flex justify-end gap-3 pt-2">
+    <>
+      <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4">
+        <div className="w-full max-w-sm rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-[#454545]">
+              Edit Amount
+            </h2>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full px-4 py-2 text-xs font-semibold text-[#454545]/80 hover:bg.black/5"
+              className="text-sm text-[#454545]/70 hover:text-[#454545]"
             >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="rounded-full bg-[#715B64] px-4 py-2 text-xs font-semibold text-white hover:bg-[#5d4953]"
-            >
-              Save Amount
+              ✕
             </button>
           </div>
-        </form>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                Amount
+              </label>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={amountStr}
+                onChange={(e) => setAmountStr(e.target.value)}
+                className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                placeholder="0.00"
+              />
+              <button
+                type="button"
+                onClick={() => setIsPadOpen(true)}
+                className="mt-1 text-[11px] font-semibold text-[#715B64] hover:text-[#5d4953]"
+              >
+                Open number pad
+              </button>
+              {error && (
+                <p className="mt-1 text-xs text-red-500">{error}</p>
+              )}
+            </div>
+
+            <div className="mt-4 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-full px-4 py-2 text-xs font-semibold text-[#715B64] hover:bg-[#D9C9D2]/60"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="rounded-full bg-[#715B64] px-5 py-2 text-xs font-semibold text-[#F5FEFA] shadow-sm hover:bg-[#5E4A54]"
+              >
+                Save Amount
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
+
+      {isPadOpen && (
+        <NumberPad
+          value={amountStr}
+          onChange={setAmountStr}
+          onClose={() => setIsPadOpen(false)}
+        />
+      )}
+    </>
   );
 }
 
-/* NUMBER PAD */
+/* SHARED NUMBER PAD */
 
 type NumberPadProps = {
   value: string;
-  onChange: (next: string) => void;
+  onChange: (value: string) => void;
   onClose: () => void;
 };
 
 function NumberPad({ value, onChange, onClose }: NumberPadProps) {
-  const handleDigit = (digit: string) => {
-    if (digit === ".") {
-      if (value.includes(".")) return;
-      const next = value === "" ? "0." : value + ".";
-      onChange(next);
+  const handlePress = (key: string) => {
+    if (key === "C") {
+      onChange("");
       return;
     }
-
-    if (value === "0") {
-      onChange(digit);
-    } else {
-      onChange(value + digit);
+    if (key === "←") {
+      onChange(value.slice(0, -1));
+      return;
     }
+    if (key === ".") {
+      if (value.includes(".")) return;
+      onChange(value === "" ? "0." : value + ".");
+      return;
+    }
+    // digits
+    onChange(value + key);
   };
 
-  const handleBackspace = () => {
-    if (!value) return;
-    onChange(value.slice(0, -1));
-  };
-
-  const handleClear = () => {
-    onChange("");
-  };
-
-  const display = value === "" ? "0.00" : value;
+  const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "←"];
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg.black/40 px-4">
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-4">
       <div className="w-full max-w-xs rounded-2xl bg-[#E9F2F5] p-4 shadow-xl">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="text-xs font-semibold text-[#454545]/70">
-            Amount
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-sm font-semibold text-[#454545]">
+            Number pad
           </span>
           <button
             type="button"
@@ -1774,59 +2387,35 @@ function NumberPad({ value, onChange, onClose }: NumberPadProps) {
           </button>
         </div>
 
-        <div className="mb-3 rounded-lg bg-white px-3 py-2 text-right text-lg font-semibold text-[#454545]">
-          {display}
-        </div>
-
-        <div className="mb-2 grid grid-cols-3 gap-2">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
-            <button
-              key={n}
-              type="button"
-              onClick={() => handleDigit(String(n))}
-              className="rounded-lg bg-white px-3 py-2 text-base font-semibold text-[#454545] hover:bg[#D9E3E8]"
-            >
-              {n}
-            </button>
-          ))}
+        <div className="mb-3 rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-right text-lg font-semibold text-[#454545]">
+          {value || "0"}
         </div>
 
         <div className="grid grid-cols-3 gap-2">
-          <button
-            type="button"
-            onClick={() => handleDigit("0")}
-            className="rounded-lg bg-white px-3 py-2 text-base font-semibold text-[#454545] hover:bg[#D9E3E8]"
-          >
-            0
-          </button>
-          <button
-            type="button"
-            onClick={() => handleDigit(".")}
-            className="rounded-lg bg-white px-3 py-2 text-base font-semibold text-[#454545] hover:bg[#D9E3E8]"
-          >
-            .
-          </button>
-          <button
-            type="button"
-            onClick={handleBackspace}
-            className="rounded-lg bg-white px-3 py-2 text-base font-semibold text-[#454545] hover:bg[#D9E3E8]"
-          >
-            ⌫
-          </button>
+          {keys.map((k) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => handlePress(k)}
+              className="flex h-10 items-center justify-center rounded-lg bg-white text-sm font-semibold text-[#454545] shadow-sm hover:bg-[#F3F6F8]"
+            >
+              {k}
+            </button>
+          ))}
         </div>
 
         <div className="mt-3 flex gap-2">
           <button
             type="button"
-            onClick={handleClear}
-            className="flex-1 rounded-full border border-[#C2D0D6] px-3 py-2 text-xs font-semibold text-[#454545]/80 hover:bg.black/5"
+            onClick={() => handlePress("C")}
+            className="flex-1 rounded-full bg-black/5 px-3 py-2 text-xs font-semibold text-[#454545]"
           >
             Clear
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 rounded-full bg-[#715B64] px-3 py-2 text-xs font-semibold text-white hover:bg[#5d4953]"
+            className="flex-1 rounded-full bg-[#715B64] px-3 py-2 text-xs font-semibold text-[#F5FEFA] hover:bg-[#5E4A54]"
           >
             Done
           </button>
