@@ -657,7 +657,7 @@ export default function Dashboard() {
             </section>
 
             {/* UPCOMING BILLS CARD */}
-            <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md">
+            <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md min-h-[260px]">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-sm font-semibold">Upcoming Bills</p>
                 <div className="flex items-center gap-3">
@@ -692,7 +692,7 @@ export default function Dashboard() {
               </div>
 
               {unpaidBills.length === 0 ? (
-                <div className="flex h-40 items-center justify-center rounded-xl bg-white/5 text-xs text-white/60">
+                <div className="flex h-full min-h-[200px] items-center justify-center rounded-xl bg-white/5 text-xs text-white/60">
                   No upcoming bills yet. Add your first bill to get reminders
                   here.
                 </div>
