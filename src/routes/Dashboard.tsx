@@ -332,6 +332,30 @@ export default function Dashboard() {
     }
   }
 
+  function handleDeleteTransaction(id: string) {
+    let txToDelete: Transaction | undefined;
+
+    setTransactions((prev) => {
+      const found = prev.find((tx) => tx.id === id);
+
+      if (!found) return prev;
+
+      txToDelete = found;
+      return prev.filter((tx) => tx.id !== id);
+    });
+
+    const foundTx = txToDelete;
+    if (!foundTx) return;
+
+    setAccounts((prev) =>
+      prev.map((acc) =>
+        acc.id === foundTx.accountId
+          ? { ...acc, balance: acc.balance - foundTx.amount }
+          : acc
+      )
+    );
+  }
+
   // Add account
   function handleAddAccount(newAccount: Account) {
     setAccounts((prev) => [...prev, newAccount]);
@@ -889,6 +913,7 @@ export default function Dashboard() {
           )}
           onEditDetails={(tx) => setEditingDetailsTx(tx)}
           onEditAmount={(tx) => setEditingAmountTx(tx)}
+          onDelete={handleDeleteTransaction}
         />
       )}
 
@@ -901,6 +926,7 @@ export default function Dashboard() {
             handleUpdateTransaction(editingDetailsTx.id, updates);
             setEditingDetailsTx(null);
           }}
+          onDelete={handleDeleteTransaction}
         />
       )}
 
@@ -913,6 +939,7 @@ export default function Dashboard() {
             handleUpdateTransaction(editingAmountTx.id, { amount });
             setEditingAmountTx(null);
           }}
+          onDelete={handleDeleteTransaction}
         />
       )}
 
@@ -2163,6 +2190,7 @@ type TransactionsHistoryModalProps = {
   transactions: Transaction[];
   onEditDetails: (tx: Transaction) => void;
   onEditAmount: (tx: Transaction) => void;
+  onDelete: (id: string) => void;
 };
 
 function TransactionsHistoryModal({
@@ -2171,6 +2199,7 @@ function TransactionsHistoryModal({
   transactions,
   onEditDetails,
   onEditAmount,
+  onDelete,
 }: TransactionsHistoryModalProps) {
   type SortMode = "date" | "expense" | "income";
   const [sortMode, setSortMode] = useState<SortMode>("date");
@@ -2288,6 +2317,13 @@ function TransactionsHistoryModal({
                   >
                     {formatCurrency(tx.amount)}
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => onDelete(tx.id)}
+                    className="ml-3 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-600 shadow-sm hover:bg-red-100"
+                  >
+                    Delete
+                  </button>
                 </div>
               ))}
             </div>
@@ -2304,12 +2340,14 @@ type EditTransactionDetailsModalProps = {
   transaction: Transaction;
   onClose: () => void;
   onSave: (updates: { description: string; date: string }) => void;
+  onDelete: (id: string) => void;
 };
 
 function EditTransactionDetailsModal({
   transaction,
   onClose,
   onSave,
+  onDelete,
 }: EditTransactionDetailsModalProps) {
   const [description, setDescription] = useState(transaction.description);
   const [date, setDate] = useState(transaction.date);
@@ -2365,6 +2403,16 @@ function EditTransactionDetailsModal({
           <div className="mt-4 flex items-center justify-end gap-3">
             <button
               type="button"
+              onClick={() => {
+                onDelete(transaction.id);
+                onClose();
+              }}
+              className="mr-auto rounded-full bg-red-50 px-4 py-2 text-xs font-semibold text-red-600 shadow-sm hover:bg-red-100"
+            >
+              Delete
+            </button>
+            <button
+              type="button"
               onClick={onClose}
               className="rounded-full px-4 py-2 text-xs font-semibold text-[#715B64] hover:bg-[#D9C9D2]/60"
             >
@@ -2389,12 +2437,14 @@ type EditTransactionAmountModalProps = {
   transaction: Transaction;
   onClose: () => void;
   onSave: (amount: number) => void;
+  onDelete: (id: string) => void;
 };
 
 function EditTransactionAmountModal({
   transaction,
   onClose,
   onSave,
+  onDelete,
 }: EditTransactionAmountModalProps) {
   const [amountStr, setAmountStr] = useState(transaction.amount.toString());
   const [error, setError] = useState("");
@@ -2458,6 +2508,16 @@ function EditTransactionAmountModal({
             </div>
 
             <div className="mt-4 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  onDelete(transaction.id);
+                  onClose();
+                }}
+                className="mr-auto rounded-full bg-red-50 px-4 py-2 text-xs font-semibold text-red-600 shadow-sm hover:bg-red-100"
+              >
+                Delete
+              </button>
               <button
                 type="button"
                 onClick={onClose}
