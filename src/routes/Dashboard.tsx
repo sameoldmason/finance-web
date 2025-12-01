@@ -32,6 +32,69 @@ function formatCurrency(amount: number) {
   });
 }
 
+function startOfToday() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function getNextDueDate(bill: Bill, paidOn: string) {
+  const baseDate = bill.dueDate || paidOn;
+  const d = new Date(`${baseDate}T00:00:00`);
+
+  if (Number.isNaN(d.getTime())) return paidOn;
+
+  switch (bill.frequency) {
+    case "weekly": {
+      d.setDate(d.getDate() + 7);
+      break;
+    }
+    case "biweekly": {
+      d.setDate(d.getDate() + 14);
+      break;
+    }
+    case "monthly":
+    default: {
+      d.setMonth(d.getMonth() + 1);
+    }
+  }
+
+  return d.toISOString().slice(0, 10);
+}
+
+function getDueStatus(dueDate: string) {
+  const due = new Date(`${dueDate}T00:00:00`);
+  const diffDays = Math.ceil(
+    (due.getTime() - startOfToday().getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  if (Number.isNaN(diffDays)) {
+    return { label: "No due date", tone: "muted" as const };
+  }
+
+  if (diffDays < 0) {
+    const overdueBy = Math.abs(diffDays);
+    return {
+      label: `Overdue by ${overdueBy} day${overdueBy === 1 ? "" : "s"}`,
+      tone: "danger" as const,
+    };
+  }
+
+  if (diffDays === 0) {
+    return { label: "Due today", tone: "warning" as const };
+  }
+
+  if (diffDays === 1) {
+    return { label: "Due tomorrow", tone: "warning" as const };
+  }
+
+  if (diffDays <= 7) {
+    return { label: `Due in ${diffDays} days`, tone: "warning" as const };
+  }
+
+  return { label: `Due ${dueDate}`, tone: "muted" as const };
+}
+
 export default function Dashboard() {
   const { theme, toggle } = useTheme();
   const { activeProfile } = useActiveProfile();
@@ -216,16 +279,15 @@ export default function Dashboard() {
       prev.map((b) => {
         if (b.id !== bill.id) return b;
 
-        if (b.frequency === "monthly") {
-          const base = (b.dueDate || today) + "T00:00:00";
-          const d = new Date(base);
-          d.setMonth(d.getMonth() + 1);
-          const nextDue = d.toISOString().slice(0, 10);
-          return { ...b, dueDate: nextDue, isPaid: false };
+        const frequency = b.frequency ?? "once";
+
+        if (frequency === "once") {
+          // one-time bill → mark as paid so it disappears from “upcoming”
+          return { ...b, isPaid: true };
         }
 
-        // one-time bill → mark as paid so it disappears from “upcoming”
-        return { ...b, isPaid: true };
+        const nextDue = getNextDueDate(b, today);
+        return { ...b, dueDate: nextDue, isPaid: false };
       })
     );
   }
@@ -595,7 +657,7 @@ export default function Dashboard() {
             </section>
 
             {/* UPCOMING BILLS CARD */}
-            <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md">
+            <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md min-h-[260px]">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-sm font-semibold">Upcoming Bills</p>
                 <div className="flex items-center gap-3">
@@ -629,59 +691,92 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {unpaidBills.length === 0 ? (
-                <div className="flex h-40 items-center justify-center rounded-xl bg-white/5 text-xs text-white/60">
-                  No upcoming bills yet. Add your first bill to get reminders
-                  here.
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {[...unpaidBills]
-                    .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
-                    .slice(0, 3)
-                    .map((bill) => (
-                      <div
-                        key={bill.id}
-                        className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-3 text-xs"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => setEditingBill(bill)}
-                          className="flex flex-1 flex-col text-left"
-                        >
-                          <span className="font-semibold">{bill.name}</span>
-                          <span className="text-[11px] text-white/60">
-                            Due {bill.dueDate}
-                          </span>
-                        </button>
-
-                        <div className="ml-4 text-right">
-                          <div className="text-sm font-semibold text-[#E89A9A]">
-                            -$
-                            {bill.amount.toLocaleString("en-CA", {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleMarkBillPaid(bill)}
-                            className="mt-1 rounded-full border border-white/30 px-3 py-1 text-[11px] font-semibold text-white/80 hover:bg-white/10"
+              <div className="flex min-h-[232px] flex-col">
+                {unpaidBills.length === 0 ? (
+                  <div className="flex flex-1 items-center justify-center rounded-xl bg-white/5 text-xs text-white/60">
+                    No upcoming bills yet. Add your first bill to get reminders
+                    here.
+                  </div>
+                ) : (
+                  <div className="flex flex-1 flex-col">
+                    <div className="space-y-2">
+                      {[...unpaidBills]
+                        .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
+                        .slice(0, 3)
+                        .map((bill) => (
+                          <div
+                            key={bill.id}
+                            className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-3 text-xs"
                           >
-                            Mark paid
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                            <button
+                              type="button"
+                              onClick={() => setEditingBill(bill)}
+                              className="flex flex-1 flex-col text-left"
+                            >
+                              <span className="font-semibold">{bill.name}</span>
+                              <span className="flex items-center gap-2 text-[11px] text-white/60">
+                                <span>Due {bill.dueDate}</span>
 
-                  {unpaidBills.length > 3 && (
-                    <p className="pt-1 text-[11px] text-white/60">
-                      + {unpaidBills.length - 3} more bill
-                      {unpaidBills.length - 3 === 1 ? "" : "s"} not shown
-                    </p>
-                  )}
-                </div>
-              )}
+                                {(() => {
+                                  const status = getDueStatus(bill.dueDate);
+
+                                  const badgeBase =
+                                    "rounded-full px-2 py-0.5 text-[10px] font-semibold";
+
+                                  const badgeColor =
+                                    status.tone === "danger"
+                                      ? "bg-white/20 text-[#FBD5D5]"
+                                      : status.tone === "warning"
+                                        ? "bg-white/15 text-[#F2E2BE]"
+                                        : "bg-white/10 text-white/70";
+
+                                  return (
+                                    <span className={`${badgeBase} ${badgeColor}`}>
+                                      {status.label}
+                                    </span>
+                                  );
+                                })()}
+                              </span>
+                            </button>
+
+                            <div className="ml-4 text-right">
+                              <div className="text-sm font-semibold text-[#E89A9A]">
+                                -$
+                                {bill.amount.toLocaleString("en-CA", {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
+                              </div>
+                              <div className="text-[11px] text-white/60">
+                                {bill.frequency === "weekly"
+                                  ? "Weekly"
+                                  : bill.frequency === "biweekly"
+                                    ? "Bi-weekly"
+                                    : bill.frequency === "once"
+                                      ? "One-time"
+                                      : "Monthly"}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleMarkBillPaid(bill)}
+                                className="mt-1 rounded-full border border-white/30 px-3 py-1 text-[11px] font-semibold text-white/80 hover:bg-white/10"
+                              >
+                                Mark paid
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+
+                    {unpaidBills.length > 3 && (
+                      <p className="pt-1 text-[11px] text-white/60">
+                        + {unpaidBills.length - 3} more bill
+                        {unpaidBills.length - 3 === 1 ? "" : "s"} not shown
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
             </section>
           </div>
 
@@ -1551,7 +1646,7 @@ function NewBillModal({
   const [isPadOpen, setIsPadOpen] = useState(false);
 
   const today = new Date().toISOString().slice(0, 10);
-  const [frequency, setFrequency] = useState<Bill["frequency"]>("monthly");
+  const [frequency, setFrequency] = useState<Bill["frequency"]>("once");
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -1675,27 +1770,49 @@ function NewBillModal({
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
-                  Frequency
-                </label>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setFrequency("once")}
-                    className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
-                      frequency === "once"
-                        ? "bg-[#715B64] text-[#F5FEFA]"
-                        : "bg-white text-[#454545]"
+              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                Frequency
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFrequency("once")}
+                  className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
+                    frequency === "once"
+                      ? "bg-[#715B64] text-[#F5FEFA]"
+                      : "bg-white text-[#454545]"
                     }`}
-                  >
-                    Once
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setFrequency("monthly")}
-                    className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
-                      frequency === "monthly"
-                        ? "bg-[#715B64] text-[#F5FEFA]"
+                >
+                  Once
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFrequency("weekly")}
+                  className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
+                    frequency === "weekly"
+                      ? "bg-[#715B64] text-[#F5FEFA]"
+                      : "bg-white text-[#454545]"
+                  }`}
+                >
+                  Weekly
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFrequency("biweekly")}
+                  className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
+                    frequency === "biweekly"
+                      ? "bg-[#715B64] text-[#F5FEFA]"
+                      : "bg-white text-[#454545]"
+                  }`}
+                >
+                  Bi-weekly
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFrequency("monthly")}
+                  className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
+                    frequency === "monthly"
+                      ? "bg-[#715B64] text-[#F5FEFA]"
                         : "bg-white text-[#454545]"
                     }`}
                   >
@@ -1817,7 +1934,13 @@ function BillsListModal({
                         })}
                       </div>
                       <div className="text-[11px] text-[#454545]/60">
-                        {bill.frequency === "monthly" ? "Monthly" : "Once"}
+                        {bill.frequency === "weekly"
+                          ? "Weekly"
+                          : bill.frequency === "biweekly"
+                            ? "Bi-weekly"
+                            : bill.frequency === "once"
+                              ? "One-time"
+                              : "Monthly"}
                         {isOneTimePaid && " · Paid"}
                       </div>
 
@@ -1964,7 +2087,7 @@ function EditBillModal({
               <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
                 Frequency
               </label>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setFrequency("once")}
@@ -1975,6 +2098,28 @@ function EditBillModal({
                   }`}
                 >
                   Once
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFrequency("weekly")}
+                  className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
+                    frequency === "weekly"
+                      ? "bg-[#715B64] text-[#F5FEFA]"
+                      : "bg-white text-[#454545]"
+                  }`}
+                >
+                  Weekly
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFrequency("biweekly")}
+                  className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
+                    frequency === "biweekly"
+                      ? "bg-[#715B64] text-[#F5FEFA]"
+                      : "bg-white text-[#454545]"
+                  }`}
+                >
+                  Bi-weekly
                 </button>
                 <button
                   type="button"
