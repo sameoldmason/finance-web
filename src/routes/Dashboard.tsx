@@ -691,88 +691,92 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {unpaidBills.length === 0 ? (
-                <div className="flex h-full min-h-[200px] items-center justify-center rounded-xl bg-white/5 text-xs text-white/60">
-                  No upcoming bills yet. Add your first bill to get reminders
-                  here.
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {[...unpaidBills]
-                    .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
-                    .slice(0, 3)
-                    .map((bill) => (
-                      <div
-                        key={bill.id}
-                        className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-3 text-xs"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => setEditingBill(bill)}
-                          className="flex flex-1 flex-col text-left"
-                        >
-                          <span className="font-semibold">{bill.name}</span>
-                          <span className="flex items-center gap-2 text-[11px] text-white/60">
-                            <span>Due {bill.dueDate}</span>
-
-                            {(() => {
-                              const status = getDueStatus(bill.dueDate);
-
-                              const badgeBase =
-                                "rounded-full px-2 py-0.5 text-[10px] font-semibold";
-
-                              const badgeColor =
-                                status.tone === "danger"
-                                  ? "bg-white/20 text-[#FBD5D5]"
-                                  : status.tone === "warning"
-                                    ? "bg-white/15 text-[#F2E2BE]"
-                                    : "bg-white/10 text-white/70";
-
-                              return (
-                                <span className={`${badgeBase} ${badgeColor}`}>
-                                  {status.label}
-                                </span>
-                              );
-                            })()}
-                          </span>
-                        </button>
-
-                        <div className="ml-4 text-right">
-                          <div className="text-sm font-semibold text-[#E89A9A]">
-                            -$
-                            {bill.amount.toLocaleString("en-CA", {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}
-                          </div>
-                          <div className="text-[11px] text-white/60">
-                            {bill.frequency === "weekly"
-                              ? "Weekly"
-                              : bill.frequency === "biweekly"
-                                ? "Bi-weekly"
-                                : bill.frequency === "once"
-                                  ? "One-time"
-                                  : "Monthly"}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleMarkBillPaid(bill)}
-                            className="mt-1 rounded-full border border-white/30 px-3 py-1 text-[11px] font-semibold text-white/80 hover:bg-white/10"
+              <div className="flex min-h-[232px] flex-col">
+                {unpaidBills.length === 0 ? (
+                  <div className="flex flex-1 items-center justify-center rounded-xl bg-white/5 text-xs text-white/60">
+                    No upcoming bills yet. Add your first bill to get reminders
+                    here.
+                  </div>
+                ) : (
+                  <div className="flex flex-1 flex-col">
+                    <div className="space-y-2">
+                      {[...unpaidBills]
+                        .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
+                        .slice(0, 3)
+                        .map((bill) => (
+                          <div
+                            key={bill.id}
+                            className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-3 text-xs"
                           >
-                            Mark paid
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                            <button
+                              type="button"
+                              onClick={() => setEditingBill(bill)}
+                              className="flex flex-1 flex-col text-left"
+                            >
+                              <span className="font-semibold">{bill.name}</span>
+                              <span className="flex items-center gap-2 text-[11px] text-white/60">
+                                <span>Due {bill.dueDate}</span>
 
-                  {unpaidBills.length > 3 && (
-                    <p className="pt-1 text-[11px] text-white/60">
-                      + {unpaidBills.length - 3} more bill
-                      {unpaidBills.length - 3 === 1 ? "" : "s"} not shown
-                    </p>
-                  )}
-                </div>
-              )}
+                                {(() => {
+                                  const status = getDueStatus(bill.dueDate);
+
+                                  const badgeBase =
+                                    "rounded-full px-2 py-0.5 text-[10px] font-semibold";
+
+                                  const badgeColor =
+                                    status.tone === "danger"
+                                      ? "bg-white/20 text-[#FBD5D5]"
+                                      : status.tone === "warning"
+                                        ? "bg-white/15 text-[#F2E2BE]"
+                                        : "bg-white/10 text-white/70";
+
+                                  return (
+                                    <span className={`${badgeBase} ${badgeColor}`}>
+                                      {status.label}
+                                    </span>
+                                  );
+                                })()}
+                              </span>
+                            </button>
+
+                            <div className="ml-4 text-right">
+                              <div className="text-sm font-semibold text-[#E89A9A]">
+                                -$
+                                {bill.amount.toLocaleString("en-CA", {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
+                              </div>
+                              <div className="text-[11px] text-white/60">
+                                {bill.frequency === "weekly"
+                                  ? "Weekly"
+                                  : bill.frequency === "biweekly"
+                                    ? "Bi-weekly"
+                                    : bill.frequency === "once"
+                                      ? "One-time"
+                                      : "Monthly"}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleMarkBillPaid(bill)}
+                                className="mt-1 rounded-full border border-white/30 px-3 py-1 text-[11px] font-semibold text-white/80 hover:bg-white/10"
+                              >
+                                Mark paid
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+
+                    {unpaidBills.length > 3 && (
+                      <p className="pt-1 text-[11px] text-white/60">
+                        + {unpaidBills.length - 3} more bill
+                        {unpaidBills.length - 3 === 1 ? "" : "s"} not shown
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
             </section>
           </div>
 
@@ -1642,7 +1646,7 @@ function NewBillModal({
   const [isPadOpen, setIsPadOpen] = useState(false);
 
   const today = new Date().toISOString().slice(0, 10);
-  const [frequency, setFrequency] = useState<Bill["frequency"]>("monthly");
+  const [frequency, setFrequency] = useState<Bill["frequency"]>("once");
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
