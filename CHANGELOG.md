@@ -1,65 +1,73 @@
-# Changelog
+# CHANGELOG
 
-All notable changes to this project will be documented in this file.
+## 0.2.0 — Dashboard Update (Bills + Stability Fixes)
+2025-11-28
+
+### Added
+- Full Upcoming Bills system:
+  - Create (once or monthly)
+  - Edit bills
+  - Monthly recurrence auto-advances due date
+  - One-time bills hide after payment
+- Mark as Paid flow:
+  - Auto-creates expense transaction
+  - Updates correct account balance
+  - Handles monthly rollovers
+- New Bill Modal with keypad + theme-consistent UI
+- Edit Bill Modal with validation + frequency toggle
+- Bills now persisted via dashboardStore
+- Transactions History sorting: date, expenses-first, income-first
+- Edit Transaction Amount & Edit Details fully functional
+
+### Fixed
+- Black background in modal text fields
+- New Bill button styling corrected to match theme
+- Missing onTransfer prop in transfer modal
+- Carousel no longer forces selected account to left position
+- Removed phantom default accounts on new profiles
+- Edit Account button visibility restored
+
+### Improved
+- Cleaner persistence logic (loadDashboardData / saveDashboardData)
+- Smoother modal styling consistency
+- Dashboard reorganized for stability before deployment
 
 ---
 
-## 0.1.0 — Initial Dashboard + Profile System  
-**2025-11-28**
+## 0.1.0 — Initial Dashboard + Profile System
+2025-11-28
 
 ### Added
-- Full profile creation system:
-  - Welcome screen
-  - Create Profile
-  - Choose Profile
-  - Unlock Profile (password-protected)
-- ActiveProfileContext for managing profile sessions.
-- LocalStorage-backed dashboard state per profile.
-
-### Dashboard
+- Full profile flow (Welcome → Create → Choose → Unlock)
+- Password protection + local storage persistence
+- Dashboard saved separately per profile
 - Accounts:
-  - Add new accounts
-  - Edit account name and balance
-  - Balance adjustments auto-create a transaction
-  - Two-pill carousel with left/right arrows
-  - Selected-account edit button restored
-
+  - Add / Edit
+  - Balance adjustments create auto-transactions
+  - 2-pill carousel
 - Transactions:
-  - Add new income/expense transactions
-  - Ready-only 3-transaction preview
-  - Full transaction history modal
-  - Sort by date / expenses-first / income-first
-  - Edit transaction title + date modal
-  - Edit amount modal with automatic balance recalculation
+  - Add income/expense
+  - Preview (3 max)
+  - Full history modal
+  - Edit details + edit amount
+- Transfers system (from → to) with auto in/out transactions
+- Reusable number pad
 
-- Transfers:
-  - Transfer modal (from → to)
-  - Auto-create transfer-in / transfer-out transactions
-  - Balance adjustments handled cleanly
-
-- Number Pad:
-  - Reusable number pad for amount fields
-  - Used in New Transaction, New Account, Edit Account, Edit Amount
-
-### UI / Styling
-- Implemented light/dark theme support through ThemeProvider.
-- Fixed Tailwind class issues (`bg-white`, text colors, hover colors).
-- Gradient backgrounds consistent across layout.
-- Responsive text wrapping for dashboard button labels.
+### UI
+- Light/dark theme support
+- Cleaner Tailwind classes + gradient layout
+- Responsive button labels
 
 ### Infrastructure
-- Project deployed to Vercel (`finance-web-delta.vercel.app`)
-- GitHub repository created (`github.com/sameoldmason/finance-web`)
-- Automated deployments from GitHub → Vercel
+- GitHub repo initialized
+- Vercel deployment (auto-deploy from GitHub)
 
 ---
 
-## 0.0.1 — Project Setup  
-**2025-11-24**
+## 0.0.1 — Project Setup
+2025-11-24
 
 ### Added
-- Vite + React project initialization
-- Base folder structure
-- ThemeProvider
-- Routing screens for account creation flow
-- Starter components and layout
+- Vite + React setup
+- Routing + theme provider
+- Initial folder structure
