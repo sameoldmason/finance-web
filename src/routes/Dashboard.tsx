@@ -652,9 +652,11 @@ export default function Dashboard() {
                   .reverse()
                   .slice(0, 3)
                   .map((tx) => (
-                    <div
+                    <button
                       key={tx.id}
-                      className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-2"
+                      type="button"
+                      onClick={() => setEditingDetailsTx(tx)}
+                      className="flex w-full items-center justify-between rounded-xl bg-white/5 px-3 py-2 text-left hover:bg-white/10"
                     >
                       <span>{tx.description || "Transaction"}</span>
                       <span
@@ -664,7 +666,7 @@ export default function Dashboard() {
                       >
                         {formatCurrency(tx.amount)}
                       </span>
-                    </div>
+                    </button>
                   ))}
               </div>
             </section>
@@ -939,7 +941,6 @@ export default function Dashboard() {
             handleUpdateTransaction(editingAmountTx.id, { amount });
             setEditingAmountTx(null);
           }}
-          onDelete={handleDeleteTransaction}
         />
       )}
 
@@ -2339,7 +2340,7 @@ function TransactionsHistoryModal({
 type EditTransactionDetailsModalProps = {
   transaction: Transaction;
   onClose: () => void;
-  onSave: (updates: { description: string; date: string }) => void;
+  onSave: (updates: { description: string; date: string; amount: number }) => void;
   onDelete: (id: string) => void;
 };
 
@@ -2351,12 +2352,26 @@ function EditTransactionDetailsModal({
 }: EditTransactionDetailsModalProps) {
   const [description, setDescription] = useState(transaction.description);
   const [date, setDate] = useState(transaction.date);
+  const [amountStr, setAmountStr] = useState(transaction.amount.toString());
+  const [error, setError] = useState("");
+  const [isPadOpen, setIsPadOpen] = useState(false);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    const rawAmount = amountStr.trim();
+    const parsedAmount = parseFloat(rawAmount);
+
+    if (rawAmount === "" || Number.isNaN(parsedAmount) || parsedAmount === 0) {
+      setError("Enter a valid amount");
+      return;
+    }
+
+    setError("");
     onSave({
       description: description.trim() || "Transaction",
       date,
+      amount: parsedAmount,
     });
   };
 
@@ -2400,17 +2415,29 @@ function EditTransactionDetailsModal({
             />
           </div>
 
-          <div className="mt-4 flex items-center justify-end gap-3">
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+              Amount
+            </label>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={amountStr}
+              onChange={(e) => setAmountStr(e.target.value)}
+              className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+              placeholder="0.00"
+            />
             <button
               type="button"
-              onClick={() => {
-                onDelete(transaction.id);
-                onClose();
-              }}
-              className="mr-auto rounded-full bg-red-50 px-4 py-2 text-xs font-semibold text-red-600 shadow-sm hover:bg-red-100"
+              onClick={() => setIsPadOpen(true)}
+              className="mt-1 text-[11px] font-semibold text-[#715B64] hover:text-[#5d4953]"
             >
-              Delete
+              Open number pad
             </button>
+            {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+          </div>
+
+          <div className="mt-4 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={onClose}
@@ -2427,6 +2454,14 @@ function EditTransactionDetailsModal({
           </div>
         </form>
       </div>
+
+      {isPadOpen && (
+        <NumberPad
+          value={amountStr}
+          onChange={setAmountStr}
+          onClose={() => setIsPadOpen(false)}
+        />
+      )}
     </div>
   );
 }
@@ -2437,14 +2472,12 @@ type EditTransactionAmountModalProps = {
   transaction: Transaction;
   onClose: () => void;
   onSave: (amount: number) => void;
-  onDelete: (id: string) => void;
 };
 
 function EditTransactionAmountModal({
   transaction,
   onClose,
   onSave,
-  onDelete,
 }: EditTransactionAmountModalProps) {
   const [amountStr, setAmountStr] = useState(transaction.amount.toString());
   const [error, setError] = useState("");
@@ -2508,16 +2541,6 @@ function EditTransactionAmountModal({
             </div>
 
             <div className="mt-4 flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  onDelete(transaction.id);
-                  onClose();
-                }}
-                className="mr-auto rounded-full bg-red-50 px-4 py-2 text-xs font-semibold text-red-600 shadow-sm hover:bg-red-100"
-              >
-                Delete
-              </button>
               <button
                 type="button"
                 onClick={onClose}
