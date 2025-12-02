@@ -332,6 +332,30 @@ export default function Dashboard() {
     }
   }
 
+  function handleDeleteTransaction(id: string) {
+    let txToDelete: Transaction | undefined;
+
+    setTransactions((prev) => {
+      const found = prev.find((tx) => tx.id === id);
+
+      if (!found) return prev;
+
+      txToDelete = found;
+      return prev.filter((tx) => tx.id !== id);
+    });
+
+    const foundTx = txToDelete;
+    if (!foundTx) return;
+
+    setAccounts((prev) =>
+      prev.map((acc) =>
+        acc.id === foundTx.accountId
+          ? { ...acc, balance: acc.balance - foundTx.amount }
+          : acc
+      )
+    );
+  }
+
   // Add account
   function handleAddAccount(newAccount: Account) {
     setAccounts((prev) => [...prev, newAccount]);
@@ -628,9 +652,11 @@ export default function Dashboard() {
                   .reverse()
                   .slice(0, 3)
                   .map((tx) => (
-                    <div
+                    <button
                       key={tx.id}
-                      className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-2"
+                      type="button"
+                      onClick={() => setEditingDetailsTx(tx)}
+                      className="flex w-full items-center justify-between rounded-xl bg-white/5 px-3 py-2 text-left hover:bg-white/10"
                     >
                       <span>{tx.description || "Transaction"}</span>
                       <span
@@ -640,7 +666,7 @@ export default function Dashboard() {
                       >
                         {formatCurrency(tx.amount)}
                       </span>
-                    </div>
+                    </button>
                   ))}
               </div>
             </section>
@@ -889,6 +915,7 @@ export default function Dashboard() {
           )}
           onEditDetails={(tx) => setEditingDetailsTx(tx)}
           onEditAmount={(tx) => setEditingAmountTx(tx)}
+          onDelete={handleDeleteTransaction}
         />
       )}
 
@@ -901,6 +928,7 @@ export default function Dashboard() {
             handleUpdateTransaction(editingDetailsTx.id, updates);
             setEditingDetailsTx(null);
           }}
+          onDelete={handleDeleteTransaction}
         />
       )}
 
@@ -2163,6 +2191,7 @@ type TransactionsHistoryModalProps = {
   transactions: Transaction[];
   onEditDetails: (tx: Transaction) => void;
   onEditAmount: (tx: Transaction) => void;
+  onDelete: (id: string) => void;
 };
 
 function TransactionsHistoryModal({
@@ -2171,6 +2200,7 @@ function TransactionsHistoryModal({
   transactions,
   onEditDetails,
   onEditAmount,
+  onDelete,
 }: TransactionsHistoryModalProps) {
   type SortMode = "date" | "expense" | "income";
   const [sortMode, setSortMode] = useState<SortMode>("date");
@@ -2303,22 +2333,38 @@ function TransactionsHistoryModal({
 type EditTransactionDetailsModalProps = {
   transaction: Transaction;
   onClose: () => void;
-  onSave: (updates: { description: string; date: string }) => void;
+  onSave: (updates: { description: string; date: string; amount: number }) => void;
+  onDelete: (id: string) => void;
 };
 
 function EditTransactionDetailsModal({
   transaction,
   onClose,
   onSave,
+  onDelete,
 }: EditTransactionDetailsModalProps) {
   const [description, setDescription] = useState(transaction.description);
   const [date, setDate] = useState(transaction.date);
+  const [amountStr, setAmountStr] = useState(transaction.amount.toString());
+  const [error, setError] = useState("");
+  const [isPadOpen, setIsPadOpen] = useState(false);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    const rawAmount = amountStr.trim();
+    const parsedAmount = parseFloat(rawAmount);
+
+    if (rawAmount === "" || Number.isNaN(parsedAmount) || parsedAmount === 0) {
+      setError("Enter a valid amount");
+      return;
+    }
+
+    setError("");
     onSave({
       description: description.trim() || "Transaction",
       date,
+      amount: parsedAmount,
     });
   };
 
@@ -2362,23 +2408,65 @@ function EditTransactionDetailsModal({
             />
           </div>
 
-          <div className="mt-4 flex items-center justify-end gap-3">
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+              Amount
+            </label>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={amountStr}
+              onChange={(e) => setAmountStr(e.target.value)}
+              className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+              placeholder="0.00"
+            />
             <button
               type="button"
-              onClick={onClose}
-              className="rounded-full px-4 py-2 text-xs font-semibold text-[#715B64] hover:bg-[#D9C9D2]/60"
+              onClick={() => setIsPadOpen(true)}
+              className="mt-1 text-[11px] font-semibold text-[#715B64] hover:text-[#5d4953]"
             >
-              Cancel
+              Open number pad
             </button>
+            {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+          </div>
+
+          <div className="mt-4 flex items-center justify-between gap-3">
             <button
-              type="submit"
-              className="rounded-full bg-[#715B64] px-5 py-2 text-xs font-semibold text-[#F5FEFA] shadow-sm hover:bg-[#5E4A54]"
+              type="button"
+              onClick={() => {
+                onDelete(transaction.id);
+                onClose();
+              }}
+              className="rounded-full bg-red-50 px-4 py-2 text-xs font-semibold text-red-600 shadow-sm hover:bg-red-100"
             >
-              Save Changes
+              Delete
             </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-full px-4 py-2 text-xs font-semibold text-[#715B64] hover:bg-[#D9C9D2]/60"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="rounded-full bg-[#715B64] px-5 py-2 text-xs font-semibold text-[#F5FEFA] shadow-sm hover:bg-[#5E4A54]"
+              >
+                Save Changes
+              </button>
+            </div>
           </div>
         </form>
       </div>
+
+      {isPadOpen && (
+        <NumberPad
+          value={amountStr}
+          onChange={setAmountStr}
+          onClose={() => setIsPadOpen(false)}
+        />
+      )}
     </div>
   );
 }
