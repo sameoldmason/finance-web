@@ -2318,13 +2318,6 @@ function TransactionsHistoryModal({
                   >
                     {formatCurrency(tx.amount)}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => onDelete(tx.id)}
-                    className="ml-3 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-600 shadow-sm hover:bg-red-100"
-                  >
-                    Delete
-                  </button>
                 </div>
               ))}
             </div>
