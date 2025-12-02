@@ -1,9 +1,12 @@
 // src/lib/financeTypes.ts
 
+export type AccountCategory = "asset" | "debt";
+
 export type Account = {
   id: string;
   name: string;
   balance: number;
+  accountCategory: AccountCategory;
 };
 
 export type Transaction = {
@@ -26,6 +29,16 @@ export type DashboardData = {
   accounts: Account[];
   transactions: Transaction[];
   bills: Bill[];
+  netWorthHistory?: NetWorthSnapshot[];
+  netWorthViewMode?: "minimal" | "detailed";
+  hideMoney?: boolean;
+};
+
+export type NetWorthSnapshot = {
+  date: string; // ISO date (YYYY-MM-DD)
+  value: number; // net worth in CAD
+  totalAssets: number;
+  totalDebts: number;
 };
 
 
