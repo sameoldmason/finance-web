@@ -2437,20 +2437,32 @@ function EditTransactionDetailsModal({
             {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
           </div>
 
-          <div className="mt-4 flex items-center justify-end gap-3">
+          <div className="mt-4 flex items-center justify-between gap-3">
             <button
               type="button"
-              onClick={onClose}
-              className="rounded-full px-4 py-2 text-xs font-semibold text-[#715B64] hover:bg-[#D9C9D2]/60"
+              onClick={() => {
+                onDelete(transaction.id);
+                onClose();
+              }}
+              className="rounded-full bg-red-50 px-4 py-2 text-xs font-semibold text-red-600 shadow-sm hover:bg-red-100"
             >
-              Cancel
+              Delete
             </button>
-            <button
-              type="submit"
-              className="rounded-full bg-[#715B64] px-5 py-2 text-xs font-semibold text-[#F5FEFA] shadow-sm hover:bg-[#5E4A54]"
-            >
-              Save Changes
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-full px-4 py-2 text-xs font-semibold text-[#715B64] hover:bg-[#D9C9D2]/60"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="rounded-full bg-[#715B64] px-5 py-2 text-xs font-semibold text-[#F5FEFA] shadow-sm hover:bg-[#5E4A54]"
+              >
+                Save Changes
+              </button>
+            </div>
           </div>
         </form>
       </div>
