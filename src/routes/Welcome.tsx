@@ -28,8 +28,11 @@ export default function Welcome() {
       {/* Theme toggle (global) */}
       <button
         onClick={toggle}
-        className={`fixed bottom-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-md backdrop-blur-sm transition-colors duration-200
-          ${theme === "dark" ? "bg-white/10 text-brand-accent hover:bg-white/15" : "bg-black/10 text-[#454545] hover:bg-black/15"}`}
+        className={`fixed bottom-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-md backdrop-blur-sm transition-colors duration-200 ${
+          theme === "dark"
+            ? "bg-white/10 text-brand-accent hover:bg-white/15"
+            : "bg-black/10 text-[#454545] hover:bg-black/15"
+        }`}
         aria-label="Toggle theme"
         aria-pressed={theme === "dark"}
         title={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
