@@ -544,6 +544,45 @@ export default function Dashboard() {
     }
   }
 
+  function handleDeleteAccount(accountId: string) {
+    setAccounts((prev) => {
+      const index = prev.findIndex((acc) => acc.id === accountId);
+      if (index === -1) return prev;
+
+      const next = prev.filter((acc) => acc.id !== accountId);
+
+      let nextSelectedId = selectedAccountId;
+      if (selectedAccountId === accountId) {
+        if (next.length === 0) {
+          nextSelectedId = "";
+        } else {
+          const replacementIndex = Math.min(index, next.length - 1);
+          nextSelectedId = next[replacementIndex]?.id ?? next[0].id;
+        }
+      }
+
+      let nextCarouselStart = carouselStartIndex;
+      if (next.length === 0) {
+        nextCarouselStart = 0;
+      } else if (carouselStartIndex >= next.length) {
+        nextCarouselStart = next.length - 1;
+      } else if (index < carouselStartIndex && carouselStartIndex > 0) {
+        nextCarouselStart = carouselStartIndex - 1;
+      }
+
+      setSelectedAccountId(nextSelectedId);
+      setCarouselStartIndex(nextCarouselStart);
+
+      return next;
+    });
+
+    setTransactions((prev) => prev.filter((tx) => tx.accountId !== accountId));
+    setBills((prev) => prev.filter((bill) => bill.accountId !== accountId));
+
+    setEditingAccount(null);
+    setEditButtonForId(null);
+  }
+
   const profileName = "Profile";
 
   // Compute which accounts to show in the 2-pill carousel
@@ -970,6 +1009,7 @@ export default function Dashboard() {
             setEditingAccount(null);
             setEditButtonForId(null);
           }}
+          onDelete={() => handleDeleteAccount(editingAccount.id)}
         />
       )}
 
@@ -1488,12 +1528,14 @@ type EditAccountModalProps = {
     balance: number;
     accountCategory: AccountCategory;
   }) => void;
+  onDelete?: () => void;
 };
 
 function EditAccountModal({
   account,
   onClose,
   onSave,
+  onDelete,
 }: EditAccountModalProps) {
   const [name, setName] = useState(account.name);
   const [balanceStr, setBalanceStr] = useState(account.balance.toString());
@@ -1644,20 +1686,34 @@ function EditAccountModal({
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-full px-4 py-2 text-xs font-semibold text-[#454545]/80 hover:bg-black/5"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="rounded-full bg-[#715B64] px-4 py-2 text-xs font-semibold text-white hover:bg-[#5d4953]"
-              >
-                Save Changes
-              </button>
+            <div className="flex items-center justify-between gap-3 pt-2">
+              {onDelete ? (
+                <button
+                  type="button"
+                  onClick={onDelete}
+                  className="rounded-full border border-[#FBD5D5]/70 bg-white/60 px-4 py-2 text-xs font-semibold text-[#C95454] transition hover:bg-[#FBD5D5]/60"
+                >
+                  Delete account
+                </button>
+              ) : (
+                <span />
+              )}
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="rounded-full px-4 py-2 text-xs font-semibold text-[#454545]/80 hover:bg-black/5"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-full bg-[#715B64] px-4 py-2 text-xs font-semibold text-white hover:bg-[#5d4953]"
+                >
+                  Save Changes
+                </button>
+              </div>
             </div>
           </form>
         </div>
