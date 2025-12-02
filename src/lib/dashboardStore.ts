@@ -1,5 +1,5 @@
 // src/lib/dashboardStore.ts
-import type { Account, DashboardData } from "./financeTypes";
+import type { Account, DashboardData, AccountCategory } from "./financeTypes";
 
 const LS_ROOT_KEY = "finance-web:dashboard";
 
@@ -23,9 +23,11 @@ export function loadDashboardData(profileId: string): DashboardData | null {
       ? (parsed.accounts as Account[])
       : [];
 
-    const normalizedAccounts = accounts.map((acc) => ({
+    const normalizedAccounts: Account[] = accounts.map((acc): Account => ({
       ...acc,
-      accountCategory: acc.accountCategory === "debt" ? "debt" : "asset",
+      accountCategory: (acc.accountCategory === "debt"
+        ? "debt"
+        : "asset") as AccountCategory,
     }));
 
     return {
