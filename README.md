@@ -97,6 +97,9 @@ git clone https://github.com/sameoldmason/finance-web
 cd finance-web
 npm install
 npm run dev
+```
 
 To Build for production:
+```bash
 npm run build
+```
