@@ -2518,15 +2518,25 @@ function TransactionsHistoryModal({
                       {tx.date}
                     </span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => onEditAmount(tx)}
-                    className={`ml-4 text-right text-sm font-semibold ${
-                      tx.amount < 0 ? "text-red-500" : "text-emerald-600"
-                    }`}
-                  >
-                    {formatCurrency(tx.amount)}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onEditAmount(tx)}
+                      className={`text-right text-sm font-semibold ${
+                        tx.amount < 0 ? "text-red-500" : "text-emerald-600"
+                      }`}
+                    >
+                      {formatCurrency(tx.amount)}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDelete(tx.id)}
+                      className="rounded-full px-2 py-1 text-xs font-semibold text-red-500 hover:bg-red-50"
+                      aria-label={`Delete ${tx.description || "transaction"}`}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

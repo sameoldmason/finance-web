@@ -44,8 +44,12 @@ export default function CreateProfile() {
     try {
       const { recoveryCodes } = createProfile({ name, password, hint });
       setCodes(recoveryCodes); // show once
-    } catch (err: any) {
-      setError(err?.message || "Could not create profile.");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || "Could not create profile.");
+      } else {
+        setError("Could not create profile.");
+      }
     } finally {
       setBusy(false);
     }
@@ -248,7 +252,10 @@ export default function CreateProfile() {
                   try {
                     navigator.clipboard.writeText(codes.join("\n"));
                     alert("Copied to clipboard.");
-                  } catch {}
+                  } catch (error) {
+                    console.error("Failed to copy recovery codes", error);
+                    alert("Could not copy the recovery codes.");
+                  }
                 }}
                 className="rounded-xl px-4 py-2 bg-[#F5FEFA] text-[#454545] hover:bg-[#454545] hover:text-[#F5FEFA] transition"
               >

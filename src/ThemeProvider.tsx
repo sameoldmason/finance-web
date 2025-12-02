@@ -1,4 +1,5 @@
 // src/ThemeProvider.tsx
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 type Theme = "light" | "dark";
@@ -24,7 +25,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    try { localStorage.setItem("theme", theme); } catch {}
+    try {
+      localStorage.setItem("theme", theme);
+    } catch (error) {
+      console.warn("Failed to persist theme preference", error);
+    }
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 

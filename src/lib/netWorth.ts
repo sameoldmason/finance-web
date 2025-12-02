@@ -1,5 +1,5 @@
 // src/lib/netWorth.ts
-import type { Account, NetWorthSnapshot } from "./financeTypes";
+import type { Account } from "./financeTypes";
 
 export const NET_WORTH_MAX_POINTS = 180;
 
