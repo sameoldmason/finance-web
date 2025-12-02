@@ -456,15 +456,24 @@ export default function Dashboard() {
     if (fromAccountId === toAccountId) return;
 
     const cleanAmount = Math.abs(amount);
+    const fromAccount = accounts.find((acc) => acc.id === fromAccountId);
+    const toAccount = accounts.find((acc) => acc.id === toAccountId);
+
+    if (!fromAccount || !toAccount) return;
+
+    const fromIsDebt = fromAccount.accountCategory === "debt";
+    const toIsDebt = toAccount.accountCategory === "debt";
 
     // Update balances
     setAccounts((prev) =>
       prev.map((acc) => {
         if (acc.id === fromAccountId) {
-          return { ...acc, balance: acc.balance - cleanAmount };
+          const delta = fromIsDebt ? cleanAmount : -cleanAmount;
+          return { ...acc, balance: acc.balance + delta };
         }
         if (acc.id === toAccountId) {
-          return { ...acc, balance: acc.balance + cleanAmount };
+          const delta = toIsDebt ? -cleanAmount : cleanAmount;
+          return { ...acc, balance: acc.balance + delta };
         }
         return acc;
       })
@@ -476,14 +485,14 @@ export default function Dashboard() {
       {
         id: crypto.randomUUID(),
         accountId: fromAccountId,
-        amount: -cleanAmount,
+        amount: fromIsDebt ? cleanAmount : -cleanAmount,
         date,
         description: note || "Transfer out",
       },
       {
         id: crypto.randomUUID(),
         accountId: toAccountId,
-        amount: cleanAmount,
+        amount: toIsDebt ? -cleanAmount : cleanAmount,
         date,
         description: note || "Transfer in",
       },
