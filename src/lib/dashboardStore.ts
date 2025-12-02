@@ -1,5 +1,5 @@
 // src/lib/dashboardStore.ts
-import type { DashboardData } from "./financeTypes";
+import type { Account, DashboardData, AccountCategory } from "./financeTypes";
 
 const LS_ROOT_KEY = "finance-web:dashboard";
 
@@ -19,13 +19,33 @@ export function loadDashboardData(profileId: string): DashboardData | null {
     const parsed = JSON.parse(raw) as Partial<DashboardData> | null;
     if (!parsed || typeof parsed !== "object") return null;
 
-return {
-  accounts: Array.isArray(parsed.accounts) ? parsed.accounts : [],
-  transactions: Array.isArray(parsed.transactions)
-    ? parsed.transactions
-    : [],
-  bills: Array.isArray(parsed.bills) ? parsed.bills : [],
-};
+    const accounts = Array.isArray(parsed.accounts)
+      ? (parsed.accounts as Account[])
+      : [];
+
+    const normalizedAccounts: Account[] = accounts.map((acc): Account => ({
+      ...acc,
+      accountCategory: (acc.accountCategory === "debt"
+        ? "debt"
+        : "asset") as AccountCategory,
+    }));
+
+    return {
+      accounts: normalizedAccounts,
+      transactions: Array.isArray(parsed.transactions)
+        ? parsed.transactions
+        : [],
+      bills: Array.isArray(parsed.bills) ? parsed.bills : [],
+      netWorthHistory: Array.isArray(parsed.netWorthHistory)
+        ? parsed.netWorthHistory
+        : [],
+      netWorthViewMode:
+        parsed.netWorthViewMode === "minimal" || parsed.netWorthViewMode === "detailed"
+          ? parsed.netWorthViewMode
+          : undefined,
+      hideMoney:
+        typeof parsed.hideMoney === "boolean" ? parsed.hideMoney : undefined,
+    };
 
   } catch (err) {
     console.error("Failed to read dashboard data:", err);
@@ -41,11 +61,14 @@ export function saveDashboardData(
   data: DashboardData
 ): void {
   try {
-const payload: DashboardData = {
-  accounts: data.accounts ?? [],
-  transactions: data.transactions ?? [],
-  bills: data.bills ?? [],
-};
+    const payload: DashboardData = {
+      accounts: data.accounts ?? [],
+      transactions: data.transactions ?? [],
+      bills: data.bills ?? [],
+      netWorthHistory: data.netWorthHistory ?? [],
+      netWorthViewMode: data.netWorthViewMode,
+      hideMoney: data.hideMoney,
+    };
 
     localStorage.setItem(key(profileId), JSON.stringify(payload));
   } catch (err) {

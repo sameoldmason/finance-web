@@ -1,4 +1,5 @@
 // src/ActiveProfileContext.tsx
+/* eslint-disable react-refresh/only-export-components */
 import {
   createContext,
   useCallback,
@@ -30,7 +31,9 @@ export function ActiveProfileProvider({ children }: { children: React.ReactNode 
       setActiveProfile(null);
       try {
         sessionStorage.removeItem("activeProfileId");
-      } catch {}
+      } catch (error) {
+        console.warn("Failed to clear active profile from sessionStorage", error);
+      }
       return;
     }
 

@@ -2,9 +2,18 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useTheme } from "../ThemeProvider";
 import { useActiveProfile } from "../ActiveProfileContext";
-import { Account, Transaction, TransferInput } from "../lib/financeTypes";
+import {
+  Account,
+  AccountCategory,
+  NetWorthSnapshot,
+  Transaction,
+  TransferInput,
+} from "../lib/financeTypes";
 import { loadDashboardData, saveDashboardData } from "../lib/dashboardStore";
 import type { Bill } from "../lib/financeTypes";
+import { calculateNetWorthFromAccounts } from "../lib/netWorth";
+import { MoneyVisibilityProvider } from "../MoneyVisibilityContext";
+import { NetWorthCard } from "../components/dashboard/NetWorthCard";
 
 const MONTHS = [
   "January",
@@ -114,6 +123,13 @@ export default function Dashboard() {
   // Bills
   const [bills, setBills] = useState<Bill[]>([]);
 
+  // Net worth
+  const [netWorthHistory, setNetWorthHistory] = useState<NetWorthSnapshot[]>([]);
+  const [netWorthViewMode, setNetWorthViewMode] = useState<
+    "minimal" | "detailed"
+  >("detailed");
+  const [hideMoney, setHideMoney] = useState(false);
+
   // Modals
   const [isNewTxOpen, setIsNewTxOpen] = useState(false);
   const [isTransferOpen, setIsTransferOpen] = useState(false);
@@ -142,6 +158,9 @@ export default function Dashboard() {
       setCarouselStartIndex(0);
       setTransactions([]);
       setBills([]);
+      setNetWorthHistory([]);
+      setNetWorthViewMode("detailed");
+      setHideMoney(false);
       setEditButtonForId(null);
       return;
     }
@@ -154,33 +173,91 @@ export default function Dashboard() {
       setCarouselStartIndex(0);
       setTransactions([]);
       setBills([]);
+      setNetWorthHistory([]);
+      setNetWorthViewMode("detailed");
+      setHideMoney(false);
       setEditButtonForId(null);
       return;
     }
 
-    const accountsFromStore =
+    const accountsFromStore: Account[] =
       loaded.accounts && loaded.accounts.length > 0
         ? loaded.accounts
         : INITIAL_ACCOUNTS;
 
+    const normalizedAccounts: Account[] = accountsFromStore.map(
+      (acc): Account => ({
+        ...acc,
+        accountCategory: (acc.accountCategory === "debt"
+          ? "debt"
+          : "asset") as AccountCategory,
+      })
+    );
+
     const txFromStore = loaded.transactions ?? [];
     const billsFromStore = loaded.bills ?? [];
 
-    setAccounts(accountsFromStore);
-    setSelectedAccountId(accountsFromStore[0]?.id ?? "");
+    setAccounts(normalizedAccounts);
+    setSelectedAccountId(normalizedAccounts[0]?.id ?? "");
     setCarouselStartIndex(0);
     setTransactions(txFromStore);
     setBills(billsFromStore);
+    setNetWorthHistory(loaded.netWorthHistory ?? []);
+    setNetWorthViewMode(loaded.netWorthViewMode ?? "detailed");
+    setHideMoney(loaded.hideMoney ?? false);
     setEditButtonForId(null);
   }, [activeProfile?.id]);
+
+  // Update net worth snapshot when accounts change
+  useEffect(() => {
+    const profileId = activeProfile?.id;
+    if (!profileId) return;
+    if (accounts.length === 0) return;
+
+    const today = new Date().toISOString().slice(0, 10);
+    const { netWorth, totalAssets, totalDebts } =
+      calculateNetWorthFromAccounts(accounts);
+
+    const snapshot: NetWorthSnapshot = {
+      date: today,
+      value: netWorth,
+      totalAssets,
+      totalDebts,
+    };
+
+    setNetWorthHistory((prev) => {
+      const existingIndex = prev.findIndex((entry) => entry.date === today);
+      if (existingIndex !== -1) {
+        const next = [...prev];
+        next[existingIndex] = snapshot;
+        return next;
+      }
+      return [...prev, snapshot];
+    });
+  }, [accounts, activeProfile?.id]);
 
   // Save whenever accounts / transactions / bills change
   useEffect(() => {
     const profileId = activeProfile?.id;
     if (!profileId) return;
 
-    saveDashboardData(profileId, { accounts, transactions, bills });
-  }, [accounts, transactions, bills, activeProfile?.id]);
+    saveDashboardData(profileId, {
+      accounts,
+      transactions,
+      bills,
+      netWorthHistory,
+      netWorthViewMode,
+      hideMoney,
+    });
+  }, [
+    accounts,
+    transactions,
+    bills,
+    netWorthHistory,
+    netWorthViewMode,
+    hideMoney,
+    activeProfile?.id,
+  ]);
 
   // Derived bits
   const selectedAccount =
@@ -358,8 +435,14 @@ export default function Dashboard() {
 
   // Add account
   function handleAddAccount(newAccount: Account) {
-    setAccounts((prev) => [...prev, newAccount]);
-    setSelectedAccountId(newAccount.id);
+    const nextAccount: Account = {
+      ...newAccount,
+      accountCategory:
+        newAccount.accountCategory === "debt" ? "debt" : "asset",
+    };
+
+    setAccounts((prev) => [...prev, nextAccount]);
+    setSelectedAccountId(nextAccount.id);
     if (accounts.length === 0) {
       setCarouselStartIndex(0);
     }
@@ -377,15 +460,24 @@ export default function Dashboard() {
     if (fromAccountId === toAccountId) return;
 
     const cleanAmount = Math.abs(amount);
+    const fromAccount = accounts.find((acc) => acc.id === fromAccountId);
+    const toAccount = accounts.find((acc) => acc.id === toAccountId);
+
+    if (!fromAccount || !toAccount) return;
+
+    const fromIsDebt = fromAccount.accountCategory === "debt";
+    const toIsDebt = toAccount.accountCategory === "debt";
 
     // Update balances
     setAccounts((prev) =>
       prev.map((acc) => {
         if (acc.id === fromAccountId) {
-          return { ...acc, balance: acc.balance - cleanAmount };
+          const delta = fromIsDebt ? cleanAmount : -cleanAmount;
+          return { ...acc, balance: acc.balance + delta };
         }
         if (acc.id === toAccountId) {
-          return { ...acc, balance: acc.balance + cleanAmount };
+          const delta = toIsDebt ? -cleanAmount : cleanAmount;
+          return { ...acc, balance: acc.balance + delta };
         }
         return acc;
       })
@@ -397,14 +489,14 @@ export default function Dashboard() {
       {
         id: crypto.randomUUID(),
         accountId: fromAccountId,
-        amount: -cleanAmount,
+        amount: fromIsDebt ? cleanAmount : -cleanAmount,
         date,
         description: note || "Transfer out",
       },
       {
         id: crypto.randomUUID(),
         accountId: toAccountId,
-        amount: cleanAmount,
+        amount: toIsDebt ? -cleanAmount : cleanAmount,
         date,
         description: note || "Transfer in",
       },
@@ -414,16 +506,22 @@ export default function Dashboard() {
   // Save edited account (and create a balance adjustment transaction if needed)
   function handleSaveEditedAccount(
     original: Account,
-    updates: { name: string; balance: number }
+    updates: { name: string; balance: number; accountCategory: AccountCategory }
   ) {
     const trimmedName = updates.name.trim() || original.name;
     const nextBalance = updates.balance;
+    const nextCategory = updates.accountCategory ?? original.accountCategory;
     const delta = nextBalance - original.balance;
 
     setAccounts((prev) =>
       prev.map((acc) =>
         acc.id === original.id
-          ? { ...acc, name: trimmedName, balance: nextBalance }
+          ? {
+              ...acc,
+              name: trimmedName,
+              balance: nextBalance,
+              accountCategory: nextCategory,
+            }
           : acc
       )
     );
@@ -459,11 +557,15 @@ export default function Dashboard() {
   }
 
   return (
-    <div
-      className={`min-h-[100svh] w-full ${
-        theme === "dark" ? darkBg : lightBg
-      } text-brand-accent`}
+    <MoneyVisibilityProvider
+      initialHideMoney={hideMoney}
+      onChange={(next) => setHideMoney(next)}
     >
+      <div
+        className={`min-h-[100svh] w-full ${
+          theme === "dark" ? darkBg : lightBg
+        } text-brand-accent`}
+      >
       <div className="mx-auto flex h-full max-w-[1280px] px-6 py-6">
         {/* LEFT SIDEBAR – months */}
         <aside className="mr-6 flex w-40 shrink-0 flex-col justify-end rounded-2xl bg-black/10 px-4 py-6 backdrop-blur-sm shadow-md">
@@ -674,13 +776,12 @@ export default function Dashboard() {
 
           {/* MIDDLE ROW: NET WORTH + UPCOMING BILLS */}
           <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-6">
-            {/* NET WORTH CARD (placeholder) */}
-            <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md">
-              <p className="mb-3 text-sm font-semibold">Net Worth</p>
-              <div className="flex h-40 items-center justify-center rounded-xl bg-white/5 text-xs opacity-60">
-                Net worth chart placeholder
-              </div>
-            </section>
+            <NetWorthCard
+              accounts={accounts}
+              netWorthHistory={netWorthHistory}
+              viewMode={netWorthViewMode}
+              onViewModeChange={(mode) => setNetWorthViewMode(mode)}
+            />
 
             {/* UPCOMING BILLS CARD */}
             <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md min-h-[260px]">
@@ -860,8 +961,12 @@ export default function Dashboard() {
             setEditingAccount(null);
             setEditButtonForId(null);
           }}
-          onSave={({ name, balance }) => {
-            handleSaveEditedAccount(editingAccount, { name, balance });
+          onSave={({ name, balance, accountCategory }) => {
+            handleSaveEditedAccount(editingAccount, {
+              name,
+              balance,
+              accountCategory,
+            });
             setEditingAccount(null);
             setEditButtonForId(null);
           }}
@@ -973,6 +1078,7 @@ export default function Dashboard() {
         </svg>
       </button>
     </div>
+    </MoneyVisibilityProvider>
   );
 }
 
@@ -1196,6 +1302,8 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
   const [nameError, setNameError] = useState("");
   const [amountError, setAmountError] = useState("");
   const [isPadOpen, setIsPadOpen] = useState(false);
+  const [accountCategory, setAccountCategory] =
+    useState<AccountCategory>("asset");
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -1211,6 +1319,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
 
     const rawAmount = amount;
     const parsedAmount = rawAmount === "" ? 0 : parseFloat(rawAmount);
+    const normalizedAmount = Math.abs(parsedAmount);
 
     if (rawAmount !== "" && Number.isNaN(parsedAmount)) {
       setAmountError("Enter an amount");
@@ -1224,7 +1333,8 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
     const newAccount: Account = {
       id: crypto.randomUUID(),
       name: name.trim(),
-      balance: parsedAmount,
+      balance: normalizedAmount,
+      accountCategory,
     };
 
     onSave(newAccount);
@@ -1289,8 +1399,55 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                 <p className="mt-1 text-xs text-red-500">{amountError}</p>
               )}
               <p className="mt-1 text-[11px] text-[#454545]/60">
-                You can use negative values for debts or credit balances.
+                Set a positive balance and choose whether this is an asset or a
+                debt account.
               </p>
+            </div>
+
+            <div>
+              <p className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                Account type
+              </p>
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                {(
+                  [
+                    {
+                      value: "asset" as const,
+                      label: "Asset",
+                      hint: "Chequing, savings, investments",
+                    },
+                    {
+                      value: "debt" as const,
+                      label: "Debt",
+                      hint: "Loans, credit cards, mortgages",
+                    },
+                  ] satisfies { value: AccountCategory; label: string; hint: string }[]
+                ).map((option) => (
+                  <label
+                    key={option.value}
+                    className={`flex cursor-pointer flex-col rounded-xl border px-3 py-2 transition ${
+                      accountCategory === option.value
+                        ? "border-[#715B64] bg-white"
+                        : "border-[#C2D0D6] bg-white/60 hover:border-[#a39ea5]"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="accountCategory"
+                      value={option.value}
+                      checked={accountCategory === option.value}
+                      onChange={() => setAccountCategory(option.value)}
+                      className="sr-only"
+                    />
+                    <span className="text-sm font-semibold text-[#454545]">
+                      {option.label}
+                    </span>
+                    <span className="text-[11px] text-[#454545]/70">
+                      {option.hint}
+                    </span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 pt-2">
@@ -1326,7 +1483,11 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
 type EditAccountModalProps = {
   account: Account;
   onClose: () => void;
-  onSave: (updates: { name: string; balance: number }) => void;
+  onSave: (updates: {
+    name: string;
+    balance: number;
+    accountCategory: AccountCategory;
+  }) => void;
 };
 
 function EditAccountModal({
@@ -1339,6 +1500,9 @@ function EditAccountModal({
   const [nameError, setNameError] = useState("");
   const [balanceError, setBalanceError] = useState("");
   const [isPadOpen, setIsPadOpen] = useState(false);
+  const [accountCategory, setAccountCategory] = useState<AccountCategory>(
+    account.accountCategory ?? "asset"
+  );
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -1354,6 +1518,7 @@ function EditAccountModal({
 
     const raw = balanceStr.trim();
     const parsed = raw === "" ? 0 : parseFloat(raw);
+    const normalizedAmount = Math.abs(parsed);
 
     if (raw !== "" && Number.isNaN(parsed)) {
       setBalanceError("Enter an amount");
@@ -1366,7 +1531,8 @@ function EditAccountModal({
 
     onSave({
       name: name.trim(),
-      balance: parsed,
+      balance: normalizedAmount,
+      accountCategory,
     });
     onClose();
   };
@@ -1427,8 +1593,55 @@ function EditAccountModal({
                 <p className="mt-1 text-xs text-red-500">{balanceError}</p>
               )}
               <p className="mt-1 text-[11px] text-[#454545]/60">
-                Negative values represent debts or credit card balances.
+                Balances are stored as positive numbers; mark the account as a
+                debt to subtract it from your net worth.
               </p>
+            </div>
+
+            <div>
+              <p className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                Account type
+              </p>
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                {(
+                  [
+                    {
+                      value: "asset" as const,
+                      label: "Asset",
+                      hint: "Chequing, savings, investments",
+                    },
+                    {
+                      value: "debt" as const,
+                      label: "Debt",
+                      hint: "Loans, credit cards, mortgages",
+                    },
+                  ] satisfies { value: AccountCategory; label: string; hint: string }[]
+                ).map((option) => (
+                  <label
+                    key={option.value}
+                    className={`flex cursor-pointer flex-col rounded-xl border px-3 py-2 transition ${
+                      accountCategory === option.value
+                        ? "border-[#715B64] bg-white"
+                        : "border-[#C2D0D6] bg-white/60 hover:border-[#a39ea5]"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="accountCategory"
+                      value={option.value}
+                      checked={accountCategory === option.value}
+                      onChange={() => setAccountCategory(option.value)}
+                      className="sr-only"
+                    />
+                    <span className="text-sm font-semibold text-[#454545]">
+                      {option.label}
+                    </span>
+                    <span className="text-[11px] text-[#454545]/70">
+                      {option.hint}
+                    </span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 pt-2">
@@ -2309,15 +2522,25 @@ function TransactionsHistoryModal({
                       {tx.date}
                     </span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => onEditAmount(tx)}
-                    className={`ml-4 text-right text-sm font-semibold ${
-                      tx.amount < 0 ? "text-red-500" : "text-emerald-600"
-                    }`}
-                  >
-                    {formatCurrency(tx.amount)}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onEditAmount(tx)}
+                      className={`text-right text-sm font-semibold ${
+                        tx.amount < 0 ? "text-red-500" : "text-emerald-600"
+                      }`}
+                    >
+                      {formatCurrency(tx.amount)}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDelete(tx.id)}
+                      className="rounded-full px-2 py-1 text-xs font-semibold text-red-500 hover:bg-red-50"
+                      aria-label={`Delete ${tx.description || "transaction"}`}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

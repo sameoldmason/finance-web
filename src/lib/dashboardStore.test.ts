@@ -44,9 +44,12 @@ describe("dashboardStore", () => {
 
   it("returns parsed dashboard data when stored", () => {
     const data: DashboardData = {
-      accounts: [{ id: "a1", name: "Checking", balance: 100 }],
+      accounts: [
+        { id: "a1", name: "Checking", balance: 100, accountCategory: "asset" },
+      ],
       transactions: [],
       bills: [],
+      netWorthHistory: [],
     };
 
     storage["finance-web:dashboard:profile-2"] = JSON.stringify(data);
@@ -62,9 +65,14 @@ describe("dashboardStore", () => {
     });
 
     expect(loadDashboardData("profile-3")).toEqual({
-      accounts: [{ id: "a2", name: "Savings", balance: 200 }],
+      accounts: [
+        { id: "a2", name: "Savings", balance: 200, accountCategory: "asset" },
+      ],
       transactions: [],
       bills: [],
+      netWorthHistory: [],
+      netWorthViewMode: undefined,
+      hideMoney: undefined,
     });
   });
 
@@ -91,6 +99,9 @@ describe("dashboardStore", () => {
         accounts: [],
         transactions: [],
         bills: [],
+        netWorthHistory: [],
+        netWorthViewMode: undefined,
+        hideMoney: undefined,
       })
     );
   });
