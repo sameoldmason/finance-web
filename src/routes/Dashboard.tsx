@@ -180,15 +180,19 @@ export default function Dashboard() {
       return;
     }
 
-    const accountsFromStore =
+    const accountsFromStore: Account[] =
       loaded.accounts && loaded.accounts.length > 0
         ? loaded.accounts
         : INITIAL_ACCOUNTS;
 
-    const normalizedAccounts = accountsFromStore.map((acc) => ({
-      ...acc,
-      accountCategory: acc.accountCategory === "debt" ? "debt" : "asset",
-    }));
+    const normalizedAccounts: Account[] = accountsFromStore.map(
+      (acc): Account => ({
+        ...acc,
+        accountCategory: (acc.accountCategory === "debt"
+          ? "debt"
+          : "asset") as AccountCategory,
+      })
+    );
 
     const txFromStore = loaded.transactions ?? [];
     const billsFromStore = loaded.bills ?? [];
