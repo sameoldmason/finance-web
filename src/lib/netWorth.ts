@@ -17,13 +17,7 @@ export function calculateNetWorthFromAccounts(accounts: Account[]): {
 
   accounts.forEach((account) => {
     if (account.accountCategory === "debt") {
-      if (account.balance >= 0) {
-        totalDebts += account.balance;
-      } else {
-        // Negative debt balances represent overpayments/refunds and should
-        // contribute positively to assets rather than liabilities.
-        totalAssets += Math.abs(account.balance);
-      }
+      totalDebts += Math.abs(account.balance);
     } else {
       totalAssets += account.balance;
     }
