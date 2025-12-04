@@ -70,9 +70,9 @@ export default function ProfileDropdown({
 
   const panelBase =
     theme === "dark"
-      ? "bg-[#0f172a]/95 text-white"
-      : "bg-white/95 text-[#2f2f2f]";
-  const hoverBg = theme === "dark" ? "hover:bg-white/10" : "hover:bg-black/5";
+      ? "bg-[#0f172a] text-white"
+      : "bg-slate-100 text-[#2f2f2f]";
+  const hoverBg = theme === "dark" ? "hover:bg-white/10" : "hover:bg-slate-200/80";
 
   const closeAll = () => {
     setIsOpen(false);
@@ -128,7 +128,7 @@ export default function ProfileDropdown({
       )}
 
       <div
-        className={`flex items-center gap-3 rounded-2xl px-3 py-2 backdrop-blur ${
+        className={`flex items-center gap-3 rounded-2xl px-3 py-2 ${
           theme === "dark"
             ? "bg-white/5 text-white"
             : "bg-black/5 text-[#2f2f2f]"
@@ -174,9 +174,9 @@ export default function ProfileDropdown({
       {isOpen && (
         <div
           ref={dropdownRef}
-          className={`absolute right-0 z-50 mt-2 w-56 rounded-2xl ${panelBase} shadow-lg ring-1 ring-black/5`}
+          className={`absolute right-0 top-full z-50 mt-2 min-w-[220px] max-w-xs max-h-80 overflow-y-auto rounded-3xl pb-3 pt-3 ${panelBase} shadow-lg shadow-black/20 ring-1 ring-black/5`}
         >
-          <div className="flex flex-col py-2">
+          <div className="flex flex-col gap-1 px-1">
             <DropdownItem
               label="Edit profile…"
               onClick={() => {
@@ -384,7 +384,7 @@ function DropdownItem({ label, onClick, hoverBg }: DropdownItemProps) {
     <button
       type="button"
       onClick={onClick}
-      className={`flex w-full items-center px-4 py-2 text-left text-sm font-semibold transition ${hoverBg}`}
+      className={`flex w-full items-center rounded-xl px-4 py-2 text-left text-sm font-semibold transition ${hoverBg}`}
     >
       {label}
     </button>
