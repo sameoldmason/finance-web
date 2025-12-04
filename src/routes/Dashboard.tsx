@@ -1,5 +1,5 @@
 // src/routes/Dashboard.tsx
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 import { useTheme } from "../ThemeProvider";
 import { useActiveProfile } from "../ActiveProfileContext";
 import {
@@ -108,6 +108,12 @@ export default function Dashboard() {
   const { theme, toggle } = useTheme();
   const { activeProfile } = useActiveProfile();
 
+  const [profileDisplayName, setProfileDisplayName] = useState(
+    activeProfile?.name ?? "Profile"
+  );
+  const [isEditingProfileName, setIsEditingProfileName] = useState(false);
+  const profileNameInputRef = useRef<HTMLInputElement>(null);
+
   // Accounts + selection
   const [accounts, setAccounts] = useState<Account[]>(INITIAL_ACCOUNTS);
   const [selectedAccountId, setSelectedAccountId] = useState<string>(
@@ -153,6 +159,8 @@ export default function Dashboard() {
     const profileId = activeProfile?.id;
 
     if (!profileId) {
+      setProfileDisplayName("Profile");
+      setIsEditingProfileName(false);
       setAccounts(INITIAL_ACCOUNTS);
       setSelectedAccountId(INITIAL_ACCOUNTS[0]?.id ?? "");
       setCarouselStartIndex(0);
@@ -168,6 +176,8 @@ export default function Dashboard() {
     const loaded = loadDashboardData(profileId);
 
     if (!loaded) {
+      setProfileDisplayName(activeProfile?.name ?? "Profile");
+      setIsEditingProfileName(false);
       setAccounts(INITIAL_ACCOUNTS);
       setSelectedAccountId(INITIAL_ACCOUNTS[0]?.id ?? "");
       setCarouselStartIndex(0);
@@ -197,6 +207,8 @@ export default function Dashboard() {
     const txFromStore = loaded.transactions ?? [];
     const billsFromStore = loaded.bills ?? [];
 
+    setProfileDisplayName(activeProfile?.name ?? "Profile");
+    setIsEditingProfileName(false);
     setAccounts(normalizedAccounts);
     setSelectedAccountId(normalizedAccounts[0]?.id ?? "");
     setCarouselStartIndex(0);
@@ -207,6 +219,16 @@ export default function Dashboard() {
     setHideMoney(loaded.hideMoney ?? false);
     setEditButtonForId(null);
   }, [activeProfile?.id]);
+
+  useEffect(() => {
+    setProfileDisplayName(activeProfile?.name ?? "Profile");
+  }, [activeProfile?.name]);
+
+  useEffect(() => {
+    if (isEditingProfileName) {
+      profileNameInputRef.current?.focus();
+    }
+  }, [isEditingProfileName]);
 
   // Update net worth snapshot when accounts change
   useEffect(() => {
@@ -295,6 +317,31 @@ export default function Dashboard() {
     if (nextAccount) {
       setSelectedAccountId(nextAccount.id);
       setEditButtonForId(null);
+    }
+  };
+
+  const handleProfileNameClick = () => {
+    setIsEditingProfileName(true);
+  };
+
+  const handleProfileNameBlur = () => {
+    setProfileDisplayName((prev) =>
+      prev.trim() || activeProfile?.name || "Profile"
+    );
+    setIsEditingProfileName(false);
+  };
+
+  const handleProfileNameKeyDown = (
+    event: KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleProfileNameBlur();
+    }
+    if (event.key === "Escape") {
+      event.preventDefault();
+      setProfileDisplayName(activeProfile?.name ?? "Profile");
+      setIsEditingProfileName(false);
     }
   };
 
@@ -596,8 +643,6 @@ export default function Dashboard() {
     setEditButtonForId(null);
   }
 
-  const profileName = "Profile";
-
   // Compute which accounts to show in the 2-pill carousel
   let visibleAccounts: Account[] = [];
   if (accounts.length <= 2) {
@@ -647,7 +692,25 @@ export default function Dashboard() {
             </div>
 
             <div className="flex items-center gap-3">
-              <span className="text-sm">{profileName}</span>
+              {isEditingProfileName ? (
+                <input
+                  ref={profileNameInputRef}
+                  type="text"
+                  value={profileDisplayName}
+                  onChange={(event) => setProfileDisplayName(event.target.value)}
+                  onBlur={handleProfileNameBlur}
+                  onKeyDown={handleProfileNameKeyDown}
+                  className="w-32 rounded-lg bg-white/10 px-3 py-1 text-sm font-semibold text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-white/40"
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleProfileNameClick}
+                  className="text-sm font-semibold text-white/90 hover:text-white"
+                >
+                  {profileDisplayName}
+                </button>
+              )}
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-[#454545]">
                 <span className="text-xs font-semibold">PN</span>
               </div>
