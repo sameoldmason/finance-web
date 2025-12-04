@@ -1,5 +1,6 @@
 // src/routes/Dashboard.tsx
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTheme } from "../ThemeProvider";
 import { useActiveProfile } from "../ActiveProfileContext";
 import {
@@ -32,6 +33,23 @@ const MONTHS = [
 
 // New profiles should start with NO accounts
 const INITIAL_ACCOUNTS: Account[] = [];
+
+type UserProfile = {
+  displayName: string;
+  initials: string;
+};
+
+type ResetOption = "transactions" | "accounts" | "all";
+
+function getInitialsFromName(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "P";
+  return parts
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("")
+    .trim();
+}
 
 function formatCurrency(amount: number) {
   return amount.toLocaleString("en-CA", {
@@ -106,7 +124,24 @@ function getDueStatus(dueDate: string) {
 
 export default function Dashboard() {
   const { theme, toggle } = useTheme();
-  const { activeProfile } = useActiveProfile();
+  const { activeProfile, setActiveProfileId } = useActiveProfile();
+  const navigate = useNavigate();
+
+  const [isAppMenuOpen, setIsAppMenuOpen] = useState(false);
+  const [isEditingProfileName, setIsEditingProfileName] = useState(false);
+  const [tempProfileName, setTempProfileName] = useState("");
+
+  const [profile, setProfile] = useState<UserProfile>(() => {
+    const name = activeProfile?.name || "Profile";
+    return { displayName: name, initials: getInitialsFromName(name) };
+  });
+
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastTimeoutRef = useRef<number | null>(null);
+
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
   // Accounts + selection
   const [accounts, setAccounts] = useState<Account[]>(INITIAL_ACCOUNTS);
@@ -139,6 +174,72 @@ export default function Dashboard() {
   const [isNewBillOpen, setIsNewBillOpen] = useState(false);
   const [isBillsModalOpen, setIsBillsModalOpen] = useState(false);
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
+
+  useEffect(() => {
+    const displayName = activeProfile?.name || "Profile";
+    setProfile({ displayName, initials: getInitialsFromName(displayName) });
+    setTempProfileName(displayName);
+  }, [activeProfile?.name]);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) {
+        window.clearTimeout(toastTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  function showToast(message: string) {
+    setToastMessage(message);
+    if (toastTimeoutRef.current) {
+      window.clearTimeout(toastTimeoutRef.current);
+    }
+    toastTimeoutRef.current = window.setTimeout(() => {
+      setToastMessage(null);
+    }, 2200);
+  }
+
+  function updateProfile(nextName: string) {
+    const normalized = nextName.trim() || "Profile";
+    setProfile({
+      displayName: normalized,
+      initials: getInitialsFromName(normalized),
+    });
+    setTempProfileName(normalized);
+    setIsEditingProfileName(false);
+  }
+
+  const resetTransactions = () => {
+    setTransactions([]);
+    setEditingDetailsTx(null);
+    setEditingAmountTx(null);
+  };
+
+  const resetAccounts = () => {
+    setAccounts(INITIAL_ACCOUNTS);
+    setSelectedAccountId(INITIAL_ACCOUNTS[0]?.id ?? "");
+    setCarouselStartIndex(0);
+    setTransactions([]);
+    setBills([]);
+    setNetWorthHistory([]);
+    setNetWorthViewMode("detailed");
+    setHideMoney(false);
+    setEditButtonForId(null);
+    setEditingAccount(null);
+    setEditingBill(null);
+    setEditingDetailsTx(null);
+    setEditingAmountTx(null);
+  };
+
+  const resetAllData = () => {
+    resetAccounts();
+  };
+
+  const handleLogout = () => {
+    setActiveProfileId(null);
+    setIsAppMenuOpen(false);
+    navigate("/profiles");
+  };
 
   // Edit-transaction modals
   const [editingDetailsTx, setEditingDetailsTx] = useState<Transaction | null>(
@@ -596,8 +697,6 @@ export default function Dashboard() {
     setEditButtonForId(null);
   }
 
-  const profileName = "Profile";
-
   // Compute which accounts to show in the 2-pill carousel
   let visibleAccounts: Account[] = [];
   if (accounts.length <= 2) {
@@ -613,6 +712,11 @@ export default function Dashboard() {
       initialHideMoney={hideMoney}
       onChange={(next) => setHideMoney(next)}
     >
+      {toastMessage && (
+        <div className="fixed right-6 top-6 z-30 rounded-xl bg-black/80 px-4 py-2 text-sm text-white shadow-lg backdrop-blur-sm">
+          {toastMessage}
+        </div>
+      )}
       <div
         className={`min-h-[100svh] w-full ${
           theme === "dark" ? darkBg : lightBg
@@ -636,36 +740,164 @@ export default function Dashboard() {
         {/* MAIN AREA */}
         <div className="flex min-h-[calc(100svh-3rem)] flex-1 flex-col gap-6">
           {/* TOP BAR */}
-          <header className="flex items-center justify-between rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-[#454545]">
-                <span className="text-lg font-bold">£</span>
+          <header className="flex flex-col gap-3 rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-[#454545]">
+                  <span className="text-lg font-bold">£</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsAppMenuOpen((prev) => !prev)}
+                  className="text-sm font-semibold tracking-wide text-white/90 transition hover:text-white"
+                  aria-pressed={isAppMenuOpen}
+                  aria-expanded={isAppMenuOpen}
+                  aria-controls="app-menu-pills"
+                >
+                  <span
+                    className={`inline-block transition ${
+                      isAppMenuOpen ? "scale-95 opacity-80" : "scale-100"
+                    }`}
+                  >
+                    Web App
+                  </span>
+                </button>
               </div>
-              <span className="text-sm font-semibold tracking-wide">
-                Web App
-              </span>
+
+              <div className="flex flex-1 items-center justify-end gap-3">
+                {isEditingProfileName ? (
+                  <form
+                    className="flex items-center gap-2"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      updateProfile(tempProfileName);
+                    }}
+                  >
+                    <input
+                      value={tempProfileName}
+                      onChange={(e) => setTempProfileName(e.target.value)}
+                      className="w-40 rounded-lg bg-white/80 px-2 py-1 text-sm text-[#222] outline-none focus:ring-2 focus:ring-[#715B64]"
+                      aria-label="Profile name"
+                      autoFocus
+                    />
+                    <button
+                      type="submit"
+                      className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white/90 transition hover:bg-white/30"
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTempProfileName(profile.displayName);
+                        setIsEditingProfileName(false);
+                      }}
+                      className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/80 transition hover:bg-white/20"
+                    >
+                      Cancel
+                    </button>
+                  </form>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTempProfileName(profile.displayName);
+                        setIsEditingProfileName(true);
+                      }}
+                      className="text-sm font-semibold text-white/90 transition hover:text-white"
+                    >
+                      {profile.displayName}
+                    </button>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-[#454545]">
+                      <span className="text-xs font-semibold">
+                        {profile.initials || "P"}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTempProfileName(profile.displayName);
+                        setIsEditingProfileName(true);
+                      }}
+                      className="text-white/80 transition hover:text-white"
+                      aria-label="Edit profile name"
+                    >
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M12 20h9" />
+                        <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <span className="text-sm">{profileName}</span>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-[#454545]">
-                <span className="text-xs font-semibold">PN</span>
-              </div>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                className="text-white/80"
+            <div
+              id="app-menu-pills"
+              className={`flex flex-wrap gap-2 overflow-hidden transition-all duration-200 ${
+                isAppMenuOpen
+                  ? "max-h-14 opacity-100 translate-y-0"
+                  : "pointer-events-none max-h-0 -translate-y-1 opacity-0"
+              }`}
+              aria-hidden={!isAppMenuOpen}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  showToast("Appearance settings coming soon.");
+                  setIsAppMenuOpen(false);
+                }}
+                className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/80 transition hover:bg-white/16 hover:text-white"
               >
-                <path
-                  d="M6 9l6 6 6-6"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+                Appearance
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAboutOpen(true);
+                  setIsAppMenuOpen(false);
+                }}
+                className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/80 transition hover:bg-white/16 hover:text-white"
+              >
+                About
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsFeedbackOpen(true);
+                  setIsAppMenuOpen(false);
+                }}
+                className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/80 transition hover:bg-white/16 hover:text-white"
+              >
+                Send Feedback
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsResetModalOpen(true);
+                  setIsAppMenuOpen(false);
+                }}
+                className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/80 transition hover:bg-white/16 hover:text-white"
+              >
+                Reset Data
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/80 transition hover:bg-white/16 hover:text-white"
+              >
+                Log Out
+              </button>
             </div>
           </header>
 
@@ -977,6 +1209,35 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {isAboutOpen && <AboutModal onClose={() => setIsAboutOpen(false)} />}
+
+      {isFeedbackOpen && (
+        <FeedbackModal
+          onClose={() => setIsFeedbackOpen(false)}
+          onSubmit={(message) => {
+            showToast(message ? "Feedback received!" : "Thanks for the feedback!");
+            setIsFeedbackOpen(false);
+          }}
+        />
+      )}
+
+      {isResetModalOpen && (
+        <ResetDataModal
+          onClose={() => setIsResetModalOpen(false)}
+          onConfirm={(choice) => {
+            if (choice === "transactions") {
+              resetTransactions();
+            } else if (choice === "accounts") {
+              resetAccounts();
+            } else {
+              resetAllData();
+            }
+            showToast("Data reset successfully.");
+            setIsResetModalOpen(false);
+          }}
+        />
+      )}
+
       {/* NEW TRANSACTION MODAL */}
       {isNewTxOpen && selectedAccount && (
         <NewTransactionModal
@@ -1138,6 +1399,190 @@ export default function Dashboard() {
 }
 
 /* ---------- MODALS ---------- */
+
+type SimpleModalProps = {
+  onClose: () => void;
+};
+
+function AboutModal({ onClose }: SimpleModalProps) {
+  return (
+    <div className="fixed inset-0 z-30 flex items-center justify-center px-4">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="relative z-10 w-full max-w-md rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-[#454545]">About</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-sm text-[#454545]/70 hover:text-[#454545]"
+          >
+            ✕
+          </button>
+        </div>
+        <p className="text-sm text-[#454545] opacity-80">
+          This dashboard keeps your finances on track. Manage accounts, track
+          bills, and monitor your spending—all stored locally in your browser.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+type FeedbackModalProps = SimpleModalProps & {
+  onSubmit: (message: string) => void;
+};
+
+function FeedbackModal({ onClose, onSubmit }: FeedbackModalProps) {
+  const [message, setMessage] = useState("");
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    onSubmit(message.trim());
+    setMessage("");
+  };
+
+  return (
+    <div className="fixed inset-0 z-30 flex items-center justify-center px-4">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="relative z-10 w-full max-w-md rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-[#454545]">Send Feedback</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-sm text-[#454545]/70 hover:text-[#454545]"
+          >
+            ✕
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            className="h-28 w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+            placeholder="Tell us what’s working well or what could be improved."
+          />
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full bg-white/40 px-3 py-1 text-xs font-semibold text-[#454545] transition hover:bg-white/60"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="rounded-full bg-[#715B64] px-3 py-1 text-xs font-semibold text-white transition hover:brightness-110 disabled:opacity-60"
+              disabled={!message.trim()}
+            >
+              Send
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+type ResetDataModalProps = SimpleModalProps & {
+  onConfirm: (choice: ResetOption) => void;
+};
+
+function ResetDataModal({ onClose, onConfirm }: ResetDataModalProps) {
+  const [choice, setChoice] = useState<ResetOption>("transactions");
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    onConfirm(choice);
+  };
+
+  return (
+    <div className="fixed inset-0 z-30 flex items-center justify-center px-4">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="relative z-10 w-full max-w-md rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-[#454545]">Reset Data</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-sm text-[#454545]/70 hover:text-[#454545]"
+          >
+            ✕
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-3 text-sm text-[#454545]">
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-white/80 px-3 py-2">
+            <input
+              type="radio"
+              name="reset"
+              value="transactions"
+              checked={choice === "transactions"}
+              onChange={() => setChoice("transactions")}
+              className="mt-1"
+            />
+            <span>
+              <span className="block font-semibold">Transactions only</span>
+              <span className="block text-xs opacity-80">
+                Clear the activity history but keep accounts and bills intact.
+              </span>
+            </span>
+          </label>
+
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-white/80 px-3 py-2">
+            <input
+              type="radio"
+              name="reset"
+              value="accounts"
+              checked={choice === "accounts"}
+              onChange={() => setChoice("accounts")}
+              className="mt-1"
+            />
+            <span>
+              <span className="block font-semibold">Accounts and bills</span>
+              <span className="block text-xs opacity-80">
+                Remove accounts, bills, and related history while leaving
+                appearance settings untouched.
+              </span>
+            </span>
+          </label>
+
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-white/80 px-3 py-2">
+            <input
+              type="radio"
+              name="reset"
+              value="all"
+              checked={choice === "all"}
+              onChange={() => setChoice("all")}
+              className="mt-1"
+            />
+            <span>
+              <span className="block font-semibold">Everything</span>
+              <span className="block text-xs opacity-80">
+                Clear all dashboard data for this profile.
+              </span>
+            </span>
+          </label>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full bg-white/40 px-3 py-1 text-xs font-semibold text-[#454545] transition hover:bg-white/60"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="rounded-full bg-[#715B64] px-3 py-1 text-xs font-semibold text-white transition hover:brightness-110"
+            >
+              Confirm reset
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 type ModalPropsBase = {
   onClose: () => void;
