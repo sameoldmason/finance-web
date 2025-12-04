@@ -650,7 +650,14 @@ export default function Dashboard() {
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-[#454545]">
                 <span className="text-lg font-bold">£</span>
               </div>
-              <span className="text-sm font-semibold tracking-wide">
+              <span
+                style={{ transitionDelay: isAppMenuOpen ? "0ms" : "0ms" }}
+                className={`text-sm font-semibold tracking-wide transition-all duration-300 ${
+                  isAppMenuOpen
+                    ? "translate-y-0 opacity-100"
+                    : "-translate-y-1 opacity-0"
+                }`}
+              >
                 Web App
               </span>
             </div>
