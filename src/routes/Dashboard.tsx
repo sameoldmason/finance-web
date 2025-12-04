@@ -711,7 +711,7 @@ export default function Dashboard() {
                 aria-controls="app-menu-pills"
                 className="rounded-full px-3 py-1 text-left text-sm text-white/90 transition hover:bg-white/5"
               >
-                <span className="text-sm font-semibold tracking-wide">Web App</span>
+                <span className="text-sm font-semibold tracking-wide">Summa</span>
               </button>
 
               <div
