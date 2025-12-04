@@ -14,6 +14,7 @@ import type { Bill } from "../lib/financeTypes";
 import { calculateNetWorthFromAccounts } from "../lib/netWorth";
 import { MoneyVisibilityProvider } from "../MoneyVisibilityContext";
 import { NetWorthCard } from "../components/dashboard/NetWorthCard";
+import { updateProfileName } from "../lib/profiles";
 
 const MONTHS = [
   "January",
@@ -106,7 +107,7 @@ function getDueStatus(dueDate: string) {
 
 export default function Dashboard() {
   const { theme, toggle } = useTheme();
-  const { activeProfile } = useActiveProfile();
+  const { activeProfile, setActiveProfileId } = useActiveProfile();
 
   // Accounts + selection
   const [accounts, setAccounts] = useState<Account[]>(INITIAL_ACCOUNTS);
@@ -130,6 +131,9 @@ export default function Dashboard() {
   >("detailed");
   const [hideMoney, setHideMoney] = useState(false);
   const [isAppMenuOpen, setIsAppMenuOpen] = useState(false);
+  const [isEditingProfileName, setIsEditingProfileName] = useState(false);
+  const [profileNameInput, setProfileNameInput] = useState("");
+  const [profileNameError, setProfileNameError] = useState("");
 
   // Modals
   const [isNewTxOpen, setIsNewTxOpen] = useState(false);
@@ -148,6 +152,17 @@ export default function Dashboard() {
   const [editingAmountTx, setEditingAmountTx] = useState<Transaction | null>(
     null
   );
+
+  useEffect(() => {
+    if (activeProfile) {
+      setProfileNameInput(activeProfile.name);
+      setIsEditingProfileName(false);
+      setProfileNameError("");
+    } else {
+      setProfileNameInput("");
+      setIsEditingProfileName(false);
+    }
+  }, [activeProfile]);
 
   // Load saved data when the active profile changes
   useEffect(() => {
@@ -597,7 +612,44 @@ export default function Dashboard() {
     setEditButtonForId(null);
   }
 
-  const profileName = "Profile";
+  function handleProfileNameSubmit(event?: FormEvent) {
+    event?.preventDefault();
+
+    if (!activeProfile) return;
+
+    const nextName = profileNameInput.trim();
+    if (!nextName) {
+      setProfileNameError("Name is required.");
+      return;
+    }
+
+    if (nextName === activeProfile.name) {
+      setIsEditingProfileName(false);
+      setProfileNameError("");
+      return;
+    }
+
+    try {
+      updateProfileName(activeProfile.id, nextName);
+      setActiveProfileId(activeProfile.id);
+      setIsEditingProfileName(false);
+      setProfileNameError("");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to update profile name.";
+      setProfileNameError(message);
+    }
+  }
+
+  function handleStartEditingProfileName() {
+    if (!activeProfile) return;
+    setProfileNameInput(activeProfile.name);
+    setProfileNameError("");
+    setIsEditingProfileName(true);
+  }
+
+  const profileName = activeProfile?.name ?? "Profile";
+  const avatarInitial = profileName.trim().charAt(0)?.toUpperCase() || "P";
 
   // Compute which accounts to show in the 2-pill carousel
   let visibleAccounts: Account[] = [];
@@ -696,9 +748,40 @@ export default function Dashboard() {
 
             <div className="flex items-center justify-end gap-4">
               <div className="flex items-center gap-3 rounded-full px-3 py-1 text-left text-sm">
-                <span className="text-sm">{profileName}</span>
+                <div className="flex flex-col">
+                  {isEditingProfileName ? (
+                    <form
+                      onSubmit={handleProfileNameSubmit}
+                      className="flex items-center gap-2"
+                    >
+                      <input
+                        value={profileNameInput}
+                        onChange={(event) => setProfileNameInput(event.target.value)}
+                        onBlur={() => handleProfileNameSubmit()}
+                        className="w-40 rounded-lg bg-white/10 px-2 py-1 text-sm text-white placeholder-white/50 shadow-inner outline-none ring-1 ring-white/20 focus:ring-white/50"
+                        placeholder="Enter name"
+                        autoFocus
+                      />
+                      <button type="submit" className="sr-only">
+                        Save profile name
+                      </button>
+                    </form>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleStartEditingProfileName}
+                      disabled={!activeProfile}
+                      className="text-sm font-semibold text-white/90 transition hover:text-white disabled:cursor-not-allowed disabled:text-white/40"
+                    >
+                      {profileName}
+                    </button>
+                  )}
+                  {profileNameError && (
+                    <span className="mt-1 text-xs text-red-300">{profileNameError}</span>
+                  )}
+                </div>
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-[#454545]">
-                  <span className="text-xs font-semibold">PN</span>
+                  <span className="text-xs font-semibold">{avatarInitial}</span>
                 </div>
               </div>
             </div>

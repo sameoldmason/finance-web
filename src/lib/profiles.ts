@@ -112,6 +112,36 @@ export function getProfile(id: string): StoredProfile | null {
   return readAll().find((p) => p.id === id) ?? null;
 }
 
+export function updateProfileName(id: string, name: string): StoredProfile {
+  const cleanName = name.trim();
+  if (!cleanName) {
+    throw new Error("Profile name is required.");
+  }
+
+  const profiles = readAll();
+  const targetIndex = profiles.findIndex((p) => p.id === id);
+
+  if (targetIndex === -1) {
+    throw new Error("Profile not found.");
+  }
+
+  const normalizedName = normName(cleanName);
+  const duplicate = profiles.some(
+    (p) => p.id !== id && normName(p.name) === normalizedName
+  );
+
+  if (duplicate) {
+    throw new Error("A profile with that name already exists.");
+  }
+
+  const updatedProfile: StoredProfile = { ...profiles[targetIndex], name: cleanName };
+  const nextProfiles = [...profiles];
+  nextProfiles[targetIndex] = updatedProfile;
+  writeAll(nextProfiles);
+
+  return updatedProfile;
+}
+
 /** Verify password (plain for now; will swap to hashing later). */
 export function verifyProfilePassword(id: string, password: string): boolean {
   const p = getProfile(id);
