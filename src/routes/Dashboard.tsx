@@ -129,6 +129,7 @@ export default function Dashboard() {
     "minimal" | "detailed"
   >("detailed");
   const [hideMoney, setHideMoney] = useState(false);
+  const [isAppMenuOpen, setIsAppMenuOpen] = useState(false);
 
   // Modals
   const [isNewTxOpen, setIsNewTxOpen] = useState(false);
@@ -608,6 +609,14 @@ export default function Dashboard() {
     visibleAccounts = [first, second].filter(Boolean) as Account[];
   }
 
+  const appMenuItems = [
+    { label: "Appearance", onClick: toggle },
+    { label: "About", onClick: () => setIsAppMenuOpen(false) },
+    { label: "Feedback", onClick: () => setIsAppMenuOpen(false) },
+    { label: "Reset", onClick: () => setIsAppMenuOpen(false) },
+    { label: "Log Out", onClick: () => setIsAppMenuOpen(false) },
+  ];
+
   return (
     <MoneyVisibilityProvider
       initialHideMoney={hideMoney}
@@ -618,7 +627,7 @@ export default function Dashboard() {
           theme === "dark" ? darkBg : lightBg
         } text-brand-accent`}
       >
-      <div className="mx-auto flex h-full max-w-[1280px] px-6 py-6">
+        <div className="mx-auto flex h-full max-w-[1280px] px-6 py-6">
         {/* LEFT SIDEBAR – months */}
         <aside className="mr-6 flex w-40 shrink-0 flex-col justify-end rounded-2xl bg-black/10 px-4 py-6 backdrop-blur-sm shadow-md">
           {MONTHS.map((m) => (
@@ -637,35 +646,61 @@ export default function Dashboard() {
         <div className="flex min-h-[calc(100svh-3rem)] flex-1 flex-col gap-6">
           {/* TOP BAR */}
           <header className="flex items-center justify-between rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-1 items-center gap-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-[#454545]">
                 <span className="text-lg font-bold">£</span>
               </div>
-              <span className="text-sm font-semibold tracking-wide">
-                Web App
-              </span>
+
+              <button
+                type="button"
+                onClick={() => setIsAppMenuOpen((prev) => !prev)}
+                aria-expanded={isAppMenuOpen}
+                aria-controls="app-menu-pills"
+                className="rounded-full px-3 py-1 text-left text-sm text-white/90 transition hover:bg-white/5"
+              >
+                <span className="text-sm font-semibold tracking-wide">Web App</span>
+              </button>
+
+              <div
+                id="app-menu-pills"
+                className={`flex items-center gap-2 overflow-hidden transition-[max-width,opacity,transform] duration-300 ${
+                  isAppMenuOpen
+                    ? "max-w-[640px] opacity-100 translate-y-0"
+                    : "max-w-0 opacity-0 -translate-y-1 pointer-events-none"
+                }`}
+              >
+                {appMenuItems.map((item, index) => (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={() => {
+                      item.onClick();
+                      setIsAppMenuOpen(false);
+                    }}
+                    style={{
+                      transitionDelay: isAppMenuOpen
+                        ? `${index * 80}ms`
+                        : "0ms",
+                    }}
+                    className={`rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white/80 shadow-sm transition-all duration-300 ${
+                      isAppMenuOpen
+                        ? "translate-y-0 opacity-100"
+                        : "-translate-y-1 opacity-0"
+                    } hover:bg-white/25`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <span className="text-sm">{profileName}</span>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-[#454545]">
-                <span className="text-xs font-semibold">PN</span>
+            <div className="flex items-center justify-end gap-4">
+              <div className="flex items-center gap-3 rounded-full px-3 py-1 text-left text-sm">
+                <span className="text-sm">{profileName}</span>
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-[#454545]">
+                  <span className="text-xs font-semibold">PN</span>
+                </div>
               </div>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                className="text-white/80"
-              >
-                <path
-                  d="M6 9l6 6 6-6"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
             </div>
           </header>
 
