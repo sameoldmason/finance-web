@@ -662,6 +662,7 @@ export default function Dashboard() {
   }
 
   const appMenuItems = [
+    { label: "Accounts", onClick: () => setIsNewAccountOpen(true) },
     { label: "Appearance", onClick: toggle },
     { label: "About", onClick: () => setIsAppMenuOpen(false) },
     { label: "Feedback", onClick: () => setIsAppMenuOpen(false) },
@@ -727,7 +728,6 @@ export default function Dashboard() {
                     type="button"
                     onClick={() => {
                       item.onClick();
-                      setIsAppMenuOpen(false);
                     }}
                     style={{
                       transitionDelay: isAppMenuOpen
