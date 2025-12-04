@@ -118,7 +118,7 @@ export default function ProfileDropdown({
   };
 
   return (
-    <div className="relative" ref={chipRef}>
+    <div className="relative z-30" ref={chipRef}>
       {isOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/20"
