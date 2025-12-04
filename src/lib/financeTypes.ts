@@ -7,6 +7,12 @@ export type Account = {
   name: string;
   balance: number;
   accountCategory: AccountCategory;
+
+  /** Only meaningful for credit (debt) accounts; can be undefined or null */
+  creditLimit?: number | null;
+
+  /** APR as a percentage, e.g. 19.99 means 19.99% APR */
+  aprPercent?: number | null;
 };
 
 export type Transaction = {
