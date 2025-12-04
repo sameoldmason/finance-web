@@ -506,12 +506,23 @@ export default function Dashboard() {
   // Save edited account (and create a balance adjustment transaction if needed)
   function handleSaveEditedAccount(
     original: Account,
-    updates: { name: string; balance: number; accountCategory: AccountCategory }
+    updates: {
+      name: string;
+      balance: number;
+      accountCategory: AccountCategory;
+      creditLimit?: number | null;
+      aprPercent?: number | null;
+    }
   ) {
     const trimmedName = updates.name.trim() || original.name;
     const nextBalance = updates.balance;
     const nextCategory = updates.accountCategory ?? original.accountCategory;
     const delta = nextBalance - original.balance;
+
+    const nextCreditLimit =
+      nextCategory === "debt" ? updates.creditLimit ?? null : null;
+    const nextAprPercent =
+      nextCategory === "debt" ? updates.aprPercent ?? null : null;
 
     setAccounts((prev) =>
       prev.map((acc) =>
@@ -521,6 +532,8 @@ export default function Dashboard() {
               name: trimmedName,
               balance: nextBalance,
               accountCategory: nextCategory,
+              creditLimit: nextCreditLimit,
+              aprPercent: nextAprPercent,
             }
           : acc
       )
@@ -994,24 +1007,26 @@ export default function Dashboard() {
 
       {/* EDIT ACCOUNT MODAL */}
       {editingAccount && (
-        <EditAccountModal
-          account={editingAccount}
-          onClose={() => {
-            setEditingAccount(null);
-            setEditButtonForId(null);
-          }}
-          onSave={({ name, balance, accountCategory }) => {
-            handleSaveEditedAccount(editingAccount, {
-              name,
-              balance,
-              accountCategory,
-            });
-            setEditingAccount(null);
-            setEditButtonForId(null);
-          }}
-          onDelete={() => handleDeleteAccount(editingAccount.id)}
-        />
-      )}
+          <EditAccountModal
+            account={editingAccount}
+            onClose={() => {
+              setEditingAccount(null);
+              setEditButtonForId(null);
+            }}
+            onSave={({ name, balance, accountCategory, creditLimit, aprPercent }) => {
+              handleSaveEditedAccount(editingAccount, {
+                name,
+                balance,
+                accountCategory,
+                creditLimit,
+                aprPercent,
+              });
+              setEditingAccount(null);
+              setEditButtonForId(null);
+            }}
+            onDelete={() => handleDeleteAccount(editingAccount.id)}
+          />
+        )}
 
       {/* NEW BILL MODAL */}
       {isNewBillOpen && accounts.length > 0 && (
@@ -1338,9 +1353,13 @@ type NewAccountModalProps = {
 
 function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
   const [name, setName] = useState("");
-  const [amount, setAmount] = useState("");
+  const [balanceStr, setBalanceStr] = useState("");
+  const [creditLimitStr, setCreditLimitStr] = useState("");
+  const [aprPercentStr, setAprPercentStr] = useState("");
   const [nameError, setNameError] = useState("");
-  const [amountError, setAmountError] = useState("");
+  const [balanceError, setBalanceError] = useState("");
+  const [creditLimitError, setCreditLimitError] = useState("");
+  const [aprError, setAprError] = useState("");
   const [isPadOpen, setIsPadOpen] = useState(false);
   const [accountCategory, setAccountCategory] =
     useState<AccountCategory>("asset");
@@ -1357,18 +1376,61 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
       setNameError("");
     }
 
-    const rawAmount = amount;
+    const rawAmount = balanceStr.trim();
     const parsedAmount = rawAmount === "" ? 0 : parseFloat(rawAmount);
-    const normalizedAmount = Math.abs(parsedAmount);
 
     if (rawAmount !== "" && Number.isNaN(parsedAmount)) {
-      setAmountError("Enter an amount");
+      setBalanceError("Enter an amount");
+      valid = false;
+    } else if (accountCategory === "debt" && parsedAmount > 0) {
+      setBalanceError("Credit account balances must be negative or 0.");
       valid = false;
     } else {
-      setAmountError("");
+      setBalanceError("");
+    }
+
+    let creditLimit: number | null | undefined;
+    let aprPercent: number | null | undefined;
+
+    if (accountCategory === "debt") {
+      const creditLimitRaw = creditLimitStr.trim();
+      if (creditLimitRaw === "") {
+        creditLimit = null;
+        setCreditLimitError("");
+      } else {
+        const parsed = parseFloat(creditLimitRaw);
+        if (Number.isNaN(parsed)) {
+          setCreditLimitError("Enter a number");
+          valid = false;
+        } else {
+          creditLimit = parsed;
+          setCreditLimitError("");
+        }
+      }
+
+      const aprRaw = aprPercentStr.trim();
+      if (aprRaw === "") {
+        aprPercent = null;
+        setAprError("");
+      } else {
+        const parsed = parseFloat(aprRaw);
+        if (Number.isNaN(parsed)) {
+          setAprError("Enter a number");
+          valid = false;
+        } else {
+          aprPercent = parsed;
+          setAprError("");
+        }
+      }
+    } else {
+      setCreditLimitError("");
+      setAprError("");
     }
 
     if (!valid) return;
+
+    const normalizedAmount =
+      accountCategory === "debt" ? parsedAmount : Math.abs(parsedAmount);
 
     const newAccount: Account = {
       id: crypto.randomUUID(),
@@ -1376,6 +1438,11 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
       balance: normalizedAmount,
       accountCategory,
     };
+
+    if (accountCategory === "debt") {
+      newAccount.creditLimit = creditLimit ?? null;
+      newAccount.aprPercent = aprPercent ?? null;
+    }
 
     onSave(newAccount);
     onClose();
@@ -1423,8 +1490,8 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                 name="amount"
                 type="text"
                 inputMode="decimal"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                value={balanceStr}
+                onChange={(e) => setBalanceStr(e.target.value)}
                 className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
                 placeholder="0.00"
               />
@@ -1435,12 +1502,13 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
               >
                 Open number pad
               </button>
-              {amountError && (
-                <p className="mt-1 text-xs text-red-500">{amountError}</p>
+              {balanceError && (
+                <p className="mt-1 text-xs text-red-500">{balanceError}</p>
               )}
               <p className="mt-1 text-[11px] text-[#454545]/60">
-                Set a positive balance and choose whether this is an asset or a
-                debt account.
+                {accountCategory === "debt"
+                  ? "For credit accounts, enter the amount you owe as a negative number (e.g. -500) or 0 if it’s fully paid."
+                  : "Balances are stored as positive numbers and add to your net worth."}
               </p>
             </div>
 
@@ -1453,13 +1521,13 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                   [
                     {
                       value: "asset" as const,
-                      label: "Asset",
+                      label: "Debit",
                       hint: "Chequing, savings, investments",
                     },
                     {
                       value: "debt" as const,
-                      label: "Debt",
-                      hint: "Loans, credit cards, mortgages",
+                      label: "Credit",
+                      hint: "Credit cards, loans, other liabilities",
                     },
                   ] satisfies { value: AccountCategory; label: string; hint: string }[]
                 ).map((option) => (
@@ -1490,6 +1558,55 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
               </div>
             </div>
 
+            {accountCategory === "debt" && (
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                    Credit limit
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={creditLimitStr}
+                    onChange={(e) => setCreditLimitStr(e.target.value)}
+                    className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                    placeholder="Optional"
+                  />
+                  {creditLimitError && (
+                    <p className="mt-1 text-xs text-red-500">
+                      {creditLimitError}
+                    </p>
+                  )}
+                  <p className="mt-1 text-[11px] text-[#454545]/60">
+                    Total available credit on this account (optional).
+                  </p>
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                    APR
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={aprPercentStr}
+                      onChange={(e) => setAprPercentStr(e.target.value)}
+                      className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                      placeholder="e.g. 19.99"
+                    />
+                    <span className="text-sm font-semibold text-[#454545]/80">%</span>
+                  </div>
+                  {aprError && (
+                    <p className="mt-1 text-xs text-red-500">{aprError}</p>
+                  )}
+                  <p className="mt-1 text-[11px] text-[#454545]/60">
+                    Annual interest rate in percent (optional).
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-end gap-3 pt-2">
               <button
                 type="button"
@@ -1511,8 +1628,8 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
 
       {isPadOpen && (
         <NumberPad
-          value={amount}
-          onChange={setAmount}
+          value={balanceStr}
+          onChange={setBalanceStr}
           onClose={() => setIsPadOpen(false)}
         />
       )}
@@ -1527,6 +1644,8 @@ type EditAccountModalProps = {
     name: string;
     balance: number;
     accountCategory: AccountCategory;
+    creditLimit?: number | null;
+    aprPercent?: number | null;
   }) => void;
   onDelete?: () => void;
 };
@@ -1539,8 +1658,16 @@ function EditAccountModal({
 }: EditAccountModalProps) {
   const [name, setName] = useState(account.name);
   const [balanceStr, setBalanceStr] = useState(account.balance.toString());
+  const [creditLimitStr, setCreditLimitStr] = useState(
+    account.creditLimit != null ? account.creditLimit.toString() : ""
+  );
+  const [aprPercentStr, setAprPercentStr] = useState(
+    account.aprPercent != null ? account.aprPercent.toString() : ""
+  );
   const [nameError, setNameError] = useState("");
   const [balanceError, setBalanceError] = useState("");
+  const [creditLimitError, setCreditLimitError] = useState("");
+  const [aprError, setAprError] = useState("");
   const [isPadOpen, setIsPadOpen] = useState(false);
   const [accountCategory, setAccountCategory] = useState<AccountCategory>(
     account.accountCategory ?? "asset"
@@ -1560,21 +1687,66 @@ function EditAccountModal({
 
     const raw = balanceStr.trim();
     const parsed = raw === "" ? 0 : parseFloat(raw);
-    const normalizedAmount = Math.abs(parsed);
 
     if (raw !== "" && Number.isNaN(parsed)) {
       setBalanceError("Enter an amount");
+      valid = false;
+    } else if (accountCategory === "debt" && parsed > 0) {
+      setBalanceError("Credit account balances must be negative or 0.");
       valid = false;
     } else {
       setBalanceError("");
     }
 
+    let creditLimit: number | null | undefined;
+    let aprPercent: number | null | undefined;
+
+    if (accountCategory === "debt") {
+      const creditLimitRaw = creditLimitStr.trim();
+      if (creditLimitRaw === "") {
+        creditLimit = null;
+        setCreditLimitError("");
+      } else {
+        const parsedLimit = parseFloat(creditLimitRaw);
+        if (Number.isNaN(parsedLimit)) {
+          setCreditLimitError("Enter a number");
+          valid = false;
+        } else {
+          creditLimit = parsedLimit;
+          setCreditLimitError("");
+        }
+      }
+
+      const aprRaw = aprPercentStr.trim();
+      if (aprRaw === "") {
+        aprPercent = null;
+        setAprError("");
+      } else {
+        const parsedApr = parseFloat(aprRaw);
+        if (Number.isNaN(parsedApr)) {
+          setAprError("Enter a number");
+          valid = false;
+        } else {
+          aprPercent = parsedApr;
+          setAprError("");
+        }
+      }
+    } else {
+      setCreditLimitError("");
+      setAprError("");
+    }
+
     if (!valid) return;
+
+    const normalizedAmount =
+      accountCategory === "debt" ? parsed : Math.abs(parsed);
 
     onSave({
       name: name.trim(),
       balance: normalizedAmount,
       accountCategory,
+      creditLimit,
+      aprPercent,
     });
     onClose();
   };
@@ -1635,8 +1807,9 @@ function EditAccountModal({
                 <p className="mt-1 text-xs text-red-500">{balanceError}</p>
               )}
               <p className="mt-1 text-[11px] text-[#454545]/60">
-                Balances are stored as positive numbers; mark the account as a
-                debt to subtract it from your net worth.
+                {accountCategory === "debt"
+                  ? "For credit accounts, enter the amount you owe as a negative number (e.g. -500) or 0 if it’s fully paid."
+                  : "Balances are stored as positive numbers and add to your net worth."}
               </p>
             </div>
 
@@ -1649,13 +1822,13 @@ function EditAccountModal({
                   [
                     {
                       value: "asset" as const,
-                      label: "Asset",
+                      label: "Debit",
                       hint: "Chequing, savings, investments",
                     },
                     {
                       value: "debt" as const,
-                      label: "Debt",
-                      hint: "Loans, credit cards, mortgages",
+                      label: "Credit",
+                      hint: "Credit cards, loans, other liabilities",
                     },
                   ] satisfies { value: AccountCategory; label: string; hint: string }[]
                 ).map((option) => (
@@ -1685,6 +1858,55 @@ function EditAccountModal({
                 ))}
               </div>
             </div>
+
+            {accountCategory === "debt" && (
+              <div className="space-y-4">
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                      Credit limit
+                    </label>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={creditLimitStr}
+                      onChange={(e) => setCreditLimitStr(e.target.value)}
+                      className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                      placeholder="Optional"
+                    />
+                    {creditLimitError && (
+                      <p className="mt-1 text-xs text-red-500">
+                        {creditLimitError}
+                      </p>
+                    )}
+                    <p className="mt-1 text-[11px] text-[#454545]/60">
+                      Total available credit on this account (optional).
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                      APR
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={aprPercentStr}
+                        onChange={(e) => setAprPercentStr(e.target.value)}
+                        className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                        placeholder="e.g. 19.99"
+                      />
+                      <span className="text-sm font-semibold text-[#454545]/80">%</span>
+                    </div>
+                    {aprError && (
+                      <p className="mt-1 text-xs text-red-500">{aprError}</p>
+                    )}
+                    <p className="mt-1 text-[11px] text-[#454545]/60">
+                      Annual interest rate in percent (optional).
+                    </p>
+                  </div>
+                </div>
+              )}
 
             <div className="flex items-center justify-between gap-3 pt-2">
               {onDelete ? (
