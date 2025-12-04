@@ -119,40 +119,62 @@ export default function ProfileDropdown({
 
   return (
     <div className="relative" ref={chipRef}>
-      <button
-        type="button"
-        onClick={() => setIsOpen((v) => !v)}
-        className="group flex items-center gap-3 rounded-2xl bg-white/10 px-3 py-2 text-sm font-semibold text-white/90 backdrop-blur hover:bg-white/15"
-        aria-haspopup="menu"
-        aria-expanded={isOpen}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/20"
+          aria-hidden="true"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      <div
+        className={`flex items-center gap-3 rounded-2xl px-3 py-2 backdrop-blur ${
+          theme === "dark"
+            ? "bg-white/5 text-white"
+            : "bg-black/5 text-[#2f2f2f]"
+        }`}
       >
-        <span className="text-sm">{profile.displayName}</span>
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-[#454545]">
-          <span className="text-xs font-semibold">{profile.initials}</span>
-        </div>
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          className={`text-white/80 transition-transform duration-150 ${
-            isOpen ? "rotate-180" : ""
+        <span className="text-base font-bold">{profile.displayName}</span>
+        <div
+          className={`flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-[#2f2f2f] ${
+            theme === "dark" ? "shadow-sm" : ""
           }`}
         >
-          <path
-            d="M6 9l6 6 6-6"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </button>
+          <span className="text-sm font-bold">{profile.initials}</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setIsOpen((v) => !v)}
+          className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
+            theme === "dark"
+              ? "text-white/80 hover:bg-white/10"
+              : "text-[#2f2f2f]/70 hover:bg-black/10"
+          }`}
+          aria-haspopup="menu"
+          aria-expanded={isOpen}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            className={`transition-transform duration-150 ${isOpen ? "rotate-180" : ""}`}
+          >
+            <path
+              d="M6 9l6 6 6-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
 
       {isOpen && (
         <div
           ref={dropdownRef}
-          className={`absolute right-0 z-30 mt-2 w-56 rounded-2xl ${panelBase} shadow-lg ring-1 ring-black/5`}
+          className={`absolute right-0 z-50 mt-2 w-56 rounded-2xl ${panelBase} shadow-lg ring-1 ring-black/5`}
         >
           <div className="flex flex-col py-2">
             <DropdownItem
