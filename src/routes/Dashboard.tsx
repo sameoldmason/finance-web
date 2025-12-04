@@ -114,6 +114,15 @@ export default function Dashboard() {
   const [isEditingProfileName, setIsEditingProfileName] = useState(false);
   const profileNameInputRef = useRef<HTMLInputElement>(null);
 
+  const focusProfileNameInput = () => {
+    requestAnimationFrame(() => {
+      const input = profileNameInputRef.current;
+      if (!input) return;
+      input.focus();
+      input.select();
+    });
+  };
+
   // Accounts + selection
   const [accounts, setAccounts] = useState<Account[]>(INITIAL_ACCOUNTS);
   const [selectedAccountId, setSelectedAccountId] = useState<string>(
@@ -226,7 +235,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (isEditingProfileName) {
-      profileNameInputRef.current?.focus();
+      focusProfileNameInput();
     }
   }, [isEditingProfileName]);
 
@@ -322,6 +331,7 @@ export default function Dashboard() {
 
   const handleProfileNameClick = () => {
     setIsEditingProfileName(true);
+    focusProfileNameInput();
   };
 
   const handleProfileNameBlur = () => {
