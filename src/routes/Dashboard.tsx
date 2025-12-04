@@ -1,5 +1,6 @@
 // src/routes/Dashboard.tsx
 import { FormEvent, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTheme } from "../ThemeProvider";
 import { useActiveProfile } from "../ActiveProfileContext";
 import {
@@ -9,11 +10,22 @@ import {
   Transaction,
   TransferInput,
 } from "../lib/financeTypes";
-import { loadDashboardData, saveDashboardData } from "../lib/dashboardStore";
+import {
+  clearDashboardData,
+  loadDashboardData,
+  saveDashboardData,
+} from "../lib/dashboardStore";
 import type { Bill } from "../lib/financeTypes";
 import { calculateNetWorthFromAccounts } from "../lib/netWorth";
 import { MoneyVisibilityProvider } from "../MoneyVisibilityContext";
 import { NetWorthCard } from "../components/dashboard/NetWorthCard";
+import ProfileDropdown, { ResetOption } from "../components/ProfileDropdown";
+import {
+  clearUserProfile,
+  loadUserProfile,
+  saveUserProfile,
+  type UserProfile,
+} from "../lib/profileStore";
 
 const MONTHS = [
   "January",
@@ -106,7 +118,12 @@ function getDueStatus(dueDate: string) {
 
 export default function Dashboard() {
   const { theme, toggle } = useTheme();
-  const { activeProfile } = useActiveProfile();
+  const { activeProfile, setActiveProfileId } = useActiveProfile();
+  const navigate = useNavigate();
+
+  const [profile, setProfile] = useState<UserProfile>(() =>
+    loadUserProfile(activeProfile?.id, activeProfile?.name ?? "Profile")
+  );
 
   // Accounts + selection
   const [accounts, setAccounts] = useState<Account[]>(INITIAL_ACCOUNTS);
@@ -147,6 +164,16 @@ export default function Dashboard() {
   const [editingAmountTx, setEditingAmountTx] = useState<Transaction | null>(
     null
   );
+
+  // Profile preferences
+  useEffect(() => {
+    setProfile(loadUserProfile(activeProfile?.id, activeProfile?.name ?? "Profile"));
+  }, [activeProfile?.id, activeProfile?.name]);
+
+  useEffect(() => {
+    if (!activeProfile?.id) return;
+    saveUserProfile(activeProfile.id, profile);
+  }, [profile, activeProfile?.id]);
 
   // Load saved data when the active profile changes
   useEffect(() => {
@@ -596,7 +623,73 @@ export default function Dashboard() {
     setEditButtonForId(null);
   }
 
-  const profileName = "Profile";
+  const handleProfileUpdate = (next: UserProfile) => {
+    setProfile(next);
+  };
+
+  const handleResetData = (choice: ResetOption) => {
+    if (!activeProfile?.id) return;
+
+    if (choice === "transactions") {
+      setTransactions([]);
+      setEditingDetailsTx(null);
+      setEditingAmountTx(null);
+      setIsTransactionsModalOpen(false);
+      setIsNewTxOpen(false);
+      setIsTransferOpen(false);
+      return;
+    }
+
+    if (choice === "accounts") {
+      setAccounts([]);
+      setSelectedAccountId("");
+      setCarouselStartIndex(0);
+      setTransactions([]);
+      setBills([]);
+      setNetWorthHistory([]);
+      setEditingAccount(null);
+      setEditButtonForId(null);
+      setEditingDetailsTx(null);
+      setEditingAmountTx(null);
+      setEditingBill(null);
+      setIsNewAccountOpen(false);
+      setIsNewTxOpen(false);
+      setIsTransferOpen(false);
+      setIsTransactionsModalOpen(false);
+      setIsNewBillOpen(false);
+      setIsBillsModalOpen(false);
+      return;
+    }
+
+    setAccounts([]);
+    setSelectedAccountId("");
+    setCarouselStartIndex(0);
+    setTransactions([]);
+    setBills([]);
+    setNetWorthHistory([]);
+    setNetWorthViewMode("detailed");
+    setHideMoney(false);
+    setEditingAccount(null);
+    setEditButtonForId(null);
+    setEditingDetailsTx(null);
+    setEditingAmountTx(null);
+    setEditingBill(null);
+    setIsNewAccountOpen(false);
+    setIsNewTxOpen(false);
+    setIsTransferOpen(false);
+    setIsTransactionsModalOpen(false);
+    setIsNewBillOpen(false);
+    setIsBillsModalOpen(false);
+    clearDashboardData(activeProfile.id);
+    clearUserProfile(activeProfile.id);
+    setProfile(loadUserProfile(activeProfile.id, activeProfile.name ?? "Profile"));
+  };
+
+  const handleLogout = () => {
+    setActiveProfileId(null);
+    setProfile(loadUserProfile(null, "Profile"));
+    navigate("/profiles");
+  };
 
   // Compute which accounts to show in the 2-pill carousel
   let visibleAccounts: Account[] = [];
@@ -646,27 +739,12 @@ export default function Dashboard() {
               </span>
             </div>
 
-            <div className="flex items-center gap-3">
-              <span className="text-sm">{profileName}</span>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-[#454545]">
-                <span className="text-xs font-semibold">PN</span>
-              </div>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                className="text-white/80"
-              >
-                <path
-                  d="M6 9l6 6 6-6"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
+            <ProfileDropdown
+              profile={profile}
+              onUpdateProfile={handleProfileUpdate}
+              onResetData={handleResetData}
+              onLogout={handleLogout}
+            />
           </header>
 
           {/* TOP ROW: BALANCE + TRANSACTIONS */}

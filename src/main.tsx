@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./ThemeProvider";
 import { ActiveProfileProvider } from "./ActiveProfileContext";
+import { ToastProvider } from "./ToastContext";
 import "./index.css";
 
 // Routes
@@ -16,25 +17,27 @@ import Dashboard from "./routes/Dashboard";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ThemeProvider>
-      <ActiveProfileProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* Auto-redirect depending on profiles */}
-            <Route path="/" element={<Landing />} />
+      <ToastProvider>
+        <ActiveProfileProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* Auto-redirect depending on profiles */}
+              <Route path="/" element={<Landing />} />
 
-            {/* First-time setup */}
-            <Route path="/welcome" element={<Welcome />} />
-            <Route path="/profiles/new" element={<CreateProfile />} />
+              {/* First-time setup */}
+              <Route path="/welcome" element={<Welcome />} />
+              <Route path="/profiles/new" element={<CreateProfile />} />
 
-            {/* Profile management */}
-            <Route path="/profiles" element={<ChooseProfile />} />
-            <Route path="/profiles/:id/unlock" element={<UnlockProfile />} />
+              {/* Profile management */}
+              <Route path="/profiles" element={<ChooseProfile />} />
+              <Route path="/profiles/:id/unlock" element={<UnlockProfile />} />
 
-            {/* Dashboard */}
-            <Route path="/dashboard" element={<Dashboard />} />
-          </Routes>
-        </BrowserRouter>
-      </ActiveProfileProvider>
+              {/* Dashboard */}
+              <Route path="/dashboard" element={<Dashboard />} />
+            </Routes>
+          </BrowserRouter>
+        </ActiveProfileProvider>
+      </ToastProvider>
     </ThemeProvider>
   </React.StrictMode>
 );

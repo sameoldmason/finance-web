@@ -75,3 +75,14 @@ export function saveDashboardData(
     console.error("Failed to save dashboard data:", err);
   }
 }
+
+/**
+ * Remove all stored dashboard data for a profile.
+ */
+export function clearDashboardData(profileId: string): void {
+  try {
+    localStorage.removeItem(key(profileId));
+  } catch (err) {
+    console.error("Failed to clear dashboard data:", err);
+  }
+}
