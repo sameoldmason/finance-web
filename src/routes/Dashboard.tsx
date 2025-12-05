@@ -133,6 +133,7 @@ export default function Dashboard() {
   const [hideMoney, setHideMoney] = useState(false);
   const [isAppMenuOpen, setIsAppMenuOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isEditingProfileName, setIsEditingProfileName] = useState(false);
   const [profileNameInput, setProfileNameInput] = useState("");
   const [profileNameError, setProfileNameError] = useState("");
@@ -719,7 +720,7 @@ export default function Dashboard() {
     { label: "Accounts", onClick: () => setIsAccountsListOpen(true) },
     { label: "Appearance", onClick: toggle },
     { label: "About", onClick: () => setIsAboutOpen(true) },
-    { label: "Feedback", onClick: () => {} },
+    { label: "Feedback", onClick: () => setIsFeedbackOpen(true) },
     { label: "Reset", onClick: () => {} },
     { label: "Log Out", onClick: () => {} },
   ];
@@ -1289,6 +1290,14 @@ export default function Dashboard() {
         <AboutModal theme={theme} onClose={() => setIsAboutOpen(false)} />
       )}
 
+      {/* FEEDBACK MODAL */}
+      {isFeedbackOpen && (
+        <FeedbackModal
+          theme={theme}
+          onClose={() => setIsFeedbackOpen(false)}
+        />
+      )}
+
       {/* THEME TOGGLE */}
       <button
         onClick={toggle}
@@ -1403,6 +1412,66 @@ function AboutModal({ theme, onClose }: AboutModalProps) {
           <p className={paragraphClasses}>
             If you enjoy this calm, tidy-budgeting vibe, stick around. There’s more coming.
           </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type FeedbackModalProps = {
+  theme: "light" | "dark";
+  onClose: () => void;
+};
+
+function FeedbackModal({ theme, onClose }: FeedbackModalProps) {
+  const cardClasses =
+    theme === "dark"
+      ? "bg-neutral-900/95 text-neutral-100"
+      : "bg-[#E9F2F5] text-[#454545]";
+
+  const closeButtonClasses =
+    theme === "dark"
+      ? "text-white/70 hover:text-white"
+      : "text-[#454545]/70 hover:text-[#454545]";
+
+  const paragraphClasses =
+    theme === "dark" ? "text-sm text-white/80" : "text-sm text-[#454545]/80";
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="feedback-ahlie-title"
+      className="fixed inset-0 z-30 flex items-center justify-center px-4"
+    >
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div
+        className={`relative z-40 w-full max-w-3xl rounded-2xl p-6 shadow-xl backdrop-blur-sm ${cardClasses}`}
+      >
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] opacity-60">
+              Feedback
+            </p>
+            <h2
+              id="feedback-ahlie-title"
+              className="mt-1 text-2xl font-semibold leading-tight"
+            >
+              Got feedback?
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className={`rounded-full px-2 py-1 text-sm font-semibold transition ${closeButtonClasses}`}
+            aria-label="Close feedback dialog"
+          >
+            ƒo
+          </button>
+        </div>
+
+        <div className="space-y-3 leading-relaxed">
+          <p className={paragraphClasses}>Just text me lol</p>
         </div>
       </div>
     </div>
