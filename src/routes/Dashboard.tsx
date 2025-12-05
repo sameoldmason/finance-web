@@ -130,7 +130,7 @@ export default function Dashboard() {
     "minimal" | "detailed"
   >("detailed");
   const [hideMoney, setHideMoney] = useState(false);
-  const [isAppMenuOpen, setIsAppMenuOpen] = useState(false);
+  const [isAppMenuOpen, setIsAppMenuOpen] = useState(true);
   const [isEditingProfileName, setIsEditingProfileName] = useState(false);
   const [profileNameInput, setProfileNameInput] = useState("");
   const [profileNameError, setProfileNameError] = useState("");
@@ -664,10 +664,10 @@ export default function Dashboard() {
   const appMenuItems = [
     { label: "Accounts", onClick: () => setIsNewAccountOpen(true) },
     { label: "Appearance", onClick: toggle },
-    { label: "About", onClick: () => setIsAppMenuOpen(false) },
-    { label: "Feedback", onClick: () => setIsAppMenuOpen(false) },
-    { label: "Reset", onClick: () => setIsAppMenuOpen(false) },
-    { label: "Log Out", onClick: () => setIsAppMenuOpen(false) },
+    { label: "About", onClick: () => {} },
+    { label: "Feedback", onClick: () => {} },
+    { label: "Reset", onClick: () => {} },
+    { label: "Log Out", onClick: () => {} },
   ];
 
   return (
@@ -702,7 +702,7 @@ export default function Dashboard() {
             <div className="flex flex-1 items-center gap-4">
               <button
                 type="button"
-                onClick={() => setIsAppMenuOpen((prev) => !prev)}
+                onClick={() => setIsAppMenuOpen(true)}
                 aria-expanded={isAppMenuOpen}
                 aria-controls="app-menu-pills"
                 className="rounded-full px-4 py-2.5 text-left text-lg font-semibold text-white/90 transition hover:bg-white/5"
