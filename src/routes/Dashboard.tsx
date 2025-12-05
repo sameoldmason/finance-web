@@ -658,6 +658,13 @@ export default function Dashboard() {
     });
   }
 
+  function handleOpenAccountEditor(account: Account) {
+    setSelectedAccountId(account.id);
+    setEditingAccount(account);
+    setEditButtonForId(account.id);
+    setIsAccountsListOpen(false);
+  }
+
   function handleProfileNameSubmit(event?: FormEvent) {
     event?.preventDefault();
 
@@ -1163,6 +1170,8 @@ export default function Dashboard() {
           accounts={accounts}
           deletedAccounts={deletedAccounts}
           onRestore={handleRestoreAccount}
+          onDelete={handleDeleteAccount}
+          onSelectAccount={handleOpenAccountEditor}
           onClose={() => setIsAccountsListOpen(false)}
         />
       )}
@@ -1525,6 +1534,8 @@ type AccountsListModalProps = {
   accounts: Account[];
   deletedAccounts: Account[];
   onRestore: (accountId: string) => void;
+  onDelete: (accountId: string) => void;
+  onSelectAccount: (account: Account) => void;
   onClose: () => void;
 };
 
@@ -1545,6 +1556,8 @@ function AccountsListModal({
   accounts,
   deletedAccounts,
   onRestore,
+  onDelete,
+  onSelectAccount,
   onClose,
 }: AccountsListModalProps) {
   const [showDeleted, setShowDeleted] = useState(false);
@@ -1599,7 +1612,22 @@ function AccountsListModal({
             visibleAccounts.map((account) => (
               <div
                 key={account.id}
-                className="flex items-center gap-4 rounded-xl bg-white px-4 py-3 shadow-sm"
+                role={!showDeleted ? "button" : undefined}
+                tabIndex={!showDeleted ? 0 : -1}
+                onClick={() => {
+                  if (!showDeleted) {
+                    onSelectAccount(account);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (!showDeleted && (e.key === "Enter" || e.key === " ")) {
+                    e.preventDefault();
+                    onSelectAccount(account);
+                  }
+                }}
+                className={`flex items-center gap-4 rounded-xl bg-white px-4 py-3 shadow-sm ${
+                  showDeleted ? "" : "cursor-pointer transition hover:shadow-md"
+                }`}
               >
                 <div className="w-28 text-right text-lg font-extrabold text-[#454545]">
                   {formatCurrency(account.balance)}
@@ -1617,6 +1645,18 @@ function AccountsListModal({
                     className="rounded-full bg-[#715B64] px-3 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-[#5d4953]"
                   >
                     Restore
+                  </button>
+                )}
+                {!showDeleted && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(account.id);
+                    }}
+                    className="rounded-full border border-[#FBD5D5]/70 bg-white/60 px-4 py-2 text-xs font-semibold text-[#C95454] transition hover:bg-[#FBD5D5]/60"
+                  >
+                    Delete account
                   </button>
                 )}
               </div>
