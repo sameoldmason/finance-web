@@ -632,6 +632,32 @@ export default function Dashboard() {
     setEditButtonForId(null);
   }
 
+  function handleRestoreAccount(accountId: string) {
+    let restored: Account | undefined;
+
+    setDeletedAccounts((prevDeleted) => {
+      restored = prevDeleted.find((acc) => acc.id === accountId);
+      return prevDeleted.filter((acc) => acc.id !== accountId);
+    });
+
+    if (!restored) return;
+
+    setAccounts((prevAccounts) => {
+      if (prevAccounts.some((acc) => acc.id === accountId)) {
+        return prevAccounts;
+      }
+
+      const next = dedupeAccountsById([...prevAccounts, restored!]);
+      if (!selectedAccountId) {
+        setSelectedAccountId(restored!.id);
+      }
+      if (prevAccounts.length === 0) {
+        setCarouselStartIndex(0);
+      }
+      return next;
+    });
+  }
+
   function handleProfileNameSubmit(event?: FormEvent) {
     event?.preventDefault();
 
@@ -1136,6 +1162,7 @@ export default function Dashboard() {
         <AccountsListModal
           accounts={accounts}
           deletedAccounts={deletedAccounts}
+          onRestore={handleRestoreAccount}
           onClose={() => setIsAccountsListOpen(false)}
         />
       )}
@@ -1497,6 +1524,7 @@ type NewAccountModalProps = {
 type AccountsListModalProps = {
   accounts: Account[];
   deletedAccounts: Account[];
+  onRestore: (accountId: string) => void;
   onClose: () => void;
 };
 
@@ -1516,6 +1544,7 @@ function dedupeAccountsById(list: Account[]) {
 function AccountsListModal({
   accounts,
   deletedAccounts,
+  onRestore,
   onClose,
 }: AccountsListModalProps) {
   const [showDeleted, setShowDeleted] = useState(false);
@@ -1581,6 +1610,15 @@ function AccountsListModal({
                     {getAccountCategoryLabel(account.accountCategory)}
                   </p>
                 </div>
+                {showDeleted && (
+                  <button
+                    type="button"
+                    onClick={() => onRestore(account.id)}
+                    className="rounded-full bg-[#715B64] px-3 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-[#5d4953]"
+                  >
+                    Restore
+                  </button>
+                )}
               </div>
             ))
           )}
