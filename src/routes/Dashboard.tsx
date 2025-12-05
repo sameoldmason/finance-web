@@ -219,9 +219,15 @@ export default function Dashboard() {
     const txFromStore = loaded.transactions ?? [];
     const billsFromStore = loaded.bills ?? [];
 
-    setAccounts(normalizedAccounts);
-    setDeletedAccounts(loaded.deletedAccounts ?? []);
-    setSelectedAccountId(normalizedAccounts[0]?.id ?? "");
+    const deletedFromStore = dedupeAccountsById(loaded.deletedAccounts ?? []);
+    const deletedIds = new Set(deletedFromStore.map((acc) => acc.id));
+    const cleanedAccounts = dedupeAccountsById(
+      normalizedAccounts.filter((acc) => !deletedIds.has(acc.id))
+    );
+
+    setAccounts(cleanedAccounts);
+    setDeletedAccounts(deletedFromStore);
+    setSelectedAccountId(cleanedAccounts[0]?.id ?? "");
     setCarouselStartIndex(0);
     setTransactions(txFromStore);
     setBills(billsFromStore);
@@ -588,7 +594,9 @@ export default function Dashboard() {
       if (index === -1) return prev;
 
       const removedAccount = prev[index];
-      setDeletedAccounts((prevDeleted) => [...prevDeleted, removedAccount]);
+      setDeletedAccounts((prevDeleted) =>
+        dedupeAccountsById([...prevDeleted, removedAccount])
+      );
 
       const next = prev.filter((acc) => acc.id !== accountId);
 
@@ -1496,6 +1504,15 @@ function getAccountCategoryLabel(category: AccountCategory) {
   return category === "debt" ? "Credit" : "Debit";
 }
 
+function dedupeAccountsById(list: Account[]) {
+  const seen = new Set<string>();
+  return list.filter((acc) => {
+    if (seen.has(acc.id)) return false;
+    seen.add(acc.id);
+    return true;
+  });
+}
+
 function AccountsListModal({
   accounts,
   deletedAccounts,
@@ -1503,7 +1520,13 @@ function AccountsListModal({
 }: AccountsListModalProps) {
   const [showDeleted, setShowDeleted] = useState(false);
 
-  const visibleAccounts = showDeleted ? deletedAccounts : accounts;
+  const uniqueDeleted = dedupeAccountsById(deletedAccounts);
+  const deletedIds = new Set(uniqueDeleted.map((acc) => acc.id));
+  const activeAccounts = dedupeAccountsById(
+    accounts.filter((acc) => !deletedIds.has(acc.id))
+  );
+
+  const visibleAccounts = showDeleted ? uniqueDeleted : activeAccounts;
   const noAccountsMessage = showDeleted
     ? "No deleted accounts to display."
     : "No accounts yet. Add your first account to get started.";
