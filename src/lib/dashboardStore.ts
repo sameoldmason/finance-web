@@ -30,8 +30,20 @@ export function loadDashboardData(profileId: string): DashboardData | null {
         : "asset") as AccountCategory,
     }));
 
+    const deletedAccounts = Array.isArray(parsed.deletedAccounts)
+      ? (parsed.deletedAccounts as Account[])
+      : [];
+
+    const normalizedDeleted: Account[] = deletedAccounts.map((acc) => ({
+      ...acc,
+      accountCategory: (acc.accountCategory === "debt"
+        ? "debt"
+        : "asset") as AccountCategory,
+    }));
+
     return {
       accounts: normalizedAccounts,
+      deletedAccounts: normalizedDeleted,
       transactions: Array.isArray(parsed.transactions)
         ? parsed.transactions
         : [],
@@ -63,6 +75,7 @@ export function saveDashboardData(
   try {
     const payload: DashboardData = {
       accounts: data.accounts ?? [],
+      deletedAccounts: data.deletedAccounts ?? [],
       transactions: data.transactions ?? [],
       bills: data.bills ?? [],
       netWorthHistory: data.netWorthHistory ?? [],

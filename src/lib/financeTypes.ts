@@ -33,6 +33,7 @@ export type TransferInput = {
 
 export type DashboardData = {
   accounts: Account[];
+  deletedAccounts?: Account[];
   transactions: Transaction[];
   bills: Bill[];
   netWorthHistory?: NetWorthSnapshot[];

@@ -111,6 +111,7 @@ export default function Dashboard() {
 
   // Accounts + selection
   const [accounts, setAccounts] = useState<Account[]>(INITIAL_ACCOUNTS);
+  const [deletedAccounts, setDeletedAccounts] = useState<Account[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState<string>(
     INITIAL_ACCOUNTS[0]?.id ?? ""
   );
@@ -138,6 +139,7 @@ export default function Dashboard() {
   // Modals
   const [isNewTxOpen, setIsNewTxOpen] = useState(false);
   const [isTransferOpen, setIsTransferOpen] = useState(false);
+  const [isAccountsListOpen, setIsAccountsListOpen] = useState(false);
   const [isNewAccountOpen, setIsNewAccountOpen] = useState(false);
   const [isTransactionsModalOpen, setIsTransactionsModalOpen] =
     useState(false);
@@ -170,6 +172,7 @@ export default function Dashboard() {
 
     if (!profileId) {
       setAccounts(INITIAL_ACCOUNTS);
+      setDeletedAccounts([]);
       setSelectedAccountId(INITIAL_ACCOUNTS[0]?.id ?? "");
       setCarouselStartIndex(0);
       setTransactions([]);
@@ -178,6 +181,7 @@ export default function Dashboard() {
       setNetWorthViewMode("detailed");
       setHideMoney(false);
       setEditButtonForId(null);
+      setIsAccountsListOpen(false);
       return;
     }
 
@@ -185,6 +189,7 @@ export default function Dashboard() {
 
     if (!loaded) {
       setAccounts(INITIAL_ACCOUNTS);
+      setDeletedAccounts([]);
       setSelectedAccountId(INITIAL_ACCOUNTS[0]?.id ?? "");
       setCarouselStartIndex(0);
       setTransactions([]);
@@ -193,6 +198,7 @@ export default function Dashboard() {
       setNetWorthViewMode("detailed");
       setHideMoney(false);
       setEditButtonForId(null);
+      setIsAccountsListOpen(false);
       return;
     }
 
@@ -213,8 +219,15 @@ export default function Dashboard() {
     const txFromStore = loaded.transactions ?? [];
     const billsFromStore = loaded.bills ?? [];
 
-    setAccounts(normalizedAccounts);
-    setSelectedAccountId(normalizedAccounts[0]?.id ?? "");
+    const deletedFromStore = dedupeAccountsById(loaded.deletedAccounts ?? []);
+    const deletedIds = new Set(deletedFromStore.map((acc) => acc.id));
+    const cleanedAccounts = dedupeAccountsById(
+      normalizedAccounts.filter((acc) => !deletedIds.has(acc.id))
+    );
+
+    setAccounts(cleanedAccounts);
+    setDeletedAccounts(deletedFromStore);
+    setSelectedAccountId(cleanedAccounts[0]?.id ?? "");
     setCarouselStartIndex(0);
     setTransactions(txFromStore);
     setBills(billsFromStore);
@@ -259,6 +272,7 @@ export default function Dashboard() {
 
     saveDashboardData(profileId, {
       accounts,
+      deletedAccounts,
       transactions,
       bills,
       netWorthHistory,
@@ -272,6 +286,7 @@ export default function Dashboard() {
     netWorthHistory,
     netWorthViewMode,
     hideMoney,
+    deletedAccounts,
     activeProfile?.id,
   ]);
 
@@ -578,6 +593,11 @@ export default function Dashboard() {
       const index = prev.findIndex((acc) => acc.id === accountId);
       if (index === -1) return prev;
 
+      const removedAccount = prev[index];
+      setDeletedAccounts((prevDeleted) =>
+        dedupeAccountsById([...prevDeleted, removedAccount])
+      );
+
       const next = prev.filter((acc) => acc.id !== accountId);
 
       let nextSelectedId = selectedAccountId;
@@ -610,6 +630,39 @@ export default function Dashboard() {
 
     setEditingAccount(null);
     setEditButtonForId(null);
+  }
+
+  function handleRestoreAccount(accountId: string) {
+    let restored: Account | undefined;
+
+    setDeletedAccounts((prevDeleted) => {
+      restored = prevDeleted.find((acc) => acc.id === accountId);
+      return prevDeleted.filter((acc) => acc.id !== accountId);
+    });
+
+    if (!restored) return;
+
+    setAccounts((prevAccounts) => {
+      if (prevAccounts.some((acc) => acc.id === accountId)) {
+        return prevAccounts;
+      }
+
+      const next = dedupeAccountsById([...prevAccounts, restored!]);
+      if (!selectedAccountId) {
+        setSelectedAccountId(restored!.id);
+      }
+      if (prevAccounts.length === 0) {
+        setCarouselStartIndex(0);
+      }
+      return next;
+    });
+  }
+
+  function handleOpenAccountEditor(account: Account) {
+    setSelectedAccountId(account.id);
+    setEditingAccount(account);
+    setEditButtonForId(account.id);
+    setIsAccountsListOpen(false);
   }
 
   function handleProfileNameSubmit(event?: FormEvent) {
@@ -662,7 +715,7 @@ export default function Dashboard() {
   }
 
   const appMenuItems = [
-    { label: "Accounts", onClick: () => setIsNewAccountOpen(true) },
+    { label: "Accounts", onClick: () => setIsAccountsListOpen(true) },
     { label: "Appearance", onClick: toggle },
     { label: "About", onClick: () => {} },
     { label: "Feedback", onClick: () => {} },
@@ -1111,6 +1164,18 @@ export default function Dashboard() {
         />
       )}
 
+      {/* ACCOUNTS LIST MODAL */}
+      {isAccountsListOpen && (
+        <AccountsListModal
+          accounts={accounts}
+          deletedAccounts={deletedAccounts}
+          onRestore={handleRestoreAccount}
+          onDelete={handleDeleteAccount}
+          onSelectAccount={handleOpenAccountEditor}
+          onClose={() => setIsAccountsListOpen(false)}
+        />
+      )}
+
       {/* NEW ACCOUNT MODAL */}
       {isNewAccountOpen && (
         <NewAccountModal
@@ -1464,6 +1529,144 @@ type NewAccountModalProps = {
   onClose: () => void;
   onSave: (account: Account) => void;
 };
+
+type AccountsListModalProps = {
+  accounts: Account[];
+  deletedAccounts: Account[];
+  onRestore: (accountId: string) => void;
+  onDelete: (accountId: string) => void;
+  onSelectAccount: (account: Account) => void;
+  onClose: () => void;
+};
+
+function getAccountCategoryLabel(category: AccountCategory) {
+  return category === "debt" ? "Credit" : "Debit";
+}
+
+function dedupeAccountsById(list: Account[]) {
+  const seen = new Set<string>();
+  return list.filter((acc) => {
+    if (seen.has(acc.id)) return false;
+    seen.add(acc.id);
+    return true;
+  });
+}
+
+function AccountsListModal({
+  accounts,
+  deletedAccounts,
+  onRestore,
+  onDelete,
+  onSelectAccount,
+  onClose,
+}: AccountsListModalProps) {
+  const [showDeleted, setShowDeleted] = useState(false);
+
+  const uniqueDeleted = dedupeAccountsById(deletedAccounts);
+  const deletedIds = new Set(uniqueDeleted.map((acc) => acc.id));
+  const activeAccounts = dedupeAccountsById(
+    accounts.filter((acc) => !deletedIds.has(acc.id))
+  );
+
+  const visibleAccounts = showDeleted ? uniqueDeleted : activeAccounts;
+  const noAccountsMessage = showDeleted
+    ? "No deleted accounts to display."
+    : "No accounts yet. Add your first account to get started.";
+
+  return (
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4">
+      <div className="w-full max-w-lg rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#454545]/60">
+              {showDeleted ? "Deleted accounts" : "Active accounts"}
+            </p>
+            <h2 className="text-xl font-semibold text-[#454545]">Accounts</h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowDeleted((prev) => !prev)}
+              className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+                showDeleted
+                  ? "bg-[#715B64] text-white hover:bg-[#5d4953]"
+                  : "bg-white text-[#454545] hover:bg-[#f3f6f8]"
+              }`}
+            >
+              {showDeleted ? "Show active" : "Show deleted"}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#454545] shadow-sm hover:bg-[#f3f6f8]"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+
+        <div className="max-h-[70vh] space-y-3 overflow-y-auto pt-1">
+          {visibleAccounts.length === 0 ? (
+            <p className="text-sm text-[#454545]/70">{noAccountsMessage}</p>
+          ) : (
+            visibleAccounts.map((account) => (
+              <div
+                key={account.id}
+                role={!showDeleted ? "button" : undefined}
+                tabIndex={!showDeleted ? 0 : -1}
+                onClick={() => {
+                  if (!showDeleted) {
+                    onSelectAccount(account);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (!showDeleted && (e.key === "Enter" || e.key === " ")) {
+                    e.preventDefault();
+                    onSelectAccount(account);
+                  }
+                }}
+                className={`flex items-center gap-4 rounded-xl bg-white px-4 py-3 shadow-sm ${
+                  showDeleted ? "" : "cursor-pointer transition hover:shadow-md"
+                }`}
+              >
+                <div className="w-28 text-right text-lg font-extrabold text-[#454545]">
+                  {formatCurrency(account.balance)}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-[#454545]">{account.name}</p>
+                  <p className="text-[11px] uppercase tracking-wide text-[#454545]/60">
+                    {getAccountCategoryLabel(account.accountCategory)}
+                  </p>
+                </div>
+                {showDeleted && (
+                  <button
+                    type="button"
+                    onClick={() => onRestore(account.id)}
+                    className="rounded-full bg-[#715B64] px-3 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-[#5d4953]"
+                  >
+                    Restore
+                  </button>
+                )}
+                {!showDeleted && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(account.id);
+                    }}
+                    className="rounded-full border border-[#FBD5D5]/70 bg-white/60 px-4 py-2 text-xs font-semibold text-[#C95454] transition hover:bg-[#FBD5D5]/60"
+                  >
+                    Delete account
+                  </button>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
   const [name, setName] = useState("");
