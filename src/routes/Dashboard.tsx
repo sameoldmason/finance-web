@@ -761,7 +761,7 @@ export default function Dashboard() {
                 aria-controls="app-menu-pills"
                 className="rounded-full px-4 py-2.5 text-left text-lg font-semibold text-white/90 transition hover:bg-white/5"
               >
-                <span className="tracking-wide">Summa</span>
+                <span className="tracking-wide">Ahlie</span>
               </button>
 
               <div
@@ -1347,7 +1347,7 @@ function AboutModal({ theme, onClose }: AboutModalProps) {
     <div
       role="dialog"
       aria-modal="true"
-      aria-labelledby="about-summa-title"
+      aria-labelledby="about-ahlie-title"
       className="fixed inset-0 z-30 flex items-center justify-center px-4"
     >
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
@@ -1360,10 +1360,10 @@ function AboutModal({ theme, onClose }: AboutModalProps) {
               About
             </p>
             <h2
-              id="about-summa-title"
+              id="about-ahlie-title"
               className="mt-1 text-2xl font-semibold leading-tight"
             >
-              About Summa (aka: my little finance side-project)
+              About Ahlie (aka: my little finance side-project)
             </h2>
           </div>
           <button
@@ -1378,7 +1378,7 @@ function AboutModal({ theme, onClose }: AboutModalProps) {
 
         <div className="space-y-3 leading-relaxed">
           <p className={paragraphClasses}>
-            Summa is a simple personal finance dashboard I’m building for myself. I wanted something
+            Ahlie is a simple personal finance dashboard I’m building for myself. I wanted something
             clean, fast, and not overloaded with features I never use. So I made my own—something that
             stores everything locally, keeps budgeting straightforward, and feels easy on the eyes.
           </p>
@@ -1389,15 +1389,15 @@ function AboutModal({ theme, onClose }: AboutModalProps) {
             tool that does what it needs to do.
           </p>
           <p className={paragraphClasses}>
-            The project is still growing. In upcoming versions, Summa will include recurring bills,
+            The project is still growing. In upcoming versions, Ahlie will include recurring bills,
             net-worth tracking, and debt payoff tools. It’s all meant to feel simple and personal—
             something that helps you stay on top of your money without getting in your way.
           </p>
           <p className={paragraphClasses}>
-            Summa isn’t a company or a startup (at least not yet). It’s just me building something
+            Ahlie isn’t a company or a startup (at least not yet). It’s just me building something
             useful and learning as I go. Long-term, I’d love to turn this into a space where I can
             prototype apps, experiment with design ideas, and maybe even create tools for creatives
-            and companies. But for now, Summa is exactly what it looks like: a small project with big
+            and companies. But for now, Ahlie is exactly what it looks like: a small project with big
             potential.
           </p>
           <p className={paragraphClasses}>
