@@ -699,19 +699,15 @@ export default function Dashboard() {
         <div className="flex min-h-[calc(100svh-3rem)] flex-1 flex-col gap-6">
           {/* TOP BAR */}
           <header className="flex items-center justify-between rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md">
-            <div className="flex flex-1 items-center gap-6">
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/80 text-[#454545]">
-                <span className="text-3xl font-bold">£</span>
-              </div>
-
+            <div className="flex flex-1 items-center gap-4">
               <button
                 type="button"
                 onClick={() => setIsAppMenuOpen((prev) => !prev)}
                 aria-expanded={isAppMenuOpen}
                 aria-controls="app-menu-pills"
-                className="rounded-full px-4 py-2.5 text-left text-2xl text-white/90 transition hover:bg-white/5"
+                className="rounded-full px-4 py-2.5 text-left text-lg font-semibold text-white/90 transition hover:bg-white/5"
               >
-                <span className="text-3xl font-semibold tracking-wide">Summa</span>
+                <span className="tracking-wide">Summa</span>
               </button>
 
               <div
