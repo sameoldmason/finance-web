@@ -1,0 +1,64 @@
+warning: in the working copy of 'src/routes/Dashboard.tsx', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/src/routes/Dashboard.tsx b/src/routes/Dashboard.tsx[m
+[1mindex 2d8acb4..8d9c897 100644[m
+[1m--- a/src/routes/Dashboard.tsx[m
+[1m+++ b/src/routes/Dashboard.tsx[m
+[36m@@ -761,7 +761,7 @@[m [mexport default function Dashboard() {[m
+                 aria-controls="app-menu-pills"[m
+                 className="rounded-full px-4 py-2.5 text-left text-lg font-semibold text-white/90 transition hover:bg-white/5"[m
+               >[m
+[31m-                <span className="tracking-wide">Summa</span>[m
+[32m+[m[32m                <span className="tracking-wide">Ahlie</span>[m
+               </button>[m
+ [m
+               <div[m
+[36m@@ -1347,7 +1347,7 @@[m [mfunction AboutModal({ theme, onClose }: AboutModalProps) {[m
+     <div[m
+       role="dialog"[m
+       aria-modal="true"[m
+[31m-      aria-labelledby="about-summa-title"[m
+[32m+[m[32m      aria-labelledby="about-ahlie-title"[m
+       className="fixed inset-0 z-30 flex items-center justify-center px-4"[m
+     >[m
+       <div className="absolute inset-0 bg-black/50" onClick={onClose} />[m
+[36m@@ -1360,10 +1360,10 @@[m [mfunction AboutModal({ theme, onClose }: AboutModalProps) {[m
+               About[m
+             </p>[m
+             <h2[m
+[31m-              id="about-summa-title"[m
+[32m+[m[32m              id="about-ahlie-title"[m
+               className="mt-1 text-2xl font-semibold leading-tight"[m
+             >[m
+[31m-              About Summa (aka: my little finance side-project)[m
+[32m+[m[32m              About Ahlie (aka: my little finance side-project)[m
+             </h2>[m
+           </div>[m
+           <button[m
+[36m@@ -1378,7 +1378,7 @@[m [mfunction AboutModal({ theme, onClose }: AboutModalProps) {[m
+ [m
+         <div className="space-y-3 leading-relaxed">[m
+           <p className={paragraphClasses}>[m
+[31m-            Summa is a simple personal finance dashboard I’m building for myself. I wanted something[m
+[32m+[m[32m            Ahlie is a simple personal finance dashboard I’m building for myself. I wanted something[m
+             clean, fast, and not overloaded with features I never use. So I made my own—something that[m
+             stores everything locally, keeps budgeting straightforward, and feels easy on the eyes.[m
+           </p>[m
+[36m@@ -1389,15 +1389,15 @@[m [mfunction AboutModal({ theme, onClose }: AboutModalProps) {[m
+             tool that does what it needs to do.[m
+           </p>[m
+           <p className={paragraphClasses}>[m
+[31m-            The project is still growing. In upcoming versions, Summa will include recurring bills,[m
+[32m+[m[32m            The project is still growing. In upcoming versions, Ahlie will include recurring bills,[m
+             net-worth tracking, and debt payoff tools. It’s all meant to feel simple and personal—[m
+             something that helps you stay on top of your money without getting in your way.[m
+           </p>[m
+           <p className={paragraphClasses}>[m
+[31m-            Summa isn’t a company or a startup (at least not yet). It’s just me building something[m
+[32m+[m[32m            Ahlie isn’t a company or a startup (at least not yet). It’s just me building something[m
+             useful and learning as I go. Long-term, I’d love to turn this into a space where I can[m
+             prototype apps, experiment with design ideas, and maybe even create tools for creatives[m
+[31m-            and companies. But for now, Summa is exactly what it looks like: a small project with big[m
+[32m+[m[32m            and companies. But for now, Ahlie is exactly what it looks like: a small project with big[m
+             potential.[m
+           </p>[m
+           <p className={paragraphClasses}>[m
