@@ -664,10 +664,10 @@ export default function Dashboard() {
   const appMenuItems = [
     { label: "Accounts", onClick: () => setIsNewAccountOpen(true) },
     { label: "Appearance", onClick: toggle },
-    { label: "About", onClick: () => setIsAppMenuOpen(false) },
-    { label: "Feedback", onClick: () => setIsAppMenuOpen(false) },
-    { label: "Reset", onClick: () => setIsAppMenuOpen(false) },
-    { label: "Log Out", onClick: () => setIsAppMenuOpen(false) },
+    { label: "About", onClick: () => {} },
+    { label: "Feedback", onClick: () => {} },
+    { label: "Reset", onClick: () => {} },
+    { label: "Log Out", onClick: () => {} },
   ];
 
   return (
@@ -714,8 +714,8 @@ export default function Dashboard() {
                 id="app-menu-pills"
                 className={`flex items-center gap-2 overflow-hidden transition-[max-width,opacity,transform] duration-300 ${
                   isAppMenuOpen
-                    ? "max-w-[640px] opacity-100 translate-y-0"
-                    : "max-w-0 opacity-0 -translate-y-1 pointer-events-none"
+                    ? "max-w-[640px] opacity-100 translate-x-0"
+                    : "max-w-0 opacity-0 -translate-x-2 pointer-events-none"
                 }`}
               >
                 {appMenuItems.map((item, index) => (
@@ -732,8 +732,8 @@ export default function Dashboard() {
                     }}
                     className={`rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white/80 shadow-sm transition-all duration-300 ${
                       isAppMenuOpen
-                        ? "translate-y-0 opacity-100"
-                        : "-translate-y-1 opacity-0"
+                        ? "translate-x-0 opacity-100"
+                        : "-translate-x-2 opacity-0"
                     } hover:bg-white/25`}
                   >
                     {item.label}
