@@ -1466,7 +1466,20 @@ function FeedbackModal({ theme, onClose }: FeedbackModalProps) {
             className={`rounded-full px-2 py-1 text-sm font-semibold transition ${closeButtonClasses}`}
             aria-label="Close feedback dialog"
           >
-            ƒo
+            <svg
+              aria-hidden="true"
+              focusable="false"
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
         </div>
 
