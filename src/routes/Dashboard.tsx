@@ -132,6 +132,7 @@ export default function Dashboard() {
   >("detailed");
   const [hideMoney, setHideMoney] = useState(false);
   const [isAppMenuOpen, setIsAppMenuOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isEditingProfileName, setIsEditingProfileName] = useState(false);
   const [profileNameInput, setProfileNameInput] = useState("");
   const [profileNameError, setProfileNameError] = useState("");
@@ -717,7 +718,7 @@ export default function Dashboard() {
   const appMenuItems = [
     { label: "Accounts", onClick: () => setIsAccountsListOpen(true) },
     { label: "Appearance", onClick: toggle },
-    { label: "About", onClick: () => {} },
+    { label: "About", onClick: () => setIsAboutOpen(true) },
     { label: "Feedback", onClick: () => {} },
     { label: "Reset", onClick: () => {} },
     { label: "Log Out", onClick: () => {} },
@@ -1283,6 +1284,11 @@ export default function Dashboard() {
         />
       )}
 
+      {/* ABOUT MODAL */}
+      {isAboutOpen && (
+        <AboutModal theme={theme} onClose={() => setIsAboutOpen(false)} />
+      )}
+
       {/* THEME TOGGLE */}
       <button
         onClick={toggle}
@@ -1317,6 +1323,91 @@ export default function Dashboard() {
 }
 
 /* ---------- MODALS ---------- */
+
+type AboutModalProps = {
+  theme: "light" | "dark";
+  onClose: () => void;
+};
+
+function AboutModal({ theme, onClose }: AboutModalProps) {
+  const cardClasses =
+    theme === "dark"
+      ? "bg-neutral-900/95 text-neutral-100"
+      : "bg-[#E9F2F5] text-[#454545]";
+
+  const closeButtonClasses =
+    theme === "dark"
+      ? "text-white/70 hover:text-white"
+      : "text-[#454545]/70 hover:text-[#454545]";
+
+  const paragraphClasses =
+    theme === "dark" ? "text-sm text-white/80" : "text-sm text-[#454545]/80";
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="about-summa-title"
+      className="fixed inset-0 z-30 flex items-center justify-center px-4"
+    >
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div
+        className={`relative z-40 w-full max-w-3xl rounded-2xl p-6 shadow-xl backdrop-blur-sm ${cardClasses}`}
+      >
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] opacity-60">
+              About
+            </p>
+            <h2
+              id="about-summa-title"
+              className="mt-1 text-2xl font-semibold leading-tight"
+            >
+              About Summa (aka: my little finance side-project)
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className={`rounded-full px-2 py-1 text-sm font-semibold transition ${closeButtonClasses}`}
+            aria-label="Close about dialog"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="space-y-3 leading-relaxed">
+          <p className={paragraphClasses}>
+            Summa is a simple personal finance dashboard I’m building for myself. I wanted something
+            clean, fast, and not overloaded with features I never use. So I made my own—something that
+            stores everything locally, keeps budgeting straightforward, and feels easy on the eyes.
+          </p>
+          <p className={paragraphClasses}>
+            The app lets you create profiles, manage accounts, track your income and expenses, move
+            money around, and see your recent activity at a glance. Everything is stored right in your
+            browser, so your data stays yours. No sign-ups. No syncing. No servers. Just a lightweight
+            tool that does what it needs to do.
+          </p>
+          <p className={paragraphClasses}>
+            The project is still growing. In upcoming versions, Summa will include recurring bills,
+            net-worth tracking, and debt payoff tools. It’s all meant to feel simple and personal—
+            something that helps you stay on top of your money without getting in your way.
+          </p>
+          <p className={paragraphClasses}>
+            Summa isn’t a company or a startup (at least not yet). It’s just me building something
+            useful and learning as I go. Long-term, I’d love to turn this into a space where I can
+            prototype apps, experiment with design ideas, and maybe even create tools for creatives
+            and companies. But for now, Summa is exactly what it looks like: a small project with big
+            potential.
+          </p>
+          <p className={paragraphClasses}>
+            If you enjoy this calm, tidy-budgeting vibe, stick around. There’s more coming.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 type ModalPropsBase = {
   onClose: () => void;
