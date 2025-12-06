@@ -924,7 +924,7 @@ export default function Dashboard() {
                 aria-controls="app-menu-pills"
                 className="rounded-full px-4 py-2.5 text-left text-lg font-semibold text-white/90 transition hover:bg-white/5"
               >
-                <span className="tracking-wide">Ahlie</span>
+                <span className="tracking-wide">Bare</span>
               </button>
 
               <div
@@ -1906,7 +1906,7 @@ function AboutModal({ theme, onClose }: AboutModalProps) {
     <div
       role="dialog"
       aria-modal="true"
-      aria-labelledby="about-ahlie-title"
+      aria-labelledby="about-bare-title"
       className="fixed inset-0 z-30 flex items-center justify-center px-4"
     >
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
@@ -1919,10 +1919,10 @@ function AboutModal({ theme, onClose }: AboutModalProps) {
               About
             </p>
             <h2
-              id="about-ahlie-title"
+              id="about-bare-title"
               className="mt-1 text-2xl font-semibold leading-tight"
             >
-              About Ahlie (aka: my little finance side-project)
+              About Bare (aka: my little finance side-project)
             </h2>
           </div>
           <button
@@ -1937,30 +1937,26 @@ function AboutModal({ theme, onClose }: AboutModalProps) {
 
         <div className="space-y-3 leading-relaxed">
           <p className={paragraphClasses}>
-            Ahlie is a simple personal finance dashboard I’m building for myself. I wanted something
-            clean, fast, and not overloaded with features I never use. So I made my own—something that
-            stores everything locally, keeps budgeting straightforward, and feels easy on the eyes.
+            bare.money is a simple personal finance dashboard I'm building for myself.
+            <br />
+            In Toronto, "bare" means a lot - and that's what money usually feels like. A lot to think about. A lot to manage. A lot to learn. I wanted something that made all of that feel lighter. Something clean, fast, and not packed with features I'd never touch. So I made my own.
           </p>
           <p className={paragraphClasses}>
-            The app lets you create profiles, manage accounts, track your income and expenses, move
-            money around, and see your recent activity at a glance. Everything is stored right in your
-            browser, so your data stays yours. No sign-ups. No syncing. No servers. Just a lightweight
-            tool that does what it needs to do.
+            The app keeps everything straightforward. You can create profiles, manage accounts, track income and expenses, move money around, and see your activity at a glance. Everything stays stored locally in your browser - your data is yours. No sign-ups. No syncing. No servers. Just a calm, simple tool that helps you understand where your money is going.
           </p>
           <p className={paragraphClasses}>
-            The project is still growing. In upcoming versions, Ahlie will include recurring bills,
-            net-worth tracking, and debt payoff tools. It’s all meant to feel simple and personal—
-            something that helps you stay on top of your money without getting in your way.
+            bare.money is still growing. Soon, it'll include recurring bills, net-worth tracking, and debt payoff tools. The goal is for all of it to feel soft, minimal, and personal - something that supports your life instead of overwhelming it.
           </p>
           <p className={paragraphClasses}>
-            Ahlie isn’t a company or a startup (at least not yet). It’s just me building something
-            useful and learning as I go. Long-term, I’d love to turn this into a space where I can
-            prototype apps, experiment with design ideas, and maybe even create tools for creatives
-            and companies. But for now, Ahlie is exactly what it looks like: a small project with big
-            potential.
+            You don't need to be a finance expert. You don't need perfect habits. You just need a place to start.
           </p>
           <p className={paragraphClasses}>
-            If you enjoy this calm, tidy-budgeting vibe, stick around. There’s more coming.
+            This project isn't a company or a startup (at least not yet). It's just me learning, building, and trying to get my money right. I want bare.money to reflect that journey - real progress, real mistakes, and real change. If it works for me, maybe it'll work for anyone else who feels the same way.
+          </p>
+          <p className={paragraphClasses}>
+            If you like this calm, honest approach to budgeting, stick around.
+            <br />
+            There's more coming, and we're only getting started.
           </p>
         </div>
       </div>
@@ -1991,7 +1987,7 @@ function FeedbackModal({ theme, onClose }: FeedbackModalProps) {
     <div
       role="dialog"
       aria-modal="true"
-      aria-labelledby="feedback-ahlie-title"
+      aria-labelledby="feedback-bare-title"
       className="fixed inset-0 z-30 flex items-center justify-center px-4"
     >
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
@@ -2004,7 +2000,7 @@ function FeedbackModal({ theme, onClose }: FeedbackModalProps) {
               Feedback
             </p>
             <h2
-              id="feedback-ahlie-title"
+              id="feedback-bare-title"
               className="mt-1 text-2xl font-semibold leading-tight"
             >
               Got feedback?
