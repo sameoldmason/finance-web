@@ -3,21 +3,35 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Make the gradient belong to the page itself */
-html, body, #root {
+:root {
+  --color-app-background: #0b1324;
+  --color-surface: #111827;
+  --color-surface-alt: #1f2937;
+  --color-border: #374151;
+  --color-accent: #9eb6bd;
+  --color-accent-strong: #7b95a2;
+  --color-neutral: #2e3b50;
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5f5;
+  --color-scheme: dark;
+}
+
+html,
+body,
+#root {
   height: 100%;
   margin: 0;
   padding: 0;
 }
 
 body {
-  /* matches Tailwind gray-800 -> gray-900 */
-  background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+  background: var(--color-app-background);
+  color: var(--color-text-primary);
   background-repeat: no-repeat;
-  background-attachment: fixed; /* prevents a seam on some GPUs */
-  min-height: 100svh;           /* fills the visual viewport */
-  overflow-x: hidden;           /* avoid sub-pixel scrollbars */
-  color-scheme: dark;
+  background-attachment: fixed;
+  min-height: 100svh;
+  overflow-x: hidden;
+  color-scheme: var(--color-scheme, dark);
 }
 /* Dashboard action button labels */
 .btn-label-wrap {
@@ -34,7 +48,8 @@ body {
     text-align: center;
   }
 }
-html, body {
+html,
+body {
   @apply font-outfit;
 }
 

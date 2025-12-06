@@ -1,7 +1,7 @@
 // src/routes/Dashboard.tsx
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "../ThemeProvider";
+import { ThemeMode, ThemePalette, useTheme } from "../ThemeProvider";
 import { useActiveProfile } from "../ActiveProfileContext";
 import {
   Account,
@@ -144,7 +144,7 @@ function getDueStatus(dueDate: string) {
 }
 
 export default function Dashboard() {
-  const { theme, toggle } = useTheme();
+  const { theme, currentPalette } = useTheme();
   const navigate = useNavigate();
   const { activeProfile, setActiveProfileId } = useActiveProfile();
 
@@ -191,6 +191,7 @@ export default function Dashboard() {
   const [isDeleteProfilePromptOpen, setIsDeleteProfilePromptOpen] =
     useState(false);
   const [isLogoutPromptOpen, setIsLogoutPromptOpen] = useState(false);
+  const [isThemePickerOpen, setIsThemePickerOpen] = useState(false);
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
 
   // Edit-transaction modals
@@ -345,11 +346,6 @@ export default function Dashboard() {
   const visibleTransactions = selectedAccount
     ? transactions.filter((tx) => tx.accountId === selectedAccount.id)
     : [];
-
-  const lightBg =
-    "bg-brand-primary bg-gradient-to-b from-[#B6C8CE] via-brand-primary to-[#869BA1]";
-  const darkBg =
-    "bg-[#1E3A5F] bg-gradient-to-b from-[#2E517F] via-[#1E3A5F] to-[#10263F]";
 
   // Account carousel
   const handlePrevAccount = () => {
@@ -873,7 +869,13 @@ export default function Dashboard() {
 
   const appMenuItems = [
     { label: "Accounts", onClick: () => setIsAccountsListOpen(true) },
-    { label: "Appearance", onClick: toggle },
+    {
+      label: "Appearance",
+      onClick: () => {
+        setIsAppMenuOpen(false);
+        setIsThemePickerOpen(true);
+      },
+    },
     { label: "About", onClick: () => setIsAboutOpen(true) },
     { label: "Feedback", onClick: () => setIsFeedbackOpen(true) },
     {
@@ -893,9 +895,8 @@ export default function Dashboard() {
       onChange={(next) => setHideMoney(next)}
     >
       <div
-        className={`min-h-[100svh] w-full ${
-          theme === "dark" ? darkBg : lightBg
-        } text-brand-accent`}
+        className="min-h-[100svh] w-full text-brand-accent"
+        style={{ backgroundColor: currentPalette.background }}
       >
         <div className="mx-auto flex h-full max-w-[1280px] px-6 py-6">
         {/* LEFT SIDEBAR – months */}
@@ -1494,19 +1495,23 @@ export default function Dashboard() {
         />
       )}
 
+      {isThemePickerOpen && (
+        <ThemePickerModal
+          onClose={() => setIsThemePickerOpen(false)}
+        />
+      )}
+
       {/* THEME TOGGLE */}
       <button
-        onClick={toggle}
+        type="button"
+        onClick={() => setIsThemePickerOpen(true)}
         className={`fixed bottom-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-colors duration-200 ${
           theme === "dark"
             ? "bg-white/10 text-brand-accent hover:bg-white/15"
             : "bg-black/10 text-[#454545] hover:bg-black/15"
         }`}
-        aria-label="Toggle theme"
-        aria-pressed={theme === "dark"}
-        title={
-          theme === "dark" ? "Switch to light theme" : "Switch to dark theme"
-        }
+        aria-label="Open appearance settings"
+        title="Open appearance settings"
       >
         <svg
           width="20"
@@ -2032,6 +2037,207 @@ function FeedbackModal({ theme, onClose }: FeedbackModalProps) {
         <div className="space-y-3 leading-relaxed">
           <p className={paragraphClasses}>Just text me lol</p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+type ThemePickerModalProps = {
+  onClose: () => void;
+};
+
+function ThemePickerModal({ onClose }: ThemePickerModalProps) {
+  const {
+    theme,
+    setTheme,
+    currentThemeKey,
+    setThemeKey,
+    availableThemes,
+    getPalette,
+  } = useTheme();
+
+  useEffect(() => {
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [onClose]);
+
+  const modeOptions: { value: ThemeMode; label: string }[] = [
+    { value: "light", label: "Light" },
+    { value: "dark", label: "Dark" },
+  ];
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="theme-picker-title"
+      className="fixed inset-0 z-30 flex items-center justify-center px-4"
+    >
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div
+        className="relative z-40 w-full max-w-3xl rounded-2xl p-6 shadow-xl backdrop-blur-sm"
+        style={{
+          backgroundColor: "var(--color-surface)",
+          color: "var(--color-text-primary)",
+        }}
+      >
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] opacity-60">
+              Appearance
+            </p>
+            <h2
+              id="theme-picker-title"
+              className="mt-1 text-2xl font-semibold leading-tight"
+            >
+              Theme & mode
+            </h2>
+            <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+              Pick a palette, then choose whether light or dark feels best.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full px-2 py-1 text-sm font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+            aria-label="Close appearance dialog"
+          >
+            <svg
+              aria-hidden="true"
+              focusable="false"
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="space-y-8">
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-[0.3em] opacity-60">
+                Theme
+              </p>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              {availableThemes.map((option) => {
+                const palette = getPalette(option.key, theme);
+                const isActive = option.key === currentThemeKey;
+                return (
+                  <button
+                    key={option.key}
+                    type="button"
+                    onClick={() => setThemeKey(option.key)}
+                    className={`flex flex-col gap-3 rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-accent)] ${
+                      isActive
+                        ? "border-[var(--color-accent)]"
+                        : "border-[var(--color-border)] hover:border-[var(--color-accent)]"
+                    }`}
+                    style={{
+                      backgroundColor: palette.surfaceAlt,
+                      boxShadow: isActive
+                        ? "0 0 0 3px rgba(113, 91, 100, 0.35)"
+                        : undefined,
+                    }}
+                    aria-pressed={isActive}
+                  >
+                    <ThemePreview palette={palette} />
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                        {option.name}
+                      </p>
+                      <p className="text-xs text-[var(--color-text-secondary)]">
+                        {option.description}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-[0.3em] opacity-60">
+                Mode
+              </p>
+            </div>
+            <div className="flex gap-3">
+              {modeOptions.map((modeOption) => {
+                const isActive = theme === modeOption.value;
+                return (
+                  <button
+                    key={modeOption.value}
+                    type="button"
+                    onClick={() => setTheme(modeOption.value)}
+                    className={`flex-1 rounded-full px-4 py-2 text-xs font-semibold transition ${
+                      isActive
+                        ? "bg-[var(--color-accent)] text-white shadow-sm"
+                        : "border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]"
+                    }`}
+                    aria-pressed={isActive}
+                  >
+                    {modeOption.label}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ThemePreview({ palette }: { palette: ThemePalette }) {
+  return (
+    <div
+      className="rounded-2xl border p-2"
+      style={{ borderColor: palette.border, backgroundColor: palette.surface }}
+    >
+      <div
+        className="h-3 w-full rounded-full"
+        style={{ backgroundColor: palette.background }}
+      />
+      <div className="mt-2 flex gap-2">
+        <div
+          className="h-12 w-10 rounded"
+          style={{ backgroundColor: palette.neutral }}
+        />
+        <div className="flex-1 space-y-2">
+          <div
+            className="h-3 rounded"
+            style={{ backgroundColor: palette.surfaceAlt }}
+          />
+          <div
+            className="h-3 w-3/4 rounded"
+            style={{ backgroundColor: palette.surfaceAlt }}
+          />
+        </div>
+      </div>
+      <div className="mt-2 flex gap-1">
+        <span
+          className="h-2 flex-1 rounded"
+          style={{ backgroundColor: palette.accent }}
+        />
+        <span
+          className="h-2 flex-1 rounded"
+          style={{ backgroundColor: palette.accentStrong }}
+        />
       </div>
     </div>
   );
