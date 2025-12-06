@@ -1,5 +1,6 @@
 // src/routes/Dashboard.tsx
 import { FormEvent, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTheme } from "../ThemeProvider";
 import { useActiveProfile } from "../ActiveProfileContext";
 import {
@@ -14,7 +15,7 @@ import type { Bill } from "../lib/financeTypes";
 import { calculateNetWorthFromAccounts } from "../lib/netWorth";
 import { MoneyVisibilityProvider } from "../MoneyVisibilityContext";
 import { NetWorthCard } from "../components/dashboard/NetWorthCard";
-import { updateProfileName } from "../lib/profiles";
+import { deleteProfile, updateProfileName } from "../lib/profiles";
 
 const MONTHS = [
   "January",
@@ -33,6 +34,43 @@ const MONTHS = [
 
 // New profiles should start with NO accounts
 const INITIAL_ACCOUNTS: Account[] = [];
+
+type ResetChoice =
+  | "transactions"
+  | "transfers"
+  | "transactions-transfers"
+  | "accounts-all";
+
+function isTransferTransaction(tx: Transaction) {
+  if (tx.kind === "transfer") return true;
+  const description = tx.description?.toLowerCase() ?? "";
+  return (
+    description.startsWith("transfer") ||
+    description.includes("transfer in") ||
+    description.includes("transfer out")
+  );
+}
+
+function rollbackAccountsFromTransactions(
+  accounts: Account[],
+  txs: Transaction[]
+) {
+  if (txs.length === 0) return accounts;
+
+  const deltaByAccount = new Map<string, number>();
+  txs.forEach((tx) => {
+    deltaByAccount.set(
+      tx.accountId,
+      (deltaByAccount.get(tx.accountId) ?? 0) + tx.amount
+    );
+  });
+
+  return accounts.map((acc) => {
+    const delta = deltaByAccount.get(acc.id);
+    if (!delta) return acc;
+    return { ...acc, balance: acc.balance - delta };
+  });
+}
 
 function formatCurrency(amount: number) {
   return amount.toLocaleString("en-CA", {
@@ -107,6 +145,7 @@ function getDueStatus(dueDate: string) {
 
 export default function Dashboard() {
   const { theme, toggle } = useTheme();
+  const navigate = useNavigate();
   const { activeProfile, setActiveProfileId } = useActiveProfile();
 
   // Accounts + selection
@@ -147,6 +186,10 @@ export default function Dashboard() {
     useState(false);
   const [isNewBillOpen, setIsNewBillOpen] = useState(false);
   const [isBillsModalOpen, setIsBillsModalOpen] = useState(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [resetChoice, setResetChoice] = useState<ResetChoice | null>(null);
+  const [isDeleteProfilePromptOpen, setIsDeleteProfilePromptOpen] =
+    useState(false);
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
 
   // Edit-transaction modals
@@ -338,12 +381,13 @@ export default function Dashboard() {
 
   // Transactions
   function addTransaction(t: Transaction) {
-    setTransactions((prev) => [...prev, t]);
+    const txToAdd: Transaction = { ...t, kind: t.kind ?? "transaction" };
+    setTransactions((prev) => [...prev, txToAdd]);
 
     setAccounts((prev) =>
       prev.map((acc) =>
-        acc.id === t.accountId
-          ? { ...acc, balance: acc.balance + t.amount }
+        acc.id === txToAdd.accountId
+          ? { ...acc, balance: acc.balance + txToAdd.amount }
           : acc
       )
     );
@@ -371,6 +415,7 @@ export default function Dashboard() {
       amount: -amount,
       date: today,
       description: bill.name || "Bill payment",
+      kind: "transaction",
     };
 
     setTransactions((prev) => [...prev, tx]);
@@ -525,6 +570,7 @@ export default function Dashboard() {
         amount: fromIsDebt ? cleanAmount : -cleanAmount,
         date,
         description: note || "Transfer out",
+        kind: "transfer",
       },
       {
         id: crypto.randomUUID(),
@@ -532,6 +578,7 @@ export default function Dashboard() {
         amount: toIsDebt ? -cleanAmount : cleanAmount,
         date,
         description: note || "Transfer in",
+        kind: "transfer",
       },
     ]);
   }
@@ -585,6 +632,7 @@ export default function Dashboard() {
             delta > 0
               ? "Balance adjustment (increase)"
               : "Balance adjustment (decrease)",
+          kind: "transaction",
         },
       ]);
     }
@@ -660,6 +708,101 @@ export default function Dashboard() {
     });
   }
 
+  function performReset(choice: ResetChoice) {
+    if (!activeProfile) return;
+
+    const removeTransfers =
+      choice === "transfers" ||
+      choice === "transactions-transfers" ||
+      choice === "accounts-all";
+    const removeTransactions =
+      choice === "transactions" ||
+      choice === "transactions-transfers" ||
+      choice === "accounts-all";
+
+    const shouldAdjustAccounts = choice !== "accounts-all";
+    let removed: Transaction[] = [];
+
+    setTransactions((prev) => {
+      if (prev.length === 0) return prev;
+
+      const keep: Transaction[] = [];
+      const toRemove: Transaction[] = [];
+
+      prev.forEach((tx) => {
+        const isTransfer = isTransferTransaction(tx);
+        const shouldRemove =
+          (isTransfer && removeTransfers) ||
+          (!isTransfer && removeTransactions);
+
+        if (shouldRemove) {
+          toRemove.push(tx);
+        } else {
+          keep.push(tx);
+        }
+      });
+
+      removed = toRemove;
+      return keep;
+    });
+
+    if (removed.length > 0 && shouldAdjustAccounts) {
+      setAccounts((prev) => rollbackAccountsFromTransactions(prev, removed));
+    }
+
+    if (choice === "accounts-all") {
+      setAccounts([]);
+      setDeletedAccounts([]);
+      setBills([]);
+      setNetWorthHistory([]);
+      setSelectedAccountId("");
+      setCarouselStartIndex(0);
+      setEditButtonForId(null);
+      setEditingAccount(null);
+      setEditingBill(null);
+      setIsAccountsListOpen(false);
+      setIsNewAccountOpen(false);
+      setIsNewTxOpen(false);
+      setIsTransferOpen(false);
+      setIsTransactionsModalOpen(false);
+      setIsNewBillOpen(false);
+      setIsBillsModalOpen(false);
+      setEditingAmountTx(null);
+      setEditingDetailsTx(null);
+    }
+
+    setIsResetModalOpen(false);
+    setResetChoice(null);
+
+    if (choice === "accounts-all") {
+      setIsDeleteProfilePromptOpen(true);
+    }
+  }
+
+  async function handleDeleteProfileAfterReset() {
+    if (!activeProfile) {
+      setIsDeleteProfilePromptOpen(false);
+      return;
+    }
+
+    try {
+      await deleteProfile(activeProfile.id);
+      try {
+        localStorage.removeItem(
+          `finance-web:dashboard:${activeProfile.id}`
+        );
+      } catch (err) {
+        console.warn("Failed to clear dashboard cache for profile", err);
+      }
+      setActiveProfileId(null);
+      setIsDeleteProfilePromptOpen(false);
+      navigate("/profiles");
+    } catch (error) {
+      console.error("Failed to delete profile", error);
+      setIsDeleteProfilePromptOpen(false);
+    }
+  }
+
   function handleOpenAccountEditor(account: Account) {
     setSelectedAccountId(account.id);
     setEditingAccount(account);
@@ -721,7 +864,14 @@ export default function Dashboard() {
     { label: "Appearance", onClick: toggle },
     { label: "About", onClick: () => setIsAboutOpen(true) },
     { label: "Feedback", onClick: () => setIsFeedbackOpen(true) },
-    { label: "Reset", onClick: () => {} },
+    {
+      label: "Reset",
+      onClick: () => {
+        setResetChoice(null);
+        setIsAppMenuOpen(false);
+        setIsResetModalOpen(true);
+      },
+    },
     { label: "Log Out", onClick: () => {} },
   ];
 
@@ -1285,6 +1435,32 @@ export default function Dashboard() {
         />
       )}
 
+      {isResetModalOpen && (
+        <ResetDataModal
+          theme={theme}
+          selected={resetChoice}
+          onSelect={setResetChoice}
+          onConfirm={() => {
+            if (resetChoice) {
+              performReset(resetChoice);
+            }
+          }}
+          onClose={() => {
+            setIsResetModalOpen(false);
+            setResetChoice(null);
+          }}
+          disableConfirm={!resetChoice || !activeProfile}
+        />
+      )}
+
+      {isDeleteProfilePromptOpen && (
+        <DeleteProfilePrompt
+          theme={theme}
+          onStay={() => setIsDeleteProfilePromptOpen(false)}
+          onDelete={handleDeleteProfileAfterReset}
+        />
+      )}
+
       {/* ABOUT MODAL */}
       {isAboutOpen && (
         <AboutModal theme={theme} onClose={() => setIsAboutOpen(false)} />
@@ -1332,6 +1508,269 @@ export default function Dashboard() {
 }
 
 /* ---------- MODALS ---------- */
+
+type ResetDataModalProps = {
+  theme: "light" | "dark";
+  selected: ResetChoice | null;
+  disableConfirm?: boolean;
+  onSelect: (choice: ResetChoice) => void;
+  onConfirm: () => void;
+  onClose: () => void;
+};
+
+function ResetDataModal({
+  theme,
+  selected,
+  disableConfirm,
+  onSelect,
+  onConfirm,
+  onClose,
+}: ResetDataModalProps) {
+  const cardClasses =
+    theme === "dark"
+      ? "bg-neutral-900/95 text-neutral-100"
+      : "bg-[#E9F2F5] text-[#454545]";
+
+  const optionBase =
+    theme === "dark"
+      ? "border-white/10 bg-white/5 hover:bg-white/10"
+      : "border-[#C2D0D6] bg-white hover:bg-[#F3F6F8]";
+
+  const options: { key: ResetChoice; title: string; detail: string }[] = [
+    {
+      key: "transactions",
+      title: "Delete only transactions",
+      detail: "Clear everyday income and expenses. Transfers and accounts stay put.",
+    },
+    {
+      key: "transfers",
+      title: "Delete only transfers",
+      detail: "Remove transfer history while keeping transactions and account balances.",
+    },
+    {
+      key: "transactions-transfers",
+      title: "Delete transactions + transfers",
+      detail: "Keep your accounts but wipe all activity records.",
+    },
+    {
+      key: "accounts-all",
+      title: "Accounts + transactions + transfers",
+      detail: "Start fresh with empty accounts. You can delete the profile next if you want.",
+    },
+  ];
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="reset-data-title"
+      className="fixed inset-0 z-30 flex items-center justify-center px-4"
+    >
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div
+        className={`relative z-40 w-full max-w-4xl rounded-2xl p-6 shadow-xl backdrop-blur-sm ${cardClasses}`}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] opacity-60">
+              Reset
+            </p>
+            <h2
+              id="reset-data-title"
+              className="mt-1 text-2xl font-semibold leading-tight"
+            >
+              Choose what to reset
+            </h2>
+            <p className="mt-1 text-sm opacity-70">
+              Stay on the dashboard for the first three options. The last option offers a profile delete.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className={`rounded-full px-2 py-1 text-sm font-semibold ${
+              theme === "dark"
+                ? "text-white/70 hover:text-white"
+                : "text-[#454545]/70 hover:text-[#454545]"
+            }`}
+            aria-label="Close reset dialog"
+          >
+            <svg
+              aria-hidden="true"
+              focusable="false"
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          {options.map((option) => {
+            const isActive = selected === option.key;
+            return (
+              <button
+                key={option.key}
+                type="button"
+                onClick={() => onSelect(option.key)}
+                className={`flex h-full flex-col items-start rounded-2xl border px-4 py-4 text-left shadow-sm transition ${
+                  optionBase
+                } ${
+                  isActive
+                    ? theme === "dark"
+                      ? "ring-2 ring-white/60"
+                      : "ring-2 ring-[#715B64]"
+                    : ""
+                }`}
+              >
+                <div className="mb-2 flex w-full items-center justify-between gap-3">
+                  <span className="text-sm font-semibold">{option.title}</span>
+                  <span
+                    className={`h-3 w-3 rounded-full border ${
+                      isActive
+                        ? "border-transparent bg-[#715B64]"
+                        : theme === "dark"
+                          ? "border-white/30"
+                          : "border-[#C2D0D6]"
+                    }`}
+                    aria-hidden="true"
+                  />
+                </div>
+                <p className="text-sm opacity-80">{option.detail}</p>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-5 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full px-4 py-2 text-xs font-semibold text-[#715B64] hover:bg-[#D9C9D2]/60"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={disableConfirm}
+            className={`rounded-full px-5 py-2 text-xs font-semibold shadow-sm ${
+              disableConfirm
+                ? theme === "dark"
+                  ? "cursor-not-allowed bg-white/5 text-white/50"
+                  : "cursor-not-allowed bg-black/10 text-[#454545]/50"
+                : "bg-[#715B64] text-[#F5FEFA] hover:bg-[#5E4A54]"
+            }`}
+          >
+            Confirm reset
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type DeleteProfilePromptProps = {
+  theme: "light" | "dark";
+  onStay: () => void;
+  onDelete: () => void;
+};
+
+function DeleteProfilePrompt({
+  theme,
+  onStay,
+  onDelete,
+}: DeleteProfilePromptProps) {
+  const cardClasses =
+    theme === "dark"
+      ? "bg-neutral-900/95 text-neutral-100"
+      : "bg-[#E9F2F5] text-[#454545]";
+
+  const subtleText =
+    theme === "dark" ? "text-sm text-white/80" : "text-sm text-[#454545]/80";
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-profile-title"
+      className="fixed inset-0 z-30 flex items-center justify-center px-4"
+    >
+      <div className="absolute inset-0 bg-black/50" onClick={onStay} />
+      <div
+        className={`relative z-40 w-full max-w-xl rounded-2xl p-6 shadow-xl backdrop-blur-sm ${cardClasses}`}
+      >
+        <div className="mb-3 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] opacity-60">
+              Next step
+            </p>
+            <h2
+              id="delete-profile-title"
+              className="mt-1 text-2xl font-semibold leading-tight"
+            >
+              Delete this profile?
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onStay}
+            className={`rounded-full px-2 py-1 text-sm font-semibold ${
+              theme === "dark"
+                ? "text-white/70 hover:text-white"
+                : "text-[#454545]/70 hover:text-[#454545]"
+            }`}
+            aria-label="Stay on dashboard"
+          >
+            <svg
+              aria-hidden="true"
+              focusable="false"
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <p className={subtleText}>
+          Accounts, transactions, and transfers are cleared. Stay to rebuild the dashboard,
+          or delete the profile to head back to the profile selector.
+        </p>
+
+        <div className="mt-5 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={onStay}
+            className="rounded-full px-4 py-2 text-xs font-semibold text-[#715B64] hover:bg-[#D9C9D2]/60"
+          >
+            Stay in dashboard
+          </button>
+          <button
+            type="button"
+            onClick={onDelete}
+            className="rounded-full bg-red-500/90 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-red-500"
+          >
+            Delete profile
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 type AboutModalProps = {
   theme: "light" | "dark";
@@ -1545,6 +1984,7 @@ function NewTransactionModal({
       amount: finalAmount,
       date,
       description,
+      kind: "transaction",
     });
 
     onClose();
