@@ -1,7 +1,7 @@
 // src/routes/Dashboard.tsx
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "../ThemeProvider";
+import { ThemeMode, ThemePalette, useTheme } from "../ThemeProvider";
 import { useActiveProfile } from "../ActiveProfileContext";
 import {
   Account,
@@ -144,7 +144,7 @@ function getDueStatus(dueDate: string) {
 }
 
 export default function Dashboard() {
-  const { theme, toggle } = useTheme();
+  const { theme, currentPalette } = useTheme();
   const navigate = useNavigate();
   const { activeProfile, setActiveProfileId } = useActiveProfile();
 
@@ -191,6 +191,7 @@ export default function Dashboard() {
   const [isDeleteProfilePromptOpen, setIsDeleteProfilePromptOpen] =
     useState(false);
   const [isLogoutPromptOpen, setIsLogoutPromptOpen] = useState(false);
+  const [isThemePickerOpen, setIsThemePickerOpen] = useState(false);
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
 
   // Edit-transaction modals
@@ -345,11 +346,6 @@ export default function Dashboard() {
   const visibleTransactions = selectedAccount
     ? transactions.filter((tx) => tx.accountId === selectedAccount.id)
     : [];
-
-  const lightBg =
-    "bg-brand-primary bg-gradient-to-b from-[#B6C8CE] via-brand-primary to-[#869BA1]";
-  const darkBg =
-    "bg-[#1E3A5F] bg-gradient-to-b from-[#2E517F] via-[#1E3A5F] to-[#10263F]";
 
   // Account carousel
   const handlePrevAccount = () => {
@@ -873,7 +869,13 @@ export default function Dashboard() {
 
   const appMenuItems = [
     { label: "Accounts", onClick: () => setIsAccountsListOpen(true) },
-    { label: "Appearance", onClick: toggle },
+    {
+      label: "Appearance",
+      onClick: () => {
+        setIsAppMenuOpen(false);
+        setIsThemePickerOpen(true);
+      },
+    },
     { label: "About", onClick: () => setIsAboutOpen(true) },
     { label: "Feedback", onClick: () => setIsFeedbackOpen(true) },
     {
@@ -893,9 +895,8 @@ export default function Dashboard() {
       onChange={(next) => setHideMoney(next)}
     >
       <div
-        className={`min-h-[100svh] w-full ${
-          theme === "dark" ? darkBg : lightBg
-        } text-brand-accent`}
+        className="min-h-[100svh] w-full text-brand-accent"
+        style={{ backgroundColor: currentPalette.background }}
       >
         <div className="mx-auto flex h-full max-w-[1280px] px-6 py-6">
         {/* LEFT SIDEBAR – months */}
@@ -924,7 +925,7 @@ export default function Dashboard() {
                 aria-controls="app-menu-pills"
                 className="rounded-full px-4 py-2.5 text-left text-lg font-semibold text-white/90 transition hover:bg-white/5"
               >
-                <span className="tracking-wide">Ahlie</span>
+                <span className="tracking-wide">Bare</span>
               </button>
 
               <div
@@ -1494,19 +1495,23 @@ export default function Dashboard() {
         />
       )}
 
+      {isThemePickerOpen && (
+        <ThemePickerModal
+          onClose={() => setIsThemePickerOpen(false)}
+        />
+      )}
+
       {/* THEME TOGGLE */}
       <button
-        onClick={toggle}
+        type="button"
+        onClick={() => setIsThemePickerOpen(true)}
         className={`fixed bottom-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-colors duration-200 ${
           theme === "dark"
             ? "bg-white/10 text-brand-accent hover:bg-white/15"
             : "bg-black/10 text-[#454545] hover:bg-black/15"
         }`}
-        aria-label="Toggle theme"
-        aria-pressed={theme === "dark"}
-        title={
-          theme === "dark" ? "Switch to light theme" : "Switch to dark theme"
-        }
+        aria-label="Open appearance settings"
+        title="Open appearance settings"
       >
         <svg
           width="20"
@@ -1906,7 +1911,7 @@ function AboutModal({ theme, onClose }: AboutModalProps) {
     <div
       role="dialog"
       aria-modal="true"
-      aria-labelledby="about-ahlie-title"
+      aria-labelledby="about-bare-title"
       className="fixed inset-0 z-30 flex items-center justify-center px-4"
     >
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
@@ -1919,10 +1924,10 @@ function AboutModal({ theme, onClose }: AboutModalProps) {
               About
             </p>
             <h2
-              id="about-ahlie-title"
+              id="about-bare-title"
               className="mt-1 text-2xl font-semibold leading-tight"
             >
-              About Ahlie (aka: my little finance side-project)
+              About Bare (aka: my little finance side-project)
             </h2>
           </div>
           <button
@@ -1937,30 +1942,26 @@ function AboutModal({ theme, onClose }: AboutModalProps) {
 
         <div className="space-y-3 leading-relaxed">
           <p className={paragraphClasses}>
-            Ahlie is a simple personal finance dashboard I’m building for myself. I wanted something
-            clean, fast, and not overloaded with features I never use. So I made my own—something that
-            stores everything locally, keeps budgeting straightforward, and feels easy on the eyes.
+            bare.money is a simple personal finance dashboard I'm building for myself.
+            <br />
+            In Toronto, "bare" means a lot - and that's what money usually feels like. A lot to think about. A lot to manage. A lot to learn. I wanted something that made all of that feel lighter. Something clean, fast, and not packed with features I'd never touch. So I made my own.
           </p>
           <p className={paragraphClasses}>
-            The app lets you create profiles, manage accounts, track your income and expenses, move
-            money around, and see your recent activity at a glance. Everything is stored right in your
-            browser, so your data stays yours. No sign-ups. No syncing. No servers. Just a lightweight
-            tool that does what it needs to do.
+            The app keeps everything straightforward. You can create profiles, manage accounts, track income and expenses, move money around, and see your activity at a glance. Everything stays stored locally in your browser - your data is yours. No sign-ups. No syncing. No servers. Just a calm, simple tool that helps you understand where your money is going.
           </p>
           <p className={paragraphClasses}>
-            The project is still growing. In upcoming versions, Ahlie will include recurring bills,
-            net-worth tracking, and debt payoff tools. It’s all meant to feel simple and personal—
-            something that helps you stay on top of your money without getting in your way.
+            bare.money is still growing. Soon, it'll include recurring bills, net-worth tracking, and debt payoff tools. The goal is for all of it to feel soft, minimal, and personal - something that supports your life instead of overwhelming it.
           </p>
           <p className={paragraphClasses}>
-            Ahlie isn’t a company or a startup (at least not yet). It’s just me building something
-            useful and learning as I go. Long-term, I’d love to turn this into a space where I can
-            prototype apps, experiment with design ideas, and maybe even create tools for creatives
-            and companies. But for now, Ahlie is exactly what it looks like: a small project with big
-            potential.
+            You don't need to be a finance expert. You don't need perfect habits. You just need a place to start.
           </p>
           <p className={paragraphClasses}>
-            If you enjoy this calm, tidy-budgeting vibe, stick around. There’s more coming.
+            This project isn't a company or a startup (at least not yet). It's just me learning, building, and trying to get my money right. I want bare.money to reflect that journey - real progress, real mistakes, and real change. If it works for me, maybe it'll work for anyone else who feels the same way.
+          </p>
+          <p className={paragraphClasses}>
+            If you like this calm, honest approach to budgeting, stick around.
+            <br />
+            There's more coming, and we're only getting started.
           </p>
         </div>
       </div>
@@ -1991,7 +1992,7 @@ function FeedbackModal({ theme, onClose }: FeedbackModalProps) {
     <div
       role="dialog"
       aria-modal="true"
-      aria-labelledby="feedback-ahlie-title"
+      aria-labelledby="feedback-bare-title"
       className="fixed inset-0 z-30 flex items-center justify-center px-4"
     >
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
@@ -2004,7 +2005,7 @@ function FeedbackModal({ theme, onClose }: FeedbackModalProps) {
               Feedback
             </p>
             <h2
-              id="feedback-ahlie-title"
+              id="feedback-bare-title"
               className="mt-1 text-2xl font-semibold leading-tight"
             >
               Got feedback?
@@ -2036,6 +2037,207 @@ function FeedbackModal({ theme, onClose }: FeedbackModalProps) {
         <div className="space-y-3 leading-relaxed">
           <p className={paragraphClasses}>Just text me lol</p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+type ThemePickerModalProps = {
+  onClose: () => void;
+};
+
+function ThemePickerModal({ onClose }: ThemePickerModalProps) {
+  const {
+    theme,
+    setTheme,
+    currentThemeKey,
+    setThemeKey,
+    availableThemes,
+    getPalette,
+  } = useTheme();
+
+  useEffect(() => {
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [onClose]);
+
+  const modeOptions: { value: ThemeMode; label: string }[] = [
+    { value: "light", label: "Light" },
+    { value: "dark", label: "Dark" },
+  ];
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="theme-picker-title"
+      className="fixed inset-0 z-30 flex items-center justify-center px-4"
+    >
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div
+        className="relative z-40 w-full max-w-3xl rounded-2xl p-6 shadow-xl backdrop-blur-sm"
+        style={{
+          backgroundColor: "var(--color-surface)",
+          color: "var(--color-text-primary)",
+        }}
+      >
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] opacity-60">
+              Appearance
+            </p>
+            <h2
+              id="theme-picker-title"
+              className="mt-1 text-2xl font-semibold leading-tight"
+            >
+              Theme & mode
+            </h2>
+            <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+              Pick a palette, then choose whether light or dark feels best.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full px-2 py-1 text-sm font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+            aria-label="Close appearance dialog"
+          >
+            <svg
+              aria-hidden="true"
+              focusable="false"
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="space-y-8">
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-[0.3em] opacity-60">
+                Theme
+              </p>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              {availableThemes.map((option) => {
+                const palette = getPalette(option.key, theme);
+                const isActive = option.key === currentThemeKey;
+                return (
+                  <button
+                    key={option.key}
+                    type="button"
+                    onClick={() => setThemeKey(option.key)}
+                    className={`flex flex-col gap-3 rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-accent)] ${
+                      isActive
+                        ? "border-[var(--color-accent)]"
+                        : "border-[var(--color-border)] hover:border-[var(--color-accent)]"
+                    }`}
+                    style={{
+                      backgroundColor: palette.surfaceAlt,
+                      boxShadow: isActive
+                        ? "0 0 0 3px rgba(113, 91, 100, 0.35)"
+                        : undefined,
+                    }}
+                    aria-pressed={isActive}
+                  >
+                    <ThemePreview palette={palette} />
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                        {option.name}
+                      </p>
+                      <p className="text-xs text-[var(--color-text-secondary)]">
+                        {option.description}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-[0.3em] opacity-60">
+                Mode
+              </p>
+            </div>
+            <div className="flex gap-3">
+              {modeOptions.map((modeOption) => {
+                const isActive = theme === modeOption.value;
+                return (
+                  <button
+                    key={modeOption.value}
+                    type="button"
+                    onClick={() => setTheme(modeOption.value)}
+                    className={`flex-1 rounded-full px-4 py-2 text-xs font-semibold transition ${
+                      isActive
+                        ? "bg-[var(--color-accent)] text-white shadow-sm"
+                        : "border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]"
+                    }`}
+                    aria-pressed={isActive}
+                  >
+                    {modeOption.label}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ThemePreview({ palette }: { palette: ThemePalette }) {
+  return (
+    <div
+      className="rounded-2xl border p-2"
+      style={{ borderColor: palette.border, backgroundColor: palette.surface }}
+    >
+      <div
+        className="h-3 w-full rounded-full"
+        style={{ backgroundColor: palette.background }}
+      />
+      <div className="mt-2 flex gap-2">
+        <div
+          className="h-12 w-10 rounded"
+          style={{ backgroundColor: palette.neutral }}
+        />
+        <div className="flex-1 space-y-2">
+          <div
+            className="h-3 rounded"
+            style={{ backgroundColor: palette.surfaceAlt }}
+          />
+          <div
+            className="h-3 w-3/4 rounded"
+            style={{ backgroundColor: palette.surfaceAlt }}
+          />
+        </div>
+      </div>
+      <div className="mt-2 flex gap-1">
+        <span
+          className="h-2 flex-1 rounded"
+          style={{ backgroundColor: palette.accent }}
+        />
+        <span
+          className="h-2 flex-1 rounded"
+          style={{ backgroundColor: palette.accentStrong }}
+        />
       </div>
     </div>
   );
