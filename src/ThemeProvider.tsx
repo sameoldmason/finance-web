@@ -25,8 +25,8 @@ type ThemeDefinition = {
 
 const THEME_REGISTRY = {
   bare: {
-    name: "Bare",
-    description: "The current Bare palette you already know.",
+    name: "bare",
+    description: "The current bare palette you already know.",
     light: {
       background: "#F5F7FA",
       surface: "#E9F2F5",

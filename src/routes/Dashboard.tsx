@@ -925,7 +925,7 @@ export default function Dashboard() {
                 aria-controls="app-menu-pills"
                 className="rounded-full px-4 py-2.5 text-left text-lg font-semibold text-white/90 transition hover:bg-[var(--color-surface-alt)]/5"
               >
-                <span className="tracking-wide">Bare</span>
+                <span className="tracking-wide">bare</span>
               </button>
 
               <div
@@ -1897,7 +1897,7 @@ function AboutModal({ onClose }: AboutModalProps) {
               id="about-bare-title"
               className="mt-1 text-2xl font-semibold leading-tight"
             >
-              About Bare (aka: my little finance side-project)
+              About bare (aka: my little finance side-project)
             </h2>
           </div>
           <button
