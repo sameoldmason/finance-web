@@ -190,6 +190,7 @@ export default function Dashboard() {
   const [resetChoice, setResetChoice] = useState<ResetChoice | null>(null);
   const [isDeleteProfilePromptOpen, setIsDeleteProfilePromptOpen] =
     useState(false);
+  const [isLogoutPromptOpen, setIsLogoutPromptOpen] = useState(false);
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
 
   // Edit-transaction modals
@@ -846,6 +847,17 @@ export default function Dashboard() {
     setIsEditingProfileName(true);
   }
 
+  function handleLogout() {
+    setIsAppMenuOpen(false);
+    setIsLogoutPromptOpen(true);
+  }
+
+  function handleConfirmLogout() {
+    setIsLogoutPromptOpen(false);
+    setActiveProfileId(null);
+    navigate("/profiles");
+  }
+
   const profileName = activeProfile?.name ?? "Profile";
   const avatarInitial = profileName.trim().charAt(0)?.toUpperCase() || "P";
 
@@ -872,7 +884,7 @@ export default function Dashboard() {
         setIsResetModalOpen(true);
       },
     },
-    { label: "Log Out", onClick: () => {} },
+    { label: "Log Out", onClick: handleLogout },
   ];
 
   return (
@@ -1461,6 +1473,14 @@ export default function Dashboard() {
         />
       )}
 
+      {isLogoutPromptOpen && (
+        <LogoutPrompt
+          theme={theme}
+          onStay={() => setIsLogoutPromptOpen(false)}
+          onConfirm={handleConfirmLogout}
+        />
+      )}
+
       {/* ABOUT MODAL */}
       {isAboutOpen && (
         <AboutModal theme={theme} onClose={() => setIsAboutOpen(false)} />
@@ -1765,6 +1785,97 @@ function DeleteProfilePrompt({
             className="rounded-full bg-red-500/90 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-red-500"
           >
             Delete profile
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type LogoutPromptProps = {
+  theme: "light" | "dark";
+  onStay: () => void;
+  onConfirm: () => void;
+};
+
+function LogoutPrompt({ theme, onStay, onConfirm }: LogoutPromptProps) {
+  const cardClasses =
+    theme === "dark"
+      ? "bg-neutral-900/95 text-neutral-100"
+      : "bg-[#E9F2F5] text-[#454545]";
+
+  const subtleText =
+    theme === "dark" ? "text-sm text-white/80" : "text-sm text-[#454545]/80";
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="logout-title"
+      className="fixed inset-0 z-30 flex items-center justify-center px-4"
+    >
+      <div className="absolute inset-0 bg-black/50" onClick={onStay} />
+      <div
+        className={`relative z-40 w-full max-w-md rounded-2xl p-6 shadow-xl backdrop-blur-sm ${cardClasses}`}
+      >
+        <div className="mb-3 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] opacity-60">
+              Heads up
+            </p>
+            <h2
+              id="logout-title"
+              className="mt-1 text-2xl font-semibold leading-tight"
+            >
+              Log out of this profile?
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={onStay}
+            className={`rounded-full px-2 py-1 text-sm font-semibold ${
+              theme === "dark"
+                ? "text-white/70 hover:text-white"
+                : "text-[#454545]/70 hover:text-[#454545]"
+            }`}
+            aria-label="Stay signed in"
+          >
+            <svg
+              aria-hidden="true"
+              focusable="false"
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <p className={subtleText}>
+          We&apos;ll take you back to the profile screen. Your data stays saved for the next
+          sign in.
+        </p>
+
+        <div className="mt-5 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={onStay}
+            className="rounded-full px-4 py-2 text-xs font-semibold text-[#715B64] hover:bg-[#D9C9D2]/60"
+          >
+            Stay here
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="rounded-full bg-[#715B64] px-5 py-2 text-xs font-semibold text-[#F5FEFA] shadow-sm hover:bg-[#5E4A54]"
+          >
+            Log out
           </button>
         </div>
       </div>
