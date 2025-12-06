@@ -88,7 +88,7 @@ export default function CreateProfile() {
       {/* Back button */}
       <button
         onClick={handleBack}
-        className="absolute top-4 left-4 flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/15 transition"
+        className="absolute top-4 left-4 flex items-center justify-center w-10 h-10 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-alt)] text-[var(--color-text-primary)] hover:border-[var(--color-accent)] transition"
         aria-label="Back"
         title="Back"
       >
@@ -324,16 +324,16 @@ export default function CreateProfile() {
       {showDiscard && (
         <div role="dialog" aria-modal="true" className="fixed inset-0 z-20 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={cancelDiscard} />
-          <div className="relative z-30 w-[92vw] max-w-md rounded-2xl bg-neutral-900/95 text-neutral-100 shadow-xl p-6">
+          <div className="relative z-30 w-[92vw] max-w-md rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] shadow-xl p-6">
             <h2 className="text-xl font-semibold mb-2">Discard changes?</h2>
-            <p className="text-sm opacity-80 mb-4">
+            <p className="text-sm text-[var(--color-text-secondary)] mb-4">
               You have unsaved inputs. If you leave now, they’ll be lost.
             </p>
             <div className="flex justify-end gap-3">
-              <button onClick={cancelDiscard} className="rounded-xl px-4 py-2 bg-white/10 hover:bg-white/15">
+              <button onClick={cancelDiscard} className="rounded-xl px-4 py-2 border border-[var(--color-border)] bg-[var(--color-surface-alt)] text-[var(--color-text-primary)] hover:border-[var(--color-accent)]">
                 Cancel
               </button>
-              <button onClick={confirmDiscard} className="rounded-xl px-4 py-2 bg-red-500/90 hover:bg-red-500 text-white">
+              <button onClick={confirmDiscard} className="rounded-xl px-4 py-2 bg-red-500 text-white hover:bg-red-600">
                 Discard
               </button>
             </div>

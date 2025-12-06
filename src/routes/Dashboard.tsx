@@ -905,9 +905,9 @@ export default function Dashboard() {
             <button
               key={m}
               type="button"
-              className="w-full mb-2 flex items-center rounded-xl px-3 py-2 text-base font-bold tracking-wide bg-transparent text-[#F5FEFA]/80 hover:bg-white/10 hover:text-white transition-all duration-150"
+              className="w-full mb-2 flex items-center rounded-xl px-3 py-2 text-base font-bold tracking-wide bg-transparent text-[#F5FEFA]/80 hover:bg-[var(--color-surface-alt)]/10 hover:text-white transition-all duration-150"
             >
-              <span className="mr-3 h-6 w-1.5 rounded-full bg-white/10" />
+              <span className="mr-3 h-6 w-1.5 rounded-full bg-[var(--color-surface-alt)]/10" />
               <span className="truncate">{m}</span>
             </button>
           ))}
@@ -923,7 +923,7 @@ export default function Dashboard() {
                 onClick={() => setIsAppMenuOpen((prev) => !prev)}
                 aria-expanded={isAppMenuOpen}
                 aria-controls="app-menu-pills"
-                className="rounded-full px-4 py-2.5 text-left text-lg font-semibold text-white/90 transition hover:bg-white/5"
+                className="rounded-full px-4 py-2.5 text-left text-lg font-semibold text-white/90 transition hover:bg-[var(--color-surface-alt)]/5"
               >
                 <span className="tracking-wide">Bare</span>
               </button>
@@ -948,11 +948,11 @@ export default function Dashboard() {
                         ? `${index * 80}ms`
                         : "0ms",
                     }}
-                    className={`rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white/80 shadow-sm transition-all duration-300 ${
+                    className={`rounded-full bg-[var(--color-surface-alt)]/15 px-3 py-1 text-xs font-semibold text-white/80 shadow-sm transition-all duration-300 ${
                       isAppMenuOpen
                         ? "translate-x-0 opacity-100"
                         : "-translate-x-2 opacity-0"
-                    } hover:bg-white/25`}
+                    } hover:bg-[var(--color-surface-alt)]/25`}
                   >
                     {item.label}
                   </button>
@@ -972,7 +972,7 @@ export default function Dashboard() {
                         value={profileNameInput}
                         onChange={(event) => setProfileNameInput(event.target.value)}
                         onBlur={() => handleProfileNameSubmit()}
-                        className="w-40 rounded-lg bg-white/10 px-2 py-1 text-sm text-white placeholder-white/50 shadow-inner outline-none ring-1 ring-white/20 focus:ring-white/50"
+                        className="w-40 rounded-lg bg-[var(--color-surface-alt)]/10 px-2 py-1 text-sm text-white placeholder-white/50 shadow-inner outline-none ring-1 ring-white/20 focus:ring-white/50"
                         placeholder="Enter name"
                         autoFocus
                       />
@@ -994,7 +994,7 @@ export default function Dashboard() {
                     <span className="mt-1 text-xs text-red-300">{profileNameError}</span>
                   )}
                 </div>
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-[#454545]">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-surface-alt)]/80 text-[var(--color-text-primary)]">
                   <span className="text-xs font-semibold">{avatarInitial}</span>
                 </div>
               </div>
@@ -1018,7 +1018,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={() => setIsNewAccountOpen(true)}
-                  className="mt-1 flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-sm font-bold text-[#F5FEFA] hover:bg-white/30"
+                  className="mt-1 flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-surface-alt)]/20 text-sm font-bold text-[#F5FEFA] hover:bg-[var(--color-surface-alt)]/30"
                   aria-label="Add account"
                 >
                   +
@@ -1027,31 +1027,45 @@ export default function Dashboard() {
 
               {/* ACTION BUTTONS */}
               <div className="mt-4 grid grid-cols-2 gap-4">
-                <button
-                  type="button"
-                  onClick={() => setIsNewTxOpen(true)}
-                  className="w-full rounded-full bg-[#F5FEFA] py-3 text-sm font-semibold text-[#454545] shadow-sm hover:bg-[#454545] hover:text-[#F5FEFA] transition"
-                >
-                  <span className="btn-label-full">New Transaction</span>
-                  <span className="btn-label-wrap">
-                    New
-                    <br />
-                    Transaction
-                  </span>
-                </button>
+                {(() => {
+                  const newActionBase =
+                    "w-full rounded-full bg-[#F5FEFA] py-3 text-sm font-semibold shadow-sm transition hover:bg-[#454545] hover:text-[#F5FEFA]";
+                  const newActionText =
+                    theme === "dark"
+                      ? "text-[#1f1f1f]"
+                      : "text-[var(--color-text-primary)]";
+                  const newActionClasses = `${newActionBase} ${newActionText}`;
 
-                <button
-                  type="button"
-                  onClick={() => setIsTransferOpen(true)}
-                  className="w-full rounded-full bg-[#F5FEFA] py-3 text-sm font-semibold text-[#454545] shadow-sm hover:bg-[#454545] hover:text-[#F5FEFA] transition"
-                >
-                  <span className="btn-label-full">New Transfer</span>
-                  <span className="btn-label-wrap">
-                    New
-                    <br />
-                    Transfer
-                  </span>
-                </button>
+                  return (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setIsNewTxOpen(true)}
+                        className={newActionClasses}
+                      >
+                        <span className="btn-label-full">New Transaction</span>
+                        <span className="btn-label-wrap">
+                          New
+                          <br />
+                          Transaction
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setIsTransferOpen(true)}
+                        className={newActionClasses}
+                      >
+                        <span className="btn-label-full">New Transfer</span>
+                        <span className="btn-label-wrap">
+                          New
+                          <br />
+                          Transfer
+                        </span>
+                      </button>
+                    </>
+                  );
+                })()}
               </div>
 
               {/* ACCOUNT CAROUSEL */}
@@ -1060,7 +1074,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={handlePrevAccount}
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition"
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-[var(--color-surface-alt)]/10 text-white/80 hover:bg-[var(--color-surface-alt)]/20 hover:text-white transition"
                 >
                   {"<"}
                 </button>
@@ -1079,8 +1093,8 @@ export default function Dashboard() {
                           className={`h-10 w-full rounded-2xl text-sm font-semibold transition ${
                             selectedAccount &&
                             account.id === selectedAccount.id
-                              ? "bg-white/20 text-[#F5FEFA]"
-                              : "bg-white/10 text-[#F5FEFA]/80 hover:bg-white/16"
+                              ? "bg-[var(--color-surface-alt)]/20 text-[#F5FEFA]"
+                              : "bg-[var(--color-surface-alt)]/10 text-[#F5FEFA]/80 hover:bg-[var(--color-surface-alt)]/16"
                           }`}
                         >
                           {account.name}
@@ -1091,7 +1105,7 @@ export default function Dashboard() {
                             <button
                               type="button"
                               onClick={() => setEditingAccount(account)}
-                              className="flex h-7 w-7 items-center justify-center rounded-full bg.white/20 text-xs text-[#F5FEFA] hover:bg-white/30"
+                              className="flex h-7 w-7 items-center justify-center rounded-full bg.white/20 text-xs text-[#F5FEFA] hover:bg-[var(--color-surface-alt)]/30"
                               title="Edit account"
                             >
                               ✎
@@ -1106,7 +1120,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={handleNextAccount}
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-white/10 text-white/80 hover:bg-white/20 hover:text-white transition"
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-[var(--color-surface-alt)]/10 text-white/80 hover:bg-[var(--color-surface-alt)]/20 hover:text-white transition"
                 >
                   {">"}
                 </button>
@@ -1142,7 +1156,7 @@ export default function Dashboard() {
                       key={tx.id}
                       type="button"
                       onClick={() => setEditingDetailsTx(tx)}
-                      className="flex w-full items-center justify-between rounded-xl bg-white/5 px-3 py-2 text-left hover:bg-white/10"
+                      className="flex w-full items-center justify-between rounded-xl bg-[var(--color-surface-alt)]/5 px-3 py-2 text-left hover:bg-[var(--color-surface-alt)]/10"
                     >
                       <span>{tx.description || "Transaction"}</span>
                       <span
@@ -1180,8 +1194,8 @@ export default function Dashboard() {
                     disabled={accounts.length === 0}
                     className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold transition ${
                       accounts.length === 0
-                        ? "bg-white/10 text-white/30 cursor-not-allowed"
-                        : "bg-white/20 text-[#F5FEFA] hover:bg-white/30"
+                        ? "bg-[var(--color-surface-alt)]/10 text-white/30 cursor-not-allowed"
+                        : "bg-[var(--color-surface-alt)]/20 text-[#F5FEFA] hover:bg-[var(--color-surface-alt)]/30"
                     }`}
                     aria-label="Add bill"
                     title={
@@ -1204,7 +1218,7 @@ export default function Dashboard() {
 
               <div className="flex min-h-[232px] flex-col">
                 {unpaidBills.length === 0 ? (
-                  <div className="flex flex-1 items-center justify-center rounded-xl bg-white/5 text-xs text-white/60">
+                  <div className="flex flex-1 items-center justify-center rounded-xl bg-[var(--color-surface-alt)]/5 text-xs text-white/60">
                     No upcoming bills yet. Add your first bill to get reminders
                     here.
                   </div>
@@ -1217,7 +1231,7 @@ export default function Dashboard() {
                         .map((bill) => (
                           <div
                             key={bill.id}
-                            className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-3 text-xs"
+                            className="flex items-center justify-between rounded-xl bg-[var(--color-surface-alt)]/5 px-4 py-3 text-xs"
                           >
                             <button
                               type="button"
@@ -1236,10 +1250,10 @@ export default function Dashboard() {
 
                                   const badgeColor =
                                     status.tone === "danger"
-                                      ? "bg-white/20 text-[#FBD5D5]"
+                                      ? "bg-[var(--color-surface-alt)]/20 text-[#FBD5D5]"
                                       : status.tone === "warning"
-                                        ? "bg-white/15 text-[#F2E2BE]"
-                                        : "bg-white/10 text-white/70";
+                                        ? "bg-[var(--color-surface-alt)]/15 text-[#F2E2BE]"
+                                        : "bg-[var(--color-surface-alt)]/10 text-white/70";
 
                                   return (
                                     <span className={`${badgeBase} ${badgeColor}`}>
@@ -1270,7 +1284,7 @@ export default function Dashboard() {
                               <button
                                 type="button"
                                 onClick={() => handleMarkBillPaid(bill)}
-                                className="mt-1 rounded-full border border-white/30 px-3 py-1 text-[11px] font-semibold text-white/80 hover:bg-white/10"
+                                className="mt-1 rounded-full border border-white/30 px-3 py-1 text-[11px] font-semibold text-white/80 hover:bg-[var(--color-surface-alt)]/10"
                               >
                                 Mark paid
                               </button>
@@ -1295,8 +1309,8 @@ export default function Dashboard() {
           <section className="mb-2 flex items-center justify-between rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md">
             <div className="flex flex-1 flex-col gap-2">
               <p className="text-sm font-semibold">Debt Payoff Progress</p>
-              <div className="h-4 w-full rounded-full bg-white/10">
-                <div className="h-4 w-1/3 rounded-full bg-[#715B64]" />
+              <div className="h-4 w-full rounded-full border border-[var(--color-border)] bg-[var(--color-surface-alt)]">
+                <div className="h-4 w-1/3 rounded-full bg-[var(--color-accent)]" />
               </div>
             </div>
             <button
@@ -1450,7 +1464,6 @@ export default function Dashboard() {
 
       {isResetModalOpen && (
         <ResetDataModal
-          theme={theme}
           selected={resetChoice}
           onSelect={setResetChoice}
           onConfirm={() => {
@@ -1468,7 +1481,6 @@ export default function Dashboard() {
 
       {isDeleteProfilePromptOpen && (
         <DeleteProfilePrompt
-          theme={theme}
           onStay={() => setIsDeleteProfilePromptOpen(false)}
           onDelete={handleDeleteProfileAfterReset}
         />
@@ -1476,7 +1488,6 @@ export default function Dashboard() {
 
       {isLogoutPromptOpen && (
         <LogoutPrompt
-          theme={theme}
           onStay={() => setIsLogoutPromptOpen(false)}
           onConfirm={handleConfirmLogout}
         />
@@ -1484,15 +1495,12 @@ export default function Dashboard() {
 
       {/* ABOUT MODAL */}
       {isAboutOpen && (
-        <AboutModal theme={theme} onClose={() => setIsAboutOpen(false)} />
+        <AboutModal onClose={() => setIsAboutOpen(false)} />
       )}
 
       {/* FEEDBACK MODAL */}
       {isFeedbackOpen && (
-        <FeedbackModal
-          theme={theme}
-          onClose={() => setIsFeedbackOpen(false)}
-        />
+        <FeedbackModal onClose={() => setIsFeedbackOpen(false)} />
       )}
 
       {isThemePickerOpen && (
@@ -1507,8 +1515,8 @@ export default function Dashboard() {
         onClick={() => setIsThemePickerOpen(true)}
         className={`fixed bottom-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-colors duration-200 ${
           theme === "dark"
-            ? "bg-white/10 text-brand-accent hover:bg-white/15"
-            : "bg-black/10 text-[#454545] hover:bg-black/15"
+            ? "bg-[var(--color-surface-alt)]/10 text-brand-accent hover:bg-[var(--color-surface-alt)]/15"
+            : "bg-black/10 text-[var(--color-text-primary)] hover:bg-black/15"
         }`}
         aria-label="Open appearance settings"
         title="Open appearance settings"
@@ -1534,8 +1542,26 @@ export default function Dashboard() {
 
 /* ---------- MODALS ---------- */
 
+const modalCardBase =
+  "rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] shadow-xl";
+const modalSurfaceAltCard =
+  "rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)] text-[var(--color-text-primary)]";
+const modalInputClass =
+  "w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)] placeholder:text-[var(--color-text-secondary)]";
+const modalLabelClass =
+  "mb-1 block text-xs font-semibold text-[var(--color-text-secondary)]";
+const modalSubtleTextClass = "text-sm text-[var(--color-text-secondary)]";
+const modalCloseButtonClass =
+  "rounded-full px-2 py-1 text-sm font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]";
+const modalPrimaryButtonClass =
+  "rounded-full bg-[var(--color-accent)] px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[var(--color-accent-strong)]";
+const modalGhostButtonClass =
+  "rounded-full px-4 py-2 text-xs font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-alt)]";
+const modalToggleActiveClass = "bg-[var(--color-accent)] text-white shadow-sm";
+const modalToggleInactiveClass =
+  "border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]";
+
 type ResetDataModalProps = {
-  theme: "light" | "dark";
   selected: ResetChoice | null;
   disableConfirm?: boolean;
   onSelect: (choice: ResetChoice) => void;
@@ -1544,22 +1570,13 @@ type ResetDataModalProps = {
 };
 
 function ResetDataModal({
-  theme,
   selected,
   disableConfirm,
   onSelect,
   onConfirm,
   onClose,
 }: ResetDataModalProps) {
-  const cardClasses =
-    theme === "dark"
-      ? "bg-neutral-900/95 text-neutral-100"
-      : "bg-[#E9F2F5] text-[#454545]";
-
-  const optionBase =
-    theme === "dark"
-      ? "border-white/10 bg-white/5 hover:bg-white/10"
-      : "border-[#C2D0D6] bg-white hover:bg-[#F3F6F8]";
+  const { currentPalette } = useTheme();
 
   const options: { key: ResetChoice; title: string; detail: string }[] = [
     {
@@ -1593,11 +1610,11 @@ function ResetDataModal({
     >
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       <div
-        className={`relative z-40 w-full max-w-4xl rounded-2xl p-6 shadow-xl backdrop-blur-sm ${cardClasses}`}
+        className={`relative z-40 w-full max-w-4xl ${modalCardBase} p-6 backdrop-blur-sm`}
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] opacity-60">
+            <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-text-secondary)]">
               Reset
             </p>
             <h2
@@ -1606,18 +1623,14 @@ function ResetDataModal({
             >
               Choose what to reset
             </h2>
-            <p className="mt-1 text-sm opacity-70">
+            <p className={`${modalSubtleTextClass} mt-1`}>
               Stay on the dashboard for the first three options. The last option offers a profile delete.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className={`rounded-full px-2 py-1 text-sm font-semibold ${
-              theme === "dark"
-                ? "text-white/70 hover:text-white"
-                : "text-[#454545]/70 hover:text-[#454545]"
-            }`}
+            className={modalCloseButtonClass}
             aria-label="Close reset dialog"
           >
             <svg
@@ -1645,30 +1658,35 @@ function ResetDataModal({
                 key={option.key}
                 type="button"
                 onClick={() => onSelect(option.key)}
-                className={`flex h-full flex-col items-start rounded-2xl border px-4 py-4 text-left shadow-sm transition ${
-                  optionBase
-                } ${
+                className={`${modalSurfaceAltCard} flex h-full flex-col items-start px-4 py-4 text-left shadow-sm transition`}
+                style={
                   isActive
-                    ? theme === "dark"
-                      ? "ring-2 ring-white/60"
-                      : "ring-2 ring-[#715B64]"
-                    : ""
-                }`}
+                    ? {
+                        boxShadow: `0 0 0 2px ${currentPalette.accent}`,
+                        borderColor: currentPalette.accent,
+                      }
+                    : undefined
+                }
+                aria-pressed={isActive}
               >
                 <div className="mb-2 flex w-full items-center justify-between gap-3">
                   <span className="text-sm font-semibold">{option.title}</span>
                   <span
-                    className={`h-3 w-3 rounded-full border ${
-                      isActive
-                        ? "border-transparent bg-[#715B64]"
-                        : theme === "dark"
-                          ? "border-white/30"
-                          : "border-[#C2D0D6]"
-                    }`}
+                    className="h-3 w-3 rounded-full border"
+                    style={{
+                      borderColor: isActive
+                        ? currentPalette.accent
+                        : currentPalette.border,
+                      backgroundColor: isActive
+                        ? currentPalette.accent
+                        : "transparent",
+                    }}
                     aria-hidden="true"
                   />
                 </div>
-                <p className="text-sm opacity-80">{option.detail}</p>
+                <p className={`${modalSubtleTextClass} opacity-90`}>
+                  {option.detail}
+                </p>
               </button>
             );
           })}
@@ -1678,7 +1696,7 @@ function ResetDataModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full px-4 py-2 text-xs font-semibold text-[#715B64] hover:bg-[#D9C9D2]/60"
+            className={modalGhostButtonClass}
           >
             Cancel
           </button>
@@ -1686,12 +1704,8 @@ function ResetDataModal({
             type="button"
             onClick={onConfirm}
             disabled={disableConfirm}
-            className={`rounded-full px-5 py-2 text-xs font-semibold shadow-sm ${
-              disableConfirm
-                ? theme === "dark"
-                  ? "cursor-not-allowed bg-white/5 text-white/50"
-                  : "cursor-not-allowed bg-black/10 text-[#454545]/50"
-                : "bg-[#715B64] text-[#F5FEFA] hover:bg-[#5E4A54]"
+            className={`${modalPrimaryButtonClass} ${
+              disableConfirm ? "cursor-not-allowed opacity-60" : ""
             }`}
           >
             Confirm reset
@@ -1703,24 +1717,11 @@ function ResetDataModal({
 }
 
 type DeleteProfilePromptProps = {
-  theme: "light" | "dark";
   onStay: () => void;
   onDelete: () => void;
 };
 
-function DeleteProfilePrompt({
-  theme,
-  onStay,
-  onDelete,
-}: DeleteProfilePromptProps) {
-  const cardClasses =
-    theme === "dark"
-      ? "bg-neutral-900/95 text-neutral-100"
-      : "bg-[#E9F2F5] text-[#454545]";
-
-  const subtleText =
-    theme === "dark" ? "text-sm text-white/80" : "text-sm text-[#454545]/80";
-
+function DeleteProfilePrompt({ onStay, onDelete }: DeleteProfilePromptProps) {
   return (
     <div
       role="dialog"
@@ -1730,11 +1731,11 @@ function DeleteProfilePrompt({
     >
       <div className="absolute inset-0 bg-black/50" onClick={onStay} />
       <div
-        className={`relative z-40 w-full max-w-xl rounded-2xl p-6 shadow-xl backdrop-blur-sm ${cardClasses}`}
+        className={`relative z-40 w-full max-w-xl ${modalCardBase} p-6 backdrop-blur-sm`}
       >
         <div className="mb-3 flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] opacity-60">
+            <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-text-secondary)]">
               Next step
             </p>
             <h2
@@ -1747,11 +1748,7 @@ function DeleteProfilePrompt({
           <button
             type="button"
             onClick={onStay}
-            className={`rounded-full px-2 py-1 text-sm font-semibold ${
-              theme === "dark"
-                ? "text-white/70 hover:text-white"
-                : "text-[#454545]/70 hover:text-[#454545]"
-            }`}
+            className={modalCloseButtonClass}
             aria-label="Stay on dashboard"
           >
             <svg
@@ -1771,7 +1768,7 @@ function DeleteProfilePrompt({
           </button>
         </div>
 
-        <p className={subtleText}>
+        <p className={modalSubtleTextClass}>
           Accounts, transactions, and transfers are cleared. Stay to rebuild the dashboard,
           or delete the profile to head back to the profile selector.
         </p>
@@ -1780,7 +1777,7 @@ function DeleteProfilePrompt({
           <button
             type="button"
             onClick={onStay}
-            className="rounded-full px-4 py-2 text-xs font-semibold text-[#715B64] hover:bg-[#D9C9D2]/60"
+            className={modalGhostButtonClass}
           >
             Stay in dashboard
           </button>
@@ -1798,20 +1795,11 @@ function DeleteProfilePrompt({
 }
 
 type LogoutPromptProps = {
-  theme: "light" | "dark";
   onStay: () => void;
   onConfirm: () => void;
 };
 
-function LogoutPrompt({ theme, onStay, onConfirm }: LogoutPromptProps) {
-  const cardClasses =
-    theme === "dark"
-      ? "bg-neutral-900/95 text-neutral-100"
-      : "bg-[#E9F2F5] text-[#454545]";
-
-  const subtleText =
-    theme === "dark" ? "text-sm text-white/80" : "text-sm text-[#454545]/80";
-
+function LogoutPrompt({ onStay, onConfirm }: LogoutPromptProps) {
   return (
     <div
       role="dialog"
@@ -1821,11 +1809,11 @@ function LogoutPrompt({ theme, onStay, onConfirm }: LogoutPromptProps) {
     >
       <div className="absolute inset-0 bg-black/50" onClick={onStay} />
       <div
-        className={`relative z-40 w-full max-w-md rounded-2xl p-6 shadow-xl backdrop-blur-sm ${cardClasses}`}
+        className={`relative z-40 w-full max-w-md ${modalCardBase} p-6 backdrop-blur-sm`}
       >
         <div className="mb-3 flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] opacity-60">
+            <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-text-secondary)]">
               Heads up
             </p>
             <h2
@@ -1838,11 +1826,7 @@ function LogoutPrompt({ theme, onStay, onConfirm }: LogoutPromptProps) {
           <button
             type="button"
             onClick={onStay}
-            className={`rounded-full px-2 py-1 text-sm font-semibold ${
-              theme === "dark"
-                ? "text-white/70 hover:text-white"
-                : "text-[#454545]/70 hover:text-[#454545]"
-            }`}
+            className={modalCloseButtonClass}
             aria-label="Stay signed in"
           >
             <svg
@@ -1862,7 +1846,7 @@ function LogoutPrompt({ theme, onStay, onConfirm }: LogoutPromptProps) {
           </button>
         </div>
 
-        <p className={subtleText}>
+        <p className={modalSubtleTextClass}>
           We&apos;ll take you back to the profile screen. Your data stays saved for the next
           sign in.
         </p>
@@ -1871,14 +1855,14 @@ function LogoutPrompt({ theme, onStay, onConfirm }: LogoutPromptProps) {
           <button
             type="button"
             onClick={onStay}
-            className="rounded-full px-4 py-2 text-xs font-semibold text-[#715B64] hover:bg-[#D9C9D2]/60"
+            className={modalGhostButtonClass}
           >
             Stay here
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className="rounded-full bg-[#715B64] px-5 py-2 text-xs font-semibold text-[#F5FEFA] shadow-sm hover:bg-[#5E4A54]"
+            className={modalPrimaryButtonClass}
           >
             Log out
           </button>
@@ -1889,24 +1873,10 @@ function LogoutPrompt({ theme, onStay, onConfirm }: LogoutPromptProps) {
 }
 
 type AboutModalProps = {
-  theme: "light" | "dark";
   onClose: () => void;
 };
 
-function AboutModal({ theme, onClose }: AboutModalProps) {
-  const cardClasses =
-    theme === "dark"
-      ? "bg-neutral-900/95 text-neutral-100"
-      : "bg-[#E9F2F5] text-[#454545]";
-
-  const closeButtonClasses =
-    theme === "dark"
-      ? "text-white/70 hover:text-white"
-      : "text-[#454545]/70 hover:text-[#454545]";
-
-  const paragraphClasses =
-    theme === "dark" ? "text-sm text-white/80" : "text-sm text-[#454545]/80";
-
+function AboutModal({ onClose }: AboutModalProps) {
   return (
     <div
       role="dialog"
@@ -1916,11 +1886,11 @@ function AboutModal({ theme, onClose }: AboutModalProps) {
     >
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       <div
-        className={`relative z-40 w-full max-w-3xl rounded-2xl p-6 shadow-xl backdrop-blur-sm ${cardClasses}`}
+        className={`relative z-40 w-full max-w-3xl ${modalCardBase} p-6 backdrop-blur-sm`}
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] opacity-60">
+            <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-text-secondary)]">
               About
             </p>
             <h2
@@ -1933,7 +1903,7 @@ function AboutModal({ theme, onClose }: AboutModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className={`rounded-full px-2 py-1 text-sm font-semibold transition ${closeButtonClasses}`}
+            className={`${modalCloseButtonClass} transition`}
             aria-label="Close about dialog"
           >
             ✕
@@ -1941,24 +1911,24 @@ function AboutModal({ theme, onClose }: AboutModalProps) {
         </div>
 
         <div className="space-y-3 leading-relaxed">
-          <p className={paragraphClasses}>
+          <p className={modalSubtleTextClass}>
             bare.money is a simple personal finance dashboard I'm building for myself.
             <br />
             In Toronto, "bare" means a lot - and that's what money usually feels like. A lot to think about. A lot to manage. A lot to learn. I wanted something that made all of that feel lighter. Something clean, fast, and not packed with features I'd never touch. So I made my own.
           </p>
-          <p className={paragraphClasses}>
+          <p className={modalSubtleTextClass}>
             The app keeps everything straightforward. You can create profiles, manage accounts, track income and expenses, move money around, and see your activity at a glance. Everything stays stored locally in your browser - your data is yours. No sign-ups. No syncing. No servers. Just a calm, simple tool that helps you understand where your money is going.
           </p>
-          <p className={paragraphClasses}>
+          <p className={modalSubtleTextClass}>
             bare.money is still growing. Soon, it'll include recurring bills, net-worth tracking, and debt payoff tools. The goal is for all of it to feel soft, minimal, and personal - something that supports your life instead of overwhelming it.
           </p>
-          <p className={paragraphClasses}>
+          <p className={modalSubtleTextClass}>
             You don't need to be a finance expert. You don't need perfect habits. You just need a place to start.
           </p>
-          <p className={paragraphClasses}>
+          <p className={modalSubtleTextClass}>
             This project isn't a company or a startup (at least not yet). It's just me learning, building, and trying to get my money right. I want bare.money to reflect that journey - real progress, real mistakes, and real change. If it works for me, maybe it'll work for anyone else who feels the same way.
           </p>
-          <p className={paragraphClasses}>
+          <p className={modalSubtleTextClass}>
             If you like this calm, honest approach to budgeting, stick around.
             <br />
             There's more coming, and we're only getting started.
@@ -1970,24 +1940,10 @@ function AboutModal({ theme, onClose }: AboutModalProps) {
 }
 
 type FeedbackModalProps = {
-  theme: "light" | "dark";
   onClose: () => void;
 };
 
-function FeedbackModal({ theme, onClose }: FeedbackModalProps) {
-  const cardClasses =
-    theme === "dark"
-      ? "bg-neutral-900/95 text-neutral-100"
-      : "bg-[#E9F2F5] text-[#454545]";
-
-  const closeButtonClasses =
-    theme === "dark"
-      ? "text-white/70 hover:text-white"
-      : "text-[#454545]/70 hover:text-[#454545]";
-
-  const paragraphClasses =
-    theme === "dark" ? "text-sm text-white/80" : "text-sm text-[#454545]/80";
-
+function FeedbackModal({ onClose }: FeedbackModalProps) {
   return (
     <div
       role="dialog"
@@ -1997,11 +1953,11 @@ function FeedbackModal({ theme, onClose }: FeedbackModalProps) {
     >
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       <div
-        className={`relative z-40 w-full max-w-3xl rounded-2xl p-6 shadow-xl backdrop-blur-sm ${cardClasses}`}
+        className={`relative z-40 w-full max-w-3xl ${modalCardBase} p-6 shadow-xl backdrop-blur-sm`}
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] opacity-60">
+            <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-text-secondary)]">
               Feedback
             </p>
             <h2
@@ -2014,7 +1970,7 @@ function FeedbackModal({ theme, onClose }: FeedbackModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className={`rounded-full px-2 py-1 text-sm font-semibold transition ${closeButtonClasses}`}
+            className={`${modalCloseButtonClass} transition`}
             aria-label="Close feedback dialog"
           >
             <svg
@@ -2035,7 +1991,7 @@ function FeedbackModal({ theme, onClose }: FeedbackModalProps) {
         </div>
 
         <div className="space-y-3 leading-relaxed">
-          <p className={paragraphClasses}>Just text me lol</p>
+          <p className={modalSubtleTextClass}>Just text me lol</p>
         </div>
       </div>
     </div>
@@ -2306,15 +2262,15 @@ function NewTransactionModal({
   return (
     <>
       <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
-        <div className="w-full max-w-md rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
+        <div className={`w-full max-w-md ${modalCardBase} p-6`}>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[#454545]">
+            <h2 className="text-lg font-semibold">
               New Transaction
             </h2>
             <button
               type="button"
               onClick={onClose}
-              className="text-sm text-[#454545]/70 hover:text-[#454545]"
+              className={modalCloseButtonClass}
             >
               ✕
             </button>
@@ -2322,13 +2278,11 @@ function NewTransactionModal({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
-                Account
-              </label>
+              <label className={modalLabelClass}>Account</label>
               <select
                 name="accountId"
                 defaultValue={selectedAccountId}
-                className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                className={modalInputClass}
               >
                 {accounts.map((acc) => (
                   <option key={acc.id} value={acc.id}>
@@ -2340,22 +2294,20 @@ function NewTransactionModal({
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
-                  Amount
-                </label>
+                <label className={modalLabelClass}>Amount</label>
                 <input
                   name="amount"
                   type="text"
                   inputMode="decimal"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                  className={modalInputClass}
                   placeholder="0.00"
                 />
                 <button
                   type="button"
                   onClick={() => setIsPadOpen(true)}
-                  className="mt-1 text-[11px] font-semibold text-[#715B64] hover:text-[#5d4953]"
+                  className="mt-1 text-[11px] font-semibold text-[var(--color-accent)] hover:text-[var(--color-accent-strong)]"
                 >
                   Open number pad
                 </button>
@@ -2365,17 +2317,15 @@ function NewTransactionModal({
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
-                  Type
-                </label>
+                <label className={modalLabelClass}>Type</label>
                 <div className="mt-[2px] flex gap-2">
                   <button
                     type="button"
                     onClick={() => setTxType("expense")}
                     className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold transition ${
                       txType === "expense"
-                        ? "bg-[#715B64] text-white shadow-sm"
-                        : "bg-white text-[#454545] border border-[#C2D0D6] hover:bg-[#F3F6F8]"
+                        ? modalToggleActiveClass
+                        : modalToggleInactiveClass
                     }`}
                   >
                     Expense
@@ -2385,8 +2335,8 @@ function NewTransactionModal({
                     onClick={() => setTxType("income")}
                     className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold transition ${
                       txType === "income"
-                        ? "bg-[#715B64] text-white shadow-sm"
-                        : "bg-white text-[#454545] border border-[#C2D0D6] hover:bg-[#F3F6F8]"
+                        ? modalToggleActiveClass
+                        : modalToggleInactiveClass
                     }`}
                   >
                     Income
@@ -2397,25 +2347,21 @@ function NewTransactionModal({
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
-                  Date
-                </label>
+                <label className={modalLabelClass}>Date</label>
                 <input
                   name="date"
                   type="date"
-                  className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                  className={modalInputClass}
                   defaultValue={new Date().toISOString().slice(0, 10)}
                   onKeyDown={(e) => e.preventDefault()}
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
-                  Description
-                </label>
+                <label className={modalLabelClass}>Description</label>
                 <input
                   name="description"
                   type="text"
-                  className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                  className={modalInputClass}
                   placeholder="e.g. Groceries"
                 />
               </div>
@@ -2425,13 +2371,13 @@ function NewTransactionModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full px-4 py-2 text-xs font-semibold text-[#454545]/80 hover:bg-black/5"
+                className={modalGhostButtonClass}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="rounded-full bg-[#715B64] px-4 py-2 text-xs font-semibold text-white hover:bg-[#5d4953]"
+                className={modalPrimaryButtonClass}
               >
                 Save Transaction
               </button>
@@ -2501,13 +2447,13 @@ function AccountsListModal({
 
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4">
-      <div className="w-full max-w-lg rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
+      <div className={`w-full max-w-lg ${modalCardBase} p-6`}>
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#454545]/60">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--color-text-secondary)]">
               {showDeleted ? "Deleted accounts" : "Active accounts"}
             </p>
-            <h2 className="text-xl font-semibold text-[#454545]">Accounts</h2>
+            <h2 className="text-xl font-semibold">Accounts</h2>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -2515,8 +2461,8 @@ function AccountsListModal({
               onClick={() => setShowDeleted((prev) => !prev)}
               className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
                 showDeleted
-                  ? "bg-[#715B64] text-white hover:bg-[#5d4953]"
-                  : "bg-white text-[#454545] hover:bg-[#f3f6f8]"
+                  ? modalToggleActiveClass
+                  : modalToggleInactiveClass
               }`}
             >
               {showDeleted ? "Show active" : "Show deleted"}
@@ -2524,7 +2470,7 @@ function AccountsListModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#454545] shadow-sm hover:bg-[#f3f6f8]"
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${modalToggleInactiveClass}`}
             >
               Close
             </button>
@@ -2533,7 +2479,7 @@ function AccountsListModal({
 
         <div className="max-h-[70vh] space-y-3 overflow-y-auto pt-1">
           {visibleAccounts.length === 0 ? (
-            <p className="text-sm text-[#454545]/70">{noAccountsMessage}</p>
+            <p className={modalSubtleTextClass}>{noAccountsMessage}</p>
           ) : (
             visibleAccounts.map((account) => (
               <div
@@ -2551,16 +2497,16 @@ function AccountsListModal({
                     onSelectAccount(account);
                   }
                 }}
-                className={`flex items-center gap-4 rounded-xl bg-white px-4 py-3 shadow-sm ${
+                className={`flex items-center gap-4 ${modalSurfaceAltCard} px-4 py-3 shadow-sm ${
                   showDeleted ? "" : "cursor-pointer transition hover:shadow-md"
                 }`}
               >
-                <div className="w-28 text-right text-lg font-extrabold text-[#454545]">
+                <div className="w-28 text-right text-lg font-extrabold text-[var(--color-text-primary)]">
                   {formatCurrency(account.balance)}
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-[#454545]">{account.name}</p>
-                  <p className="text-[11px] uppercase tracking-wide text-[#454545]/60">
+                  <p className="text-sm font-semibold text-[var(--color-text-primary)]">{account.name}</p>
+                  <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-secondary)]">
                     {getAccountCategoryLabel(account.accountCategory)}
                   </p>
                 </div>
@@ -2568,7 +2514,7 @@ function AccountsListModal({
                   <button
                     type="button"
                     onClick={() => onRestore(account.id)}
-                    className="rounded-full bg-[#715B64] px-3 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-[#5d4953]"
+                    className="rounded-full bg-[var(--color-accent)] px-3 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-[var(--color-accent-strong)]"
                   >
                     Restore
                   </button>
@@ -2580,7 +2526,7 @@ function AccountsListModal({
                       e.stopPropagation();
                       onDelete(account.id);
                     }}
-                    className="rounded-full border border-[#FBD5D5]/70 bg-white/60 px-4 py-2 text-xs font-semibold text-[#C95454] transition hover:bg-[#FBD5D5]/60"
+                    className="rounded-full border border-red-300/70 bg-[var(--color-surface)] px-4 py-2 text-xs font-semibold text-red-500 transition hover:bg-red-500/10"
                   >
                     Delete account
                   </button>
@@ -2694,15 +2640,15 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
   return (
     <>
       <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
-        <div className="w-full max-w-md rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
+        <div className={`w-full max-w-md ${modalCardBase} p-6`}>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[#454545]">
+            <h2 className="text-lg font-semibold">
               New Account
             </h2>
             <button
               type="button"
               onClick={onClose}
-              className="text-sm text-[#454545]/70 hover:text-[#454545]"
+              className={modalCloseButtonClass}
             >
               ✕
             </button>
@@ -2710,14 +2656,14 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+              <label className={modalLabelClass}>
                 Account name
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                className={modalInputClass}
                 placeholder="e.g. Chequing, Savings 2, Travel"
               />
               {nameError && (
@@ -2726,7 +2672,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+              <label className={modalLabelClass}>
                 Starting balance
               </label>
               <input
@@ -2735,20 +2681,20 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                 inputMode="decimal"
                 value={balanceStr}
                 onChange={(e) => setBalanceStr(e.target.value)}
-                className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                className={modalInputClass}
                 placeholder="0.00"
               />
               <button
                 type="button"
                 onClick={() => setIsPadOpen(true)}
-                className="mt-1 text-[11px] font-semibold text-[#715B64] hover:text-[#5d4953]"
+                className="mt-1 text-[11px] font-semibold text-[var(--color-accent)] hover:text-[var(--color-accent-strong)]"
               >
                 Open number pad
               </button>
               {balanceError && (
                 <p className="mt-1 text-xs text-red-500">{balanceError}</p>
               )}
-              <p className="mt-1 text-[11px] text-[#454545]/60">
+              <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
                 {accountCategory === "debt"
                   ? "For credit accounts, enter the amount you owe as a negative number (e.g. -500) or 0 if it’s fully paid."
                   : "Balances are stored as positive numbers and add to your net worth."}
@@ -2756,7 +2702,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
             </div>
 
             <div>
-              <p className="mb-1 block text-xs font-semibold text-[#454545]/80">
+              <p className={modalLabelClass}>
                 Account type
               </p>
               <div className="grid grid-cols-2 gap-3 text-xs">
@@ -2776,10 +2722,10 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                 ).map((option) => (
                   <label
                     key={option.value}
-                    className={`flex cursor-pointer flex-col rounded-xl border px-3 py-2 transition ${
+                    className={`flex cursor-pointer flex-col ${modalSurfaceAltCard} px-3 py-2 transition ${
                       accountCategory === option.value
-                        ? "border-[#715B64] bg-white"
-                        : "border-[#C2D0D6] bg-white/60 hover:border-[#a39ea5]"
+                        ? "border-[var(--color-accent)] ring-2 ring-[var(--color-accent)]"
+                        : "hover:border-[var(--color-accent)]"
                     }`}
                   >
                     <input
@@ -2790,10 +2736,10 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                       onChange={() => setAccountCategory(option.value)}
                       className="sr-only"
                     />
-                    <span className="text-sm font-semibold text-[#454545]">
+                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">
                       {option.label}
                     </span>
-                    <span className="text-[11px] text-[#454545]/70">
+                    <span className="text-[11px] text-[var(--color-text-secondary)]">
                       {option.hint}
                     </span>
                   </label>
@@ -2804,7 +2750,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
             {accountCategory === "debt" && (
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                  <label className={modalLabelClass}>
                     Credit limit
                   </label>
                   <input
@@ -2812,7 +2758,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                     inputMode="decimal"
                     value={creditLimitStr}
                     onChange={(e) => setCreditLimitStr(e.target.value)}
-                    className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                    className={modalInputClass}
                     placeholder="Optional"
                   />
                   {creditLimitError && (
@@ -2820,13 +2766,13 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                       {creditLimitError}
                     </p>
                   )}
-                  <p className="mt-1 text-[11px] text-[#454545]/60">
+                  <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
                     Total available credit on this account (optional).
                   </p>
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                  <label className={modalLabelClass}>
                     APR
                   </label>
                   <div className="flex items-center gap-2">
@@ -2835,15 +2781,15 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                       inputMode="decimal"
                       value={aprPercentStr}
                       onChange={(e) => setAprPercentStr(e.target.value)}
-                      className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                      className={modalInputClass}
                       placeholder="e.g. 19.99"
                     />
-                    <span className="text-sm font-semibold text-[#454545]/80">%</span>
+                    <span className="text-sm font-semibold text-[var(--color-text-secondary)]">%</span>
                   </div>
                   {aprError && (
                     <p className="mt-1 text-xs text-red-500">{aprError}</p>
                   )}
-                  <p className="mt-1 text-[11px] text-[#454545]/60">
+                  <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
                     Annual interest rate in percent (optional).
                   </p>
                 </div>
@@ -2854,13 +2800,13 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full px-4 py-2 text-xs font-semibold text-[#454545]/80 hover:bg-black/5"
+                className={modalGhostButtonClass}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="rounded-full bg-[#715B64] px-4 py-2 text-xs font-semibold text-white hover:bg-[#5d4953]"
+                className={modalPrimaryButtonClass}
               >
                 Save Account
               </button>
@@ -2997,15 +2943,15 @@ function EditAccountModal({
   return (
     <>
       <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4">
-        <div className="w-full max-w-md rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
+        <div className={`w-full max-w-md ${modalCardBase} p-6`}>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[#454545]">
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
               Edit Account
             </h2>
             <button
               type="button"
               onClick={onClose}
-              className="text-sm text-[#454545]/70 hover:text-[#454545]"
+              className={modalCloseButtonClass}
             >
               ✕
             </button>
@@ -3013,14 +2959,14 @@ function EditAccountModal({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+              <label className={modalLabelClass}>
                 Account name
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                className={modalInputClass}
               />
               {nameError && (
                 <p className="mt-1 text-xs text-red-500">{nameError}</p>
@@ -3028,7 +2974,7 @@ function EditAccountModal({
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+              <label className={modalLabelClass}>
                 Balance
               </label>
               <input
@@ -3036,20 +2982,20 @@ function EditAccountModal({
                 inputMode="decimal"
                 value={balanceStr}
                 onChange={(e) => setBalanceStr(e.target.value)}
-                className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                className={modalInputClass}
                 placeholder="0.00"
               />
               <button
                 type="button"
                 onClick={() => setIsPadOpen(true)}
-                className="mt-1 text-[11px] font-semibold text-[#715B64] hover:text-[#5d4953]"
+                className="mt-1 text-[11px] font-semibold text-[var(--color-accent)] hover:text-[var(--color-accent-strong)]"
               >
                 Open number pad
               </button>
               {balanceError && (
                 <p className="mt-1 text-xs text-red-500">{balanceError}</p>
               )}
-              <p className="mt-1 text-[11px] text-[#454545]/60">
+              <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
                 {accountCategory === "debt"
                   ? "For credit accounts, enter the amount you owe as a negative number (e.g. -500) or 0 if it’s fully paid."
                   : "Balances are stored as positive numbers and add to your net worth."}
@@ -3057,7 +3003,7 @@ function EditAccountModal({
             </div>
 
             <div>
-              <p className="mb-1 block text-xs font-semibold text-[#454545]/80">
+              <p className={modalLabelClass}>
                 Account type
               </p>
               <div className="grid grid-cols-2 gap-3 text-xs">
@@ -3077,10 +3023,10 @@ function EditAccountModal({
                 ).map((option) => (
                   <label
                     key={option.value}
-                    className={`flex cursor-pointer flex-col rounded-xl border px-3 py-2 transition ${
+                    className={`flex cursor-pointer flex-col ${modalSurfaceAltCard} px-3 py-2 transition ${
                       accountCategory === option.value
-                        ? "border-[#715B64] bg-white"
-                        : "border-[#C2D0D6] bg-white/60 hover:border-[#a39ea5]"
+                        ? "border-[var(--color-accent)] ring-2 ring-[var(--color-accent)]"
+                        : "hover:border-[var(--color-accent)]"
                     }`}
                   >
                     <input
@@ -3091,10 +3037,10 @@ function EditAccountModal({
                       onChange={() => setAccountCategory(option.value)}
                       className="sr-only"
                     />
-                    <span className="text-sm font-semibold text-[#454545]">
+                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">
                       {option.label}
                     </span>
-                    <span className="text-[11px] text-[#454545]/70">
+                    <span className="text-[11px] text-[var(--color-text-secondary)]">
                       {option.hint}
                     </span>
                   </label>
@@ -3105,7 +3051,7 @@ function EditAccountModal({
             {accountCategory === "debt" && (
               <div className="space-y-4">
                   <div>
-                    <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                    <label className={modalLabelClass}>
                       Credit limit
                     </label>
                     <input
@@ -3113,7 +3059,7 @@ function EditAccountModal({
                       inputMode="decimal"
                       value={creditLimitStr}
                       onChange={(e) => setCreditLimitStr(e.target.value)}
-                      className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                      className={modalInputClass}
                       placeholder="Optional"
                     />
                     {creditLimitError && (
@@ -3121,13 +3067,13 @@ function EditAccountModal({
                         {creditLimitError}
                       </p>
                     )}
-                    <p className="mt-1 text-[11px] text-[#454545]/60">
+                    <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
                       Total available credit on this account (optional).
                     </p>
                   </div>
 
                   <div>
-                    <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                    <label className={modalLabelClass}>
                       APR
                     </label>
                     <div className="flex items-center gap-2">
@@ -3136,15 +3082,15 @@ function EditAccountModal({
                         inputMode="decimal"
                         value={aprPercentStr}
                         onChange={(e) => setAprPercentStr(e.target.value)}
-                        className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                        className={modalInputClass}
                         placeholder="e.g. 19.99"
                       />
-                      <span className="text-sm font-semibold text-[#454545]/80">%</span>
+                      <span className="text-sm font-semibold text-[var(--color-text-secondary)]">%</span>
                     </div>
                     {aprError && (
                       <p className="mt-1 text-xs text-red-500">{aprError}</p>
                     )}
-                    <p className="mt-1 text-[11px] text-[#454545]/60">
+                    <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
                       Annual interest rate in percent (optional).
                     </p>
                   </div>
@@ -3156,7 +3102,7 @@ function EditAccountModal({
                 <button
                   type="button"
                   onClick={onDelete}
-                  className="rounded-full border border-[#FBD5D5]/70 bg-white/60 px-4 py-2 text-xs font-semibold text-[#C95454] transition hover:bg-[#FBD5D5]/60"
+                  className="rounded-full border border-red-300/70 bg-[var(--color-surface)] px-4 py-2 text-xs font-semibold text-red-500 transition hover:bg-red-500/10"
                 >
                   Delete account
                 </button>
@@ -3168,13 +3114,13 @@ function EditAccountModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-full px-4 py-2 text-xs font-semibold text-[#454545]/80 hover:bg-black/5"
+                  className={modalGhostButtonClass}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-full bg-[#715B64] px-4 py-2 text-xs font-semibold text-white hover:bg-[#5d4953]"
+                  className={modalPrimaryButtonClass}
                 >
                   Save Changes
                 </button>
@@ -3257,15 +3203,15 @@ function NewTransferModal({
   return (
     <>
       <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
-        <div className="w-full max-w-md rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
+        <div className={`w-full max-w-md ${modalCardBase} p-6`}>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[#454545]">
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
               New Transfer
             </h2>
             <button
               type="button"
               onClick={onClose}
-              className="text-sm text-[#454545]/70 hover:text-[#454545]"
+              className={modalCloseButtonClass}
             >
               ✕
             </button>
@@ -3274,13 +3220,13 @@ function NewTransferModal({
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                <label className={modalLabelClass}>
                   From
                 </label>
                 <select
                   name="fromAccountId"
                   defaultValue={selectedAccountId}
-                  className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                  className={modalInputClass}
                 >
                   {accounts.map((acc) => (
                     <option key={acc.id} value={acc.id}>
@@ -3290,7 +3236,7 @@ function NewTransferModal({
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                <label className={modalLabelClass}>
                   To
                 </label>
                 <select
@@ -3299,7 +3245,7 @@ function NewTransferModal({
                     accounts.find((a) => a.id !== selectedAccountId)?.id ||
                     selectedAccountId
                   }
-                  className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                  className={modalInputClass}
                 >
                   {accounts.map((acc) => (
                     <option key={acc.id} value={acc.id}>
@@ -3311,7 +3257,7 @@ function NewTransferModal({
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+              <label className={modalLabelClass}>
                 Amount
               </label>
               <input
@@ -3320,13 +3266,13 @@ function NewTransferModal({
                 inputMode="decimal"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                className={modalInputClass}
                 placeholder="0.00"
               />
               <button
                 type="button"
                 onClick={() => setIsPadOpen(true)}
-                className="mt-1 text-[11px] font-semibold text-[#715B64] hover:text-[#5d4953]"
+                className="mt-1 text-[11px] font-semibold text-[var(--color-accent)] hover:text-[var(--color-accent-strong)]"
               >
                 Open number pad
               </button>
@@ -3336,26 +3282,26 @@ function NewTransferModal({
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+              <label className={modalLabelClass}>
                 Date
               </label>
               <input
                 name="date"
                 type="date"
-                className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                className={modalInputClass}
                 defaultValue={new Date().toISOString().slice(0, 10)}
                 onKeyDown={(e) => e.preventDefault()}
               />
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+              <label className={modalLabelClass}>
                 Note (optional)
               </label>
               <input
                 name="note"
                 type="text"
-                className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                className={modalInputClass}
                 placeholder="e.g. Move to savings"
               />
               {formError && (
@@ -3367,13 +3313,13 @@ function NewTransferModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full px-4 py-2 text-xs font-semibold text-[#454545]/80 hover:bg-black/5"
+                className={modalGhostButtonClass}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="rounded-full bg-[#715B64] px-4 py-2 text-xs font-semibold text-white hover:bg-[#5d4953]"
+                className={modalPrimaryButtonClass}
               >
                 Save Transfer
               </button>
@@ -3447,13 +3393,13 @@ function NewBillModal({
   return (
     <>
       <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
-        <div className="w-full max-w-md rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
+        <div className={`w-full max-w-md ${modalCardBase} p-6`}>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[#454545]">New Bill</h2>
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">New Bill</h2>
             <button
               type="button"
               onClick={onClose}
-              className="text-sm text-[#454545]/70 hover:text-[#454545]"
+              className={modalCloseButtonClass}
             >
               ✕
             </button>
@@ -3461,19 +3407,19 @@ function NewBillModal({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+              <label className={modalLabelClass}>
                 Bill name
               </label>
               <input
                 name="name"
                 placeholder="e.g. Phone bill"
-                className="w-full rounded-lg border border-[#C2D3DA] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                <label className={modalLabelClass}>
                   Amount
                 </label>
                 <div className="flex flex-col gap-1">
@@ -3484,13 +3430,13 @@ function NewBillModal({
                       setAmount(e.target.value.replace(/[^0-9.]/g, ""))
                     }
                     placeholder="0.00"
-                    className="w-full rounded-lg border border-[#C2D3DA] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                    className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
                   />
 
                   <button
                     type="button"
                     onClick={() => setIsPadOpen(true)}
-                    className="self-start text-[11px] text-[#715B64] underline"
+                    className="self-start text-[11px] text-[var(--color-accent)] underline hover:text-[var(--color-accent-strong)]"
                   >
                     Open number pad
                   </button>
@@ -3501,27 +3447,27 @@ function NewBillModal({
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                <label className={modalLabelClass}>
                   Due date
                 </label>
                 <input
                   type="date"
                   name="dueDate"
                   defaultValue={today}
-                  className="w-full rounded-lg border border-[#C2D3DA] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                  className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+                <label className={modalLabelClass}>
                   Pay from
                 </label>
                 <select
                   name="accountId"
                   defaultValue={selectedAccountId}
-                  className="w-full rounded-lg border border-[#C2D3DA] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                  className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
                 >
                   {accounts.map((acc) => (
                     <option key={acc.id} value={acc.id}>
@@ -3532,7 +3478,7 @@ function NewBillModal({
               </div>
 
               <div>
-              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+              <label className={modalLabelClass}>
                 Frequency
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -3540,10 +3486,8 @@ function NewBillModal({
                   type="button"
                   onClick={() => setFrequency("once")}
                   className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
-                    frequency === "once"
-                      ? "bg-[#715B64] text-[#F5FEFA]"
-                      : "bg-white text-[#454545]"
-                    }`}
+                    frequency === "once" ? modalToggleActiveClass : modalToggleInactiveClass
+                  }`}
                 >
                   Once
                 </button>
@@ -3551,9 +3495,7 @@ function NewBillModal({
                   type="button"
                   onClick={() => setFrequency("weekly")}
                   className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
-                    frequency === "weekly"
-                      ? "bg-[#715B64] text-[#F5FEFA]"
-                      : "bg-white text-[#454545]"
+                    frequency === "weekly" ? modalToggleActiveClass : modalToggleInactiveClass
                   }`}
                 >
                   Weekly
@@ -3562,9 +3504,7 @@ function NewBillModal({
                   type="button"
                   onClick={() => setFrequency("biweekly")}
                   className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
-                    frequency === "biweekly"
-                      ? "bg-[#715B64] text-[#F5FEFA]"
-                      : "bg-white text-[#454545]"
+                    frequency === "biweekly" ? modalToggleActiveClass : modalToggleInactiveClass
                   }`}
                 >
                   Bi-weekly
@@ -3573,14 +3513,12 @@ function NewBillModal({
                   type="button"
                   onClick={() => setFrequency("monthly")}
                   className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
-                    frequency === "monthly"
-                      ? "bg-[#715B64] text-[#F5FEFA]"
-                        : "bg-white text-[#454545]"
-                    }`}
-                  >
-                    Monthly
-                  </button>
-                </div>
+                    frequency === "monthly" ? modalToggleActiveClass : modalToggleInactiveClass
+                  }`}
+                >
+                  Monthly
+                </button>
+              </div>
               </div>
             </div>
 
@@ -3588,13 +3526,13 @@ function NewBillModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full px-4 py-2 text-xs font-semibold text-[#715B64] hover:bg-[#D9C9D2]/60"
+                className={modalGhostButtonClass}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="rounded-full bg-[#715B64] px-5 py-2 text-xs font-semibold text-[#F5FEVA] shadow-sm hover:bg-[#5E4A54]"
+                className={modalPrimaryButtonClass}
               >
                 Save Bill
               </button>
@@ -3643,25 +3581,25 @@ function BillsListModal({
 
   return (
     <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
-      <div className="flex w-full max-w-2xl max-h-[70vh] flex-col rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
+      <div className={`flex w-full max-w-2xl max-h-[70vh] flex-col ${modalCardBase} p-6`}>
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-[#454545]">All Bills</h2>
-            <p className="mt-1 text-xs text-[#454545]/70">
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">All Bills</h2>
+            <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
               Tap a bill to edit it, or mark it as paid.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-sm text-[#454545]/70 hover:text-[#454545]"
+            className={modalCloseButtonClass}
           >
             ✕
           </button>
         </div>
 
         {sorted.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center text-xs text-[#454545]/60">
+          <div className="flex flex-1 items-center justify-center text-xs text-[var(--color-text-secondary)]">
             No bills added yet.
           </div>
         ) : (
@@ -3674,7 +3612,7 @@ function BillsListModal({
                 return (
                   <div
                     key={bill.id}
-                    className="flex items-center justify-between rounded-xl bg-white px-3 py-2 text-sm text-[#454545]"
+                    className="flex items-center justify-between rounded-xl bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-primary)]"
                   >
                     <button
                       type="button"
@@ -3682,7 +3620,7 @@ function BillsListModal({
                       className="flex flex-1 flex-col text-left"
                     >
                       <span className="font-semibold">{bill.name}</span>
-                      <span className="text-[11px] text-[#454545]/70">
+                      <span className="text-[11px] text-[var(--color-text-secondary)]">
                         Due {bill.dueDate} · {accountName(bill.accountId)}
                       </span>
                     </button>
@@ -3695,7 +3633,7 @@ function BillsListModal({
                           maximumFractionDigits: 2,
                         })}
                       </div>
-                      <div className="text-[11px] text-[#454545]/60">
+                      <div className="text-[11px] text-[var(--color-text-secondary)]">
                         {bill.frequency === "weekly"
                           ? "Weekly"
                           : bill.frequency === "biweekly"
@@ -3710,7 +3648,7 @@ function BillsListModal({
                         <button
                           type="button"
                           onClick={() => onMarkPaid(bill)}
-                          className="mt-1 rounded-full border border-[#C2D3DA] px-3 py-1 text-[11px] font-semibold text-[#454545]/80 hover:bg-[#F3F6F8]"
+                          className="mt-1 rounded-full border border-[var(--color-border)] px-3 py-1 text-[11px] font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]"
                         >
                           Mark paid
                         </button>
@@ -3767,15 +3705,15 @@ function EditBillModal({
 
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4">
-      <div className="w-full max-w-md rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
+      <div className={`w-full max-w-md ${modalCardBase} p-6`}>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-[#454545]">
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
             Edit Bill
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-sm text-[#454545]/70 hover:text-[#454545]"
+            className={modalCloseButtonClass}
           >
             ✕
           </button>
@@ -3783,20 +3721,20 @@ function EditBillModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+            <label className={modalLabelClass}>
               Bill name
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-lg border border-[#C2D3DA] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+              className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+              <label className={modalLabelClass}>
                 Amount
               </label>
               <input
@@ -3807,7 +3745,7 @@ function EditBillModal({
                   setAmount(e.target.value.replace(/[^0-9.]/g, ""))
                 }
                 placeholder="0.00"
-                className="w-full rounded-lg border border-[#C2D3DA] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
               />
               {amountError && (
                 <p className="mt-1 text-xs text-[#C95454]">{amountError}</p>
@@ -3815,27 +3753,27 @@ function EditBillModal({
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+              <label className={modalLabelClass}>
                 Due date
               </label>
               <input
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full rounded-lg border border-[#C2D3DA] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+              <label className={modalLabelClass}>
                 Pay from
               </label>
               <select
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
-                className="w-full rounded-lg border border-[#C2D3DA] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
               >
                 {accounts.map((acc) => (
                   <option key={acc.id} value={acc.id}>
@@ -3846,7 +3784,7 @@ function EditBillModal({
             </div>
 
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+              <label className={modalLabelClass}>
                 Frequency
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -3855,8 +3793,8 @@ function EditBillModal({
                   onClick={() => setFrequency("once")}
                   className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
                     frequency === "once"
-                      ? "bg-[#715B64] text-[#F5FEFA]"
-                      : "bg-white text-[#454545]"
+                      ? modalToggleActiveClass
+                      : modalToggleInactiveClass
                   }`}
                 >
                   Once
@@ -3866,8 +3804,8 @@ function EditBillModal({
                   onClick={() => setFrequency("weekly")}
                   className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
                     frequency === "weekly"
-                      ? "bg-[#715B64] text-[#F5FEFA]"
-                      : "bg-white text-[#454545]"
+                      ? modalToggleActiveClass
+                      : modalToggleInactiveClass
                   }`}
                 >
                   Weekly
@@ -3877,8 +3815,8 @@ function EditBillModal({
                   onClick={() => setFrequency("biweekly")}
                   className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
                     frequency === "biweekly"
-                      ? "bg-[#715B64] text-[#F5FEFA]"
-                      : "bg-white text-[#454545]"
+                      ? modalToggleActiveClass
+                      : modalToggleInactiveClass
                   }`}
                 >
                   Bi-weekly
@@ -3888,8 +3826,8 @@ function EditBillModal({
                   onClick={() => setFrequency("monthly")}
                   className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
                     frequency === "monthly"
-                      ? "bg-[#715B64] text-[#F5FEFA]"
-                      : "bg-white text-[#454545]"
+                      ? modalToggleActiveClass
+                      : modalToggleInactiveClass
                   }`}
                 >
                   Monthly
@@ -3902,13 +3840,13 @@ function EditBillModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full px-4 py-2 text-xs font-semibold text-[#715B64] hover:bg-[#D9C9D2]/60"
+              className={modalGhostButtonClass}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="rounded-full bg-[#715B64] px-5 py-2 text-xs font-semibold text-[#F5FEFA] shadow-sm hover:bg-[#5E4A54]"
+              className={modalPrimaryButtonClass}
             >
               Save Changes
             </button>
@@ -3964,15 +3902,15 @@ function TransactionsHistoryModal({
   });
 
   const sortBtnBase =
-    "ml-2 rounded-full border border-[#C2D0D6] px-2 py-1 text-xs font-semibold text-[#454545]/80 hover:bg-black/5";
+    "ml-2 rounded-full border border-[var(--color-border)] px-2 py-1 text-xs font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-alt)]";
 
   return (
     <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
-      <div className="flex w-full max-w-2xl max-h-[70vh] flex-col rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
+      <div className={`flex w-full max-w-2xl max-h-[70vh] flex-col ${modalCardBase} p-6`}>
         <div className="mb-4 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-semibold text-[#454545]">
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
                 Transactions – {account.name}
               </h2>
               <button
@@ -4006,21 +3944,21 @@ function TransactionsHistoryModal({
                 +$
               </button>
             </div>
-            <p className="mt-1 text-xs text-[#454545]/70">
+            <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
               Full history for this account.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-sm text-[#454545]/70 hover:text-[#454545]"
+            className={modalCloseButtonClass}
           >
             ✕
           </button>
         </div>
 
         {sorted.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center text-xs text-[#454545]/60">
+          <div className="flex flex-1 items-center justify-center text-xs text-[var(--color-text-secondary)]">
             No transactions yet for this account.
           </div>
         ) : (
@@ -4029,7 +3967,7 @@ function TransactionsHistoryModal({
               {sorted.map((tx) => (
                 <div
                   key={tx.id}
-                  className="flex items-center justify-between rounded-xl bg-white px-3 py-2 text-[#454545]"
+                  className="flex items-center justify-between rounded-xl bg-[var(--color-surface-alt)] px-3 py-2 text-[var(--color-text-primary)]"
                 >
                   <button
                     type="button"
@@ -4039,7 +3977,7 @@ function TransactionsHistoryModal({
                     <span className="font-semibold">
                       {tx.description || "Transaction"}
                     </span>
-                    <span className="text-xs text-[#454545]/70">
+                    <span className="text-xs text-[var(--color-text-secondary)]">
                       {tx.date}
                     </span>
                   </button>
@@ -4114,15 +4052,15 @@ function EditTransactionDetailsModal({
 
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4">
-      <div className="w-full max-w-md rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
+      <div className={`w-full max-w-md ${modalCardBase} p-6`}>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-[#454545]">
+          <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
             Edit Transaction
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-sm text-[#454545]/70 hover:text-[#454545]"
+            className={modalCloseButtonClass}
           >
             ✕
           </button>
@@ -4130,30 +4068,30 @@ function EditTransactionDetailsModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+            <label className={modalLabelClass}>
               Description
             </label>
             <input
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+              className={modalInputClass}
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+            <label className={modalLabelClass}>
               Date
             </label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+              className={modalInputClass}
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+            <label className={modalLabelClass}>
               Amount
             </label>
             <input
@@ -4161,13 +4099,13 @@ function EditTransactionDetailsModal({
               inputMode="decimal"
               value={amountStr}
               onChange={(e) => setAmountStr(e.target.value)}
-              className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+              className={modalInputClass}
               placeholder="0.00"
             />
             <button
               type="button"
               onClick={() => setIsPadOpen(true)}
-              className="mt-1 text-[11px] font-semibold text-[#715B64] hover:text-[#5d4953]"
+              className="mt-1 text-[11px] font-semibold text-[var(--color-accent)] hover:text-[var(--color-accent-strong)]"
             >
               Open number pad
             </button>
@@ -4179,9 +4117,9 @@ function EditTransactionDetailsModal({
               type="button"
               onClick={() => {
                 onDelete(transaction.id);
-                onClose();
-              }}
-              className="rounded-full bg-red-50 px-4 py-2 text-xs font-semibold text-red-600 shadow-sm hover:bg-red-100"
+              onClose();
+            }}
+              className="rounded-full bg-red-500/10 px-4 py-2 text-xs font-semibold text-red-600 shadow-sm hover:bg-red-500/20"
             >
               Delete
             </button>
@@ -4189,13 +4127,13 @@ function EditTransactionDetailsModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full px-4 py-2 text-xs font-semibold text-[#715B64] hover:bg-[#D9C9D2]/60"
+                className={modalGhostButtonClass}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="rounded-full bg-[#715B64] px-5 py-2 text-xs font-semibold text-[#F5FEFA] shadow-sm hover:bg-[#5E4A54]"
+                className={modalPrimaryButtonClass}
               >
                 Save Changes
               </button>
@@ -4250,15 +4188,15 @@ function EditTransactionAmountModal({
   return (
     <>
       <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4">
-        <div className="w-full max-w-sm rounded-2xl bg-[#E9F2F5] p-6 shadow-xl">
+        <div className={`w-full max-w-sm ${modalCardBase} p-6`}>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[#454545]">
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
               Edit Amount
             </h2>
             <button
               type="button"
               onClick={onClose}
-              className="text-sm text-[#454545]/70 hover:text-[#454545]"
+              className={modalCloseButtonClass}
             >
               ✕
             </button>
@@ -4266,7 +4204,7 @@ function EditTransactionAmountModal({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="mb-1 block text-xs font-semibold text-[#454545]/80">
+              <label className={modalLabelClass}>
                 Amount
               </label>
               <input
@@ -4274,13 +4212,13 @@ function EditTransactionAmountModal({
                 inputMode="decimal"
                 value={amountStr}
                 onChange={(e) => setAmountStr(e.target.value)}
-                className="w-full rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-sm text-[#454545] outline-none focus:ring-2 focus:ring-[#715B64]"
+                className={modalInputClass}
                 placeholder="0.00"
               />
               <button
                 type="button"
                 onClick={() => setIsPadOpen(true)}
-                className="mt-1 text-[11px] font-semibold text-[#715B64] hover:text-[#5d4953]"
+                className="mt-1 text-[11px] font-semibold text-[var(--color-accent)] hover:text-[var(--color-accent-strong)]"
               >
                 Open number pad
               </button>
@@ -4293,13 +4231,13 @@ function EditTransactionAmountModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-full px-4 py-2 text-xs font-semibold text-[#715B64] hover:bg-[#D9C9D2]/60"
+                className={modalGhostButtonClass}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="rounded-full bg-[#715B64] px-5 py-2 text-xs font-semibold text-[#F5FEFA] shadow-sm hover:bg-[#5E4A54]"
+                className={modalPrimaryButtonClass}
               >
                 Save Amount
               </button>
@@ -4350,21 +4288,21 @@ function NumberPad({ value, onChange, onClose }: NumberPadProps) {
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-4">
-      <div className="w-full max-w-xs rounded-2xl bg-[#E9F2F5] p-4 shadow-xl">
+      <div className={`w-full max-w-xs ${modalCardBase} p-4`}>
         <div className="mb-3 flex items-center justify-between">
-          <span className="text-sm font-semibold text-[#454545]">
+          <span className="text-sm font-semibold text-[var(--color-text-primary)]">
             Number pad
           </span>
           <button
             type="button"
             onClick={onClose}
-            className="text-sm text-[#454545]/70 hover:text-[#454545]"
+            className={modalCloseButtonClass}
           >
             ✕
           </button>
         </div>
 
-        <div className="mb-3 rounded-lg border border-[#C2D0D6] bg-white px-3 py-2 text-right text-lg font-semibold text-[#454545]">
+        <div className="mb-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-right text-lg font-semibold text-[var(--color-text-primary)]">
           {value || "0"}
         </div>
 
@@ -4374,7 +4312,7 @@ function NumberPad({ value, onChange, onClose }: NumberPadProps) {
               key={k}
               type="button"
               onClick={() => handlePress(k)}
-              className="flex h-10 items-center justify-center rounded-lg bg-white text-sm font-semibold text-[#454545] shadow-sm hover:bg-[#F3F6F8]"
+              className="flex h-10 items-center justify-center rounded-lg bg-[var(--color-surface-alt)] text-sm font-semibold text-[var(--color-text-primary)] shadow-sm hover:bg-[var(--color-surface)]"
             >
               {k}
             </button>
@@ -4385,14 +4323,14 @@ function NumberPad({ value, onChange, onClose }: NumberPadProps) {
           <button
             type="button"
             onClick={() => handlePress("C")}
-            className="flex-1 rounded-full bg-black/5 px-3 py-2 text-xs font-semibold text-[#454545]"
+            className="flex-1 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-xs font-semibold text-[var(--color-text-primary)] hover:border-[var(--color-accent)]"
           >
             Clear
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 rounded-full bg-[#715B64] px-3 py-2 text-xs font-semibold text-[#F5FEFA] hover:bg-[#5E4A54]"
+            className="flex-1 rounded-full bg-[var(--color-accent)] px-3 py-2 text-xs font-semibold text-white hover:bg-[var(--color-accent-strong)]"
           >
             Done
           </button>

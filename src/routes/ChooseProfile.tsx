@@ -135,14 +135,14 @@ export default function ChooseProfile() {
       {confirmFor && (
         <div role="dialog" aria-modal="true" className="fixed inset-0 z-20 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setConfirmFor(null)} />
-          <div className="relative z-30 w-[92vw] max-w-md rounded-2xl bg-neutral-900/95 text-neutral-100 shadow-xl p-6">
+          <div className="relative z-30 w-[92vw] max-w-md rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] shadow-xl p-6">
             <h2 className="text-xl font-semibold mb-2">Delete profile?</h2>
-            <p className="text-sm opacity-80 mb-4">
+            <p className="text-sm text-[var(--color-text-secondary)] mb-4">
               You’re about to delete <span className="font-medium">{confirmFor.name}</span> and all local data for this profile. This can’t be undone.
             </p>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setConfirmFor(null)} className="rounded-xl px-4 py-2 bg-white/10 hover:bg-white/15">Cancel</button>
-              <button onClick={confirmDelete} className="rounded-xl px-4 py-2 bg-red-500/90 hover:bg-red-500 text-white">Delete</button>
+              <button onClick={() => setConfirmFor(null)} className="rounded-xl px-4 py-2 border border-[var(--color-border)] bg-[var(--color-surface-alt)] text-[var(--color-text-primary)] hover:border-[var(--color-accent)]">Cancel</button>
+              <button onClick={confirmDelete} className="rounded-xl px-4 py-2 bg-red-500 text-white hover:bg-red-600">Delete</button>
             </div>
           </div>
         </div>
