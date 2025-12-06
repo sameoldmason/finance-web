@@ -21,6 +21,7 @@ export type Transaction = {
   amount: number; // positive = income, negative = expense
   date: string;
   description: string;
+  kind?: "transaction" | "transfer";
 };
 
 export type TransferInput = {
