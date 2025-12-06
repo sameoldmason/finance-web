@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="187" height="64" viewBox="0 0 187 64" fill="none">
+  <g>
+    <rect x="8" y="8" width="22" height="14" rx="6" fill="#000000"/>
+    <rect x="36" y="8" width="22" height="14" rx="6" fill="#000000"/>
+    <rect x="8" y="30" width="22" height="18" rx="6" fill="#000000"/>
+    <rect x="36" y="30" width="22" height="18" rx="6" fill="#000000"/>
+  </g>
+  <text x="94" y="32.0" fill="#000000" font-family="Outfit, 'Outfit Variable', sans-serif" font-size="40" font-weight="600" dominant-baseline="middle">bare</text>
+</svg>
