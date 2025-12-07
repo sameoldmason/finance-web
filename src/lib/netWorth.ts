@@ -17,7 +17,11 @@ export function calculateNetWorthFromAccounts(accounts: Account[]): {
 
   accounts.forEach((account) => {
     if (account.accountCategory === "debt") {
-      totalDebts += Math.abs(account.balance);
+      if (account.balance < 0) {
+        totalDebts += Math.abs(account.balance);
+      } else {
+        totalAssets += account.balance;
+      }
     } else {
       totalAssets += account.balance;
     }
