@@ -14,6 +14,7 @@ export default function UnlockProfile() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [profileName, setProfileName] = useState<string>("");
+  const [passwordHint, setPasswordHint] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -23,6 +24,7 @@ export default function UnlockProfile() {
       return;
     }
     setProfileName(p.name || "Profile");
+    setPasswordHint(p.hint?.trim() || null);
   }, [id, navigate]);
 
   const lightBg =
@@ -95,7 +97,7 @@ export default function UnlockProfile() {
 
         <form
           onSubmit={onSubmit}
-          className="flex items-center justify-center gap-6"
+          className="flex items-start justify-center gap-6"
         >
           {/* Avatar */}
           <div className="relative h-16 w-16 md:h-20 md:w-20 rounded-full ring-2 ring-white/60 overflow-hidden bg-white/90 flex items-center justify-center">
@@ -105,17 +107,22 @@ export default function UnlockProfile() {
           </div>
 
           {/* Password field + button */}
-          <div className="flex items-center gap-3">
-            <input
-              type="password"
-              inputMode="text"
-              autoFocus
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-[300px] md:w-[360px] rounded-lg bg-white/80 text-[#222] placeholder-[#666] px-3 py-2 outline-none focus:ring-2 focus:ring-brand-primary"
-              placeholder="Password"
-              aria-label="Password"
-            />
+          <div className="flex items-start gap-3">
+            <div className="flex flex-col gap-1">
+              <input
+                type="password"
+                inputMode="text"
+                autoFocus
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-[300px] md:w-[360px] rounded-lg bg-white/80 text-[#222] placeholder-[#666] px-3 py-2 outline-none focus:ring-2 focus:ring-brand-primary"
+                placeholder="Password"
+                aria-label="Password"
+              />
+              <p className="px-1 text-xs leading-snug text-white/80">
+                {passwordHint ? `Hint: ${passwordHint}` : "No hint saved for this profile."}
+              </p>
+            </div>
             <button
               type="submit"
               disabled={!password || busy}
