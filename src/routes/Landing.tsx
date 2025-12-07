@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
-import Welcome from "./Welcome";
 import { listProfiles } from "../lib/profiles";
+import Welcome from "./Welcome";
+import ChooseProfile from "./ChooseProfile";
 
-// Decides where "/" should go
+// Decides what to show at "/"
 export default function Landing() {
   const [hasProfiles, setHasProfiles] = useState<boolean | null>(null);
 
@@ -15,11 +15,9 @@ export default function Landing() {
     }
   }, []);
 
-  if (hasProfiles === null) return null; // brief mount—no flash
+  // brief mount - avoid flash while checking storage
+  if (hasProfiles === null) return null;
 
-  return hasProfiles ? (
-    <Navigate to="/profiles" replace />
-  ) : (
-    <Welcome />
-  );
+  // If profiles exist, show profile picker; otherwise, show first-time Welcome
+  return hasProfiles ? <ChooseProfile /> : <Welcome />;
 }
