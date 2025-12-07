@@ -63,6 +63,29 @@ function isTransferTransaction(tx: Transaction) {
   );
 }
 
+function findTransferPartner(tx: Transaction, all: Transaction[]) {
+  if (!isTransferTransaction(tx)) return undefined;
+
+  if (tx.transferGroupId) {
+    return all.find(
+      (other) =>
+        other.id !== tx.id && other.transferGroupId === tx.transferGroupId
+    );
+  }
+
+  const absAmount = Math.abs(tx.amount);
+  const sameDate = tx.date;
+
+  return all.find(
+    (other) =>
+      other.id !== tx.id &&
+      isTransferTransaction(other) &&
+      other.accountId !== tx.accountId &&
+      Math.abs(other.amount) === absAmount &&
+      other.date === sameDate
+  );
+}
+
 function rollbackAccountsFromTransactions(
   accounts: Account[],
   txs: Transaction[]
@@ -159,6 +182,13 @@ function isDebtAccount(account: Account) {
   return account.isDebt === true || account.accountCategory === "debt";
 }
 
+function willOverpayDebt(account: Account, delta: number) {
+  if (!isDebtAccount(account)) return false;
+  if (account.balance >= 0) return false;
+  const nextBalance = account.balance + delta;
+  return nextBalance > 0;
+}
+
 function formatFriendlyDate(date: Date | null) {
   if (!date) return "—";
   return date.toLocaleDateString(undefined, {
@@ -198,6 +228,13 @@ export default function Dashboard() {
     useState<DebtPayoffSettings>(DEFAULT_DEBT_SETTINGS);
   const [isAppMenuOpen, setIsAppMenuOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [pendingOverpay, setPendingOverpay] = useState<{
+    accountId: string;
+    accountName: string;
+    delta: number;
+    nextBalance: number;
+    onConfirm: () => void;
+  } | null>(null);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isEditingProfileName, setIsEditingProfileName] = useState(false);
   const [profileNameInput, setProfileNameInput] = useState("");
@@ -502,8 +539,26 @@ export default function Dashboard() {
   };
 
   // Transactions
-  function addTransaction(t: Transaction) {
+  function addTransaction(t: Transaction, skipOverpayCheck = false) {
     const txToAdd: Transaction = { ...t, kind: t.kind ?? "transaction" };
+
+    const targetAccount = accounts.find((acc) => acc.id === txToAdd.accountId);
+    if (
+      !skipOverpayCheck &&
+      targetAccount &&
+      willOverpayDebt(targetAccount, txToAdd.amount)
+    ) {
+      const nextBalance = targetAccount.balance + txToAdd.amount;
+      setPendingOverpay({
+        accountId: targetAccount.id,
+        accountName: targetAccount.name,
+        delta: txToAdd.amount,
+        nextBalance,
+        onConfirm: () => addTransaction(txToAdd, true),
+      });
+      return;
+    }
+
     setTransactions((prev) => [...prev, txToAdd]);
 
     setAccounts((prev) =>
@@ -569,48 +624,104 @@ export default function Dashboard() {
     );
   }
 
-  // Update existing transaction (and adjust account balance if amount changed)
+  // Update existing transaction (and adjust account balances if amounts changed)
   function handleUpdateTransaction(
     id: string,
-    updates: Partial<Pick<Transaction, "amount" | "date" | "description">>
+    updates: Partial<Pick<Transaction, "amount" | "date" | "description">>,
+    skipOverpayCheck = false
   ) {
-    let amountDiff = 0;
-    let accountIdForDiff: string | null = null;
+    const existing = transactions.find((tx) => tx.id === id);
+    if (!existing) return;
+
+    const isTransfer = isTransferTransaction(existing);
+    const partner = isTransfer ? findTransferPartner(existing, transactions) : undefined;
+
+    const nextAmount =
+      updates.amount !== undefined ? updates.amount : existing.amount;
+    const partnerAmount = partner ? -nextAmount : undefined;
+
+    let groupId =
+      existing.transferGroupId ?? partner?.transferGroupId ?? (isTransfer ? crypto.randomUUID() : undefined);
+
+    const primaryDelta = nextAmount - existing.amount;
+    const partnerDelta =
+      partner && partnerAmount !== undefined ? partnerAmount - partner.amount : 0;
+
+    if (!skipOverpayCheck) {
+      const primaryAccount = accounts.find((acc) => acc.id === existing.accountId);
+      if (primaryAccount && willOverpayDebt(primaryAccount, primaryDelta)) {
+        const nextBalance = primaryAccount.balance + primaryDelta;
+        setPendingOverpay({
+          accountId: primaryAccount.id,
+          accountName: primaryAccount.name,
+          delta: primaryDelta,
+          nextBalance,
+          onConfirm: () => handleUpdateTransaction(id, updates, true),
+        });
+        return;
+      }
+
+      if (partner && partnerAmount !== undefined) {
+        const partnerAccount = accounts.find((acc) => acc.id === partner.accountId);
+        if (partnerAccount && willOverpayDebt(partnerAccount, partnerDelta)) {
+          const nextBalance = partnerAccount.balance + partnerDelta;
+          setPendingOverpay({
+            accountId: partnerAccount.id,
+            accountName: partnerAccount.name,
+            delta: partnerDelta,
+            nextBalance,
+            onConfirm: () => handleUpdateTransaction(id, updates, true),
+          });
+          return;
+        }
+      }
+    }
 
     setTransactions((prev) =>
       prev.map((tx) => {
-        if (tx.id !== id) return tx;
-
-        const next: Transaction = {
-          ...tx,
-          ...updates,
-          amount: updates.amount !== undefined ? updates.amount : tx.amount,
-          date: updates.date ?? tx.date,
-          description: updates.description ?? tx.description,
-        };
-
-        if (updates.amount !== undefined && updates.amount !== tx.amount) {
-          amountDiff = updates.amount - tx.amount;
-          accountIdForDiff = tx.accountId;
+        if (tx.id === existing.id) {
+          return {
+            ...tx,
+            ...updates,
+            amount: nextAmount,
+            date: updates.date ?? tx.date,
+            description: updates.description ?? tx.description,
+            transferGroupId: groupId,
+          };
         }
-
-        return next;
+        if (partner && tx.id === partner.id) {
+          return {
+            ...tx,
+            description: updates.description ?? tx.description,
+            date: updates.date ?? tx.date,
+            amount: partnerAmount ?? tx.amount,
+            transferGroupId: groupId,
+          };
+        }
+        return tx;
       })
     );
 
-    if (amountDiff !== 0 && accountIdForDiff) {
+    if (primaryDelta !== 0 || partnerDelta !== 0) {
       setAccounts((prev) =>
-        prev.map((acc) =>
-          acc.id === accountIdForDiff
-            ? { ...acc, balance: acc.balance + amountDiff }
-            : acc
-        )
+        prev.map((acc) => {
+          let delta = 0;
+          if (acc.id === existing.accountId) {
+            delta += primaryDelta;
+          }
+          if (partner && acc.id === partner.accountId) {
+            delta += partnerDelta;
+          }
+          if (delta === 0) return acc;
+          return { ...acc, balance: acc.balance + delta };
+        })
       );
     }
   }
 
   function handleDeleteTransaction(id: string) {
     let txToDelete: Transaction | undefined;
+    let partnerToDelete: Transaction | undefined;
 
     setTransactions((prev) => {
       const found = prev.find((tx) => tx.id === id);
@@ -618,18 +729,32 @@ export default function Dashboard() {
       if (!found) return prev;
 
       txToDelete = found;
-      return prev.filter((tx) => tx.id !== id);
+      if (isTransferTransaction(found)) {
+        partnerToDelete = findTransferPartner(found, prev);
+      }
+
+      return prev.filter(
+        (tx) =>
+          tx.id !== id && (!partnerToDelete || tx.id !== partnerToDelete.id)
+      );
     });
 
     const foundTx = txToDelete;
     if (!foundTx) return;
 
     setAccounts((prev) =>
-      prev.map((acc) =>
-        acc.id === foundTx.accountId
-          ? { ...acc, balance: acc.balance - foundTx.amount }
-          : acc
-      )
+      prev.map((acc) => {
+        let delta = 0;
+        if (acc.id === foundTx.accountId) {
+          delta -= foundTx.amount;
+        }
+        if (partnerToDelete && acc.id === partnerToDelete.accountId) {
+          delta -= partnerToDelete.amount;
+        }
+
+        if (delta === 0) return acc;
+        return { ...acc, balance: acc.balance + delta };
+      })
     );
   }
 
@@ -669,35 +794,56 @@ export default function Dashboard() {
   }
 
   // Transfer between accounts
-  function handleTransfer({
-    fromAccountId,
-    toAccountId,
-    amount,
-    date,
-    note,
-  }: TransferInput) {
+  function handleTransfer(
+    {
+      fromAccountId,
+      toAccountId,
+      amount,
+      date,
+      note,
+    }: TransferInput,
+    skipOverpayCheck = false
+  ) {
     if (!amount || amount <= 0) return;
     if (fromAccountId === toAccountId) return;
 
     const cleanAmount = Math.abs(amount);
+    const transferGroupId = crypto.randomUUID();
+    const fromDelta = -cleanAmount;
+    const toDelta = cleanAmount;
+
     const fromAccount = accounts.find((acc) => acc.id === fromAccountId);
     const toAccount = accounts.find((acc) => acc.id === toAccountId);
 
     if (!fromAccount || !toAccount) return;
 
-    const fromIsDebt = fromAccount.accountCategory === "debt";
-    const toIsDebt = toAccount.accountCategory === "debt";
+    if (
+      !skipOverpayCheck &&
+      willOverpayDebt(toAccount, toDelta)
+    ) {
+      const nextBalance = toAccount.balance + toDelta;
+      setPendingOverpay({
+        accountId: toAccount.id,
+        accountName: toAccount.name,
+        delta: toDelta,
+        nextBalance,
+        onConfirm: () =>
+          handleTransfer(
+            { fromAccountId, toAccountId, amount: cleanAmount, date, note },
+            true
+          ),
+      });
+      return;
+    }
 
-    // Update balances
+    // Update balances (debts use negative balances, so add the deltas directly)
     setAccounts((prev) =>
       prev.map((acc) => {
         if (acc.id === fromAccountId) {
-          const delta = fromIsDebt ? cleanAmount : -cleanAmount;
-          return { ...acc, balance: acc.balance + delta };
+          return { ...acc, balance: acc.balance + fromDelta };
         }
         if (acc.id === toAccountId) {
-          const delta = toIsDebt ? -cleanAmount : cleanAmount;
-          return { ...acc, balance: acc.balance + delta };
+          return { ...acc, balance: acc.balance + toDelta };
         }
         return acc;
       })
@@ -709,18 +855,20 @@ export default function Dashboard() {
       {
         id: crypto.randomUUID(),
         accountId: fromAccountId,
-        amount: fromIsDebt ? cleanAmount : -cleanAmount,
+        amount: fromDelta,
         date,
         description: note || "Transfer out",
         kind: "transfer",
+        transferGroupId,
       },
       {
         id: crypto.randomUUID(),
         accountId: toAccountId,
-        amount: toIsDebt ? -cleanAmount : cleanAmount,
+        amount: toDelta,
         date,
         description: note || "Transfer in",
         kind: "transfer",
+        transferGroupId,
       },
     ]);
   }
@@ -1536,6 +1684,55 @@ export default function Dashboard() {
           selectedAccountId={selectedAccountId}
           onTransfer={handleTransfer}
         />
+      )}
+
+      {/* OVERPAY CONFIRMATION MODAL */}
+      {pendingOverpay && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className={`w-full max-w-md ${modalCardBase} p-6 backdrop-blur-sm`}>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
+                Confirm Overpayment
+              </h2>
+              <button
+                type="button"
+                onClick={() => setPendingOverpay(null)}
+                className={modalCloseButtonClass}
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-sm text-[var(--color-text-secondary)]">
+              Paying {formatCurrency(Math.abs(pendingOverpay.delta))} will push{" "}
+              <span className="font-semibold text-[var(--color-text-primary)]">
+                {pendingOverpay.accountName}
+              </span>{" "}
+              above $0 (new balance {formatCurrency(pendingOverpay.nextBalance)}). Continue?
+            </p>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setPendingOverpay(null)}
+                className={modalGhostButtonClass}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const action = pendingOverpay.onConfirm;
+                  setPendingOverpay(null);
+                  action?.();
+                }}
+                className={modalPrimaryButtonClass}
+              >
+                Continue anyway
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ACCOUNTS LIST MODAL */}

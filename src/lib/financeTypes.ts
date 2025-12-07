@@ -41,6 +41,8 @@ export type Transaction = {
   date: string;
   description: string;
   kind?: "transaction" | "transfer";
+  /** Shared id for the two sides of a transfer */
+  transferGroupId?: string;
 };
 
 export type TransferInput = {
