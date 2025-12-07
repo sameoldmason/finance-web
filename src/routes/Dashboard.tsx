@@ -1,11 +1,13 @@
 // src/routes/Dashboard.tsx
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ThemeMode, ThemePalette, useTheme } from "../ThemeProvider";
 import { useActiveProfile } from "../ActiveProfileContext";
 import {
   Account,
   AccountCategory,
+  DebtPayoffMode,
+  DebtPayoffSettings,
   NetWorthSnapshot,
   Transaction,
   TransferInput,
@@ -16,6 +18,11 @@ import { calculateNetWorthFromAccounts } from "../lib/netWorth";
 import { MoneyVisibilityProvider } from "../MoneyVisibilityContext";
 import { NetWorthCard } from "../components/dashboard/NetWorthCard";
 import { deleteProfile, updateProfileName } from "../lib/profiles";
+import {
+  calculateDebtPayoff,
+  DebtInput,
+  DebtPayoffResult,
+} from "../lib/debtPayoffMath";
 
 const MONTHS = [
   "January",
@@ -34,6 +41,11 @@ const MONTHS = [
 
 // New profiles should start with NO accounts
 const INITIAL_ACCOUNTS: Account[] = [];
+const DEFAULT_DEBT_SETTINGS: DebtPayoffSettings = {
+  mode: "snowball",
+  monthlyAllocation: 0,
+  showInterest: false,
+};
 
 type ResetChoice =
   | "transactions"
@@ -143,6 +155,18 @@ function getDueStatus(dueDate: string) {
   return { label: `Due ${dueDate}`, tone: "muted" as const };
 }
 
+function isDebtAccount(account: Account) {
+  return account.isDebt === true || account.accountCategory === "debt";
+}
+
+function formatFriendlyDate(date: Date | null) {
+  if (!date) return "—";
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    year: "numeric",
+  });
+}
+
 export default function Dashboard() {
   const { theme, currentPalette } = useTheme();
   const navigate = useNavigate();
@@ -170,6 +194,8 @@ export default function Dashboard() {
     "minimal" | "detailed"
   >("detailed");
   const [hideMoney, setHideMoney] = useState(false);
+  const [debtPayoffSettings, setDebtPayoffSettings] =
+    useState<DebtPayoffSettings>(DEFAULT_DEBT_SETTINGS);
   const [isAppMenuOpen, setIsAppMenuOpen] = useState(false);
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
@@ -193,6 +219,7 @@ export default function Dashboard() {
   const [isLogoutPromptOpen, setIsLogoutPromptOpen] = useState(false);
   const [isThemePickerOpen, setIsThemePickerOpen] = useState(false);
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
+  const [isDebtPayoffOpen, setIsDebtPayoffOpen] = useState(false);
 
   // Edit-transaction modals
   const [editingDetailsTx, setEditingDetailsTx] = useState<Transaction | null>(
@@ -227,8 +254,10 @@ export default function Dashboard() {
       setNetWorthHistory([]);
       setNetWorthViewMode("detailed");
       setHideMoney(false);
+      setDebtPayoffSettings(DEFAULT_DEBT_SETTINGS);
       setEditButtonForId(null);
       setIsAccountsListOpen(false);
+      setIsDebtPayoffOpen(false);
       return;
     }
 
@@ -244,8 +273,10 @@ export default function Dashboard() {
       setNetWorthHistory([]);
       setNetWorthViewMode("detailed");
       setHideMoney(false);
+      setDebtPayoffSettings(DEFAULT_DEBT_SETTINGS);
       setEditButtonForId(null);
       setIsAccountsListOpen(false);
+      setIsDebtPayoffOpen(false);
       return;
     }
 
@@ -281,6 +312,9 @@ export default function Dashboard() {
     setNetWorthHistory(loaded.netWorthHistory ?? []);
     setNetWorthViewMode(loaded.netWorthViewMode ?? "detailed");
     setHideMoney(loaded.hideMoney ?? false);
+    setDebtPayoffSettings(
+      loaded.debtPayoffSettings ?? DEFAULT_DEBT_SETTINGS
+    );
     setEditButtonForId(null);
   }, [activeProfile?.id]);
 
@@ -325,6 +359,7 @@ export default function Dashboard() {
       netWorthHistory,
       netWorthViewMode,
       hideMoney,
+      debtPayoffSettings,
     });
   }, [
     accounts,
@@ -334,6 +369,7 @@ export default function Dashboard() {
     netWorthViewMode,
     hideMoney,
     deletedAccounts,
+    debtPayoffSettings,
     activeProfile?.id,
   ]);
 
@@ -346,6 +382,95 @@ export default function Dashboard() {
   const visibleTransactions = selectedAccount
     ? transactions.filter((tx) => tx.accountId === selectedAccount.id)
     : [];
+
+  const debtInputs: DebtInput[] = useMemo(() => {
+    return accounts
+      .filter((acc) => isDebtAccount(acc))
+      .map((acc) => {
+        const balance = Math.abs(acc.balance);
+        const startingBalance =
+          acc.startingBalance !== undefined
+            ? Math.abs(acc.startingBalance)
+            : balance;
+        const apr =
+          typeof acc.apr === "number"
+            ? acc.apr
+            : typeof acc.aprPercent === "number"
+              ? acc.aprPercent / 100
+              : 0.2; // default fallback when no APR is provided
+        const minimumPayment =
+          typeof acc.minimumPayment === "number"
+            ? Math.max(0, acc.minimumPayment)
+            : Number((balance * 0.03).toFixed(2)); // simple 3% minimum fallback
+
+        return {
+          id: acc.id,
+          name: acc.name,
+          balance,
+          minimumPayment,
+          apr,
+          startingBalance,
+        };
+      });
+  }, [accounts]);
+
+  const totalMinimumPayments = useMemo(
+    () => debtInputs.reduce((sum, debt) => sum + debt.minimumPayment, 0),
+    [debtInputs]
+  );
+
+  const debtPayoffSummary: DebtPayoffResult | null = useMemo(() => {
+    if (debtInputs.length === 0) return null;
+    return calculateDebtPayoff(
+      debtInputs,
+      debtPayoffSettings.mode,
+      debtPayoffSettings.monthlyAllocation
+    );
+  }, [debtInputs, debtPayoffSettings]);
+
+  const debtProgress =
+    debtPayoffSummary && debtInputs.length > 0
+      ? debtPayoffSettings.mode === "snowball"
+        ? debtPayoffSummary.progressToNextDebt
+        : debtPayoffSummary.progressTotalPaid
+      : 0;
+  const debtProgressPercent = Math.round(
+    Math.max(0, Math.min(1, debtProgress)) * 100
+  );
+  const nextDebtName =
+    debtPayoffSummary?.nextDebtId && debtPayoffSummary.debts
+      ? debtPayoffSummary.debts.find(
+          (debt) => debt.id === debtPayoffSummary.nextDebtId
+        )?.name ?? null
+      : null;
+  const debtStatusText =
+    debtInputs.length === 0
+      ? "Add a debt account to start tracking."
+      : debtPayoffSummary?.insufficientAllocation
+        ? "Monthly allocation must be at least your total minimum payments."
+        : debtPayoffSettings.mode === "snowball"
+          ? `Next payoff: ${nextDebtName ?? "—"} · Est. ${formatFriendlyDate(
+              debtPayoffSummary?.nextDebtEstimatedPayoffDate ?? null
+            )}`
+          : `Estimated debt-free: ${formatFriendlyDate(
+              debtPayoffSummary?.overallEstimatedDebtFreeDate ?? null
+            )}`;
+
+  const updateDebtPayoffMode = (mode: DebtPayoffMode) => {
+    setDebtPayoffSettings((prev) => ({ ...prev, mode }));
+  };
+
+  const updateDebtMonthlyAllocation = (amount: number) => {
+    const cleanAmount = Number.isFinite(amount) ? Math.max(0, amount) : 0;
+    setDebtPayoffSettings((prev) => ({
+      ...prev,
+      monthlyAllocation: cleanAmount,
+    }));
+  };
+
+  const updateDebtShowInterest = (show: boolean) => {
+    setDebtPayoffSettings((prev) => ({ ...prev, showInterest: show }));
+  };
 
   // Account carousel
   const handlePrevAccount = () => {
@@ -510,10 +635,30 @@ export default function Dashboard() {
 
   // Add account
   function handleAddAccount(newAccount: Account) {
+    const nextCategory =
+      newAccount.accountCategory === "debt" ? "debt" : "asset";
+    const isDebt = newAccount.isDebt ?? nextCategory === "debt";
+    const derivedApr =
+      typeof newAccount.apr === "number"
+        ? newAccount.apr
+        : typeof newAccount.aprPercent === "number"
+          ? newAccount.aprPercent / 100
+          : undefined;
+    const startingBalance =
+      isDebt && newAccount.startingBalance === undefined
+        ? Math.abs(newAccount.balance)
+        : newAccount.startingBalance;
+
     const nextAccount: Account = {
       ...newAccount,
-      accountCategory:
-        newAccount.accountCategory === "debt" ? "debt" : "asset",
+      accountCategory: nextCategory,
+      isDebt,
+      apr: derivedApr,
+      startingBalance,
+      minimumPayment:
+        isDebt && typeof newAccount.minimumPayment === "number"
+          ? newAccount.minimumPayment
+          : newAccount.minimumPayment,
     };
 
     setAccounts((prev) => [...prev, nextAccount]);
@@ -589,17 +734,44 @@ export default function Dashboard() {
       accountCategory: AccountCategory;
       creditLimit?: number | null;
       aprPercent?: number | null;
+      apr?: number | null;
+      minimumPayment?: number | null;
+      startingBalance?: number | null;
+      isDebt?: boolean;
     }
   ) {
     const trimmedName = updates.name.trim() || original.name;
     const nextBalance = updates.balance;
     const nextCategory = updates.accountCategory ?? original.accountCategory;
     const delta = nextBalance - original.balance;
+    const isDebt = updates.isDebt ?? nextCategory === "debt";
 
     const nextCreditLimit =
       nextCategory === "debt" ? updates.creditLimit ?? null : null;
     const nextAprPercent =
       nextCategory === "debt" ? updates.aprPercent ?? null : null;
+    const nextApr =
+      nextCategory === "debt"
+        ? typeof updates.apr === "number"
+          ? updates.apr
+          : nextAprPercent != null
+            ? nextAprPercent / 100
+            : typeof original.apr === "number"
+              ? original.apr
+              : original.aprPercent != null
+                ? original.aprPercent / 100
+                : undefined
+        : undefined;
+    const nextMinimumPayment =
+      nextCategory === "debt"
+        ? updates.minimumPayment ?? original.minimumPayment
+        : undefined;
+    const nextStartingBalance =
+      isDebt
+        ? updates.startingBalance ??
+          original.startingBalance ??
+          Math.abs(nextBalance)
+        : undefined;
 
     setAccounts((prev) =>
       prev.map((acc) =>
@@ -611,6 +783,10 @@ export default function Dashboard() {
               accountCategory: nextCategory,
               creditLimit: nextCreditLimit,
               aprPercent: nextAprPercent,
+              apr: nextApr,
+              isDebt,
+              minimumPayment: nextMinimumPayment ?? undefined,
+              startingBalance: nextStartingBalance,
             }
           : acc
       )
@@ -1308,14 +1484,33 @@ export default function Dashboard() {
           {/* BOTTOM ROW: DEBT PAYOFF PROGRESS (placeholder) */}
           <section className="mb-2 flex items-center justify-between rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md">
             <div className="flex flex-1 flex-col gap-2">
-              <p className="text-sm font-semibold">Debt Payoff Progress</p>
+              <button
+                type="button"
+                onClick={() => setIsDebtPayoffOpen(true)}
+                className="w-fit rounded-md text-left text-sm font-semibold text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:ring-offset-2 focus:ring-offset-transparent"
+              >
+                Debt Payoff Progress
+              </button>
               <div className="h-4 w-full rounded-full border border-[var(--color-border)] bg-[var(--color-surface-alt)]">
-                <div className="h-4 w-1/3 rounded-full bg-[var(--color-accent)]" />
+                <div
+                  className="h-4 rounded-full bg-[var(--color-accent)] transition-[width] duration-300 ease-out"
+                  style={{ width: `${debtProgressPercent}%` }}
+                />
               </div>
+              <p
+                className={`text-[11px] ${
+                  debtPayoffSummary?.insufficientAllocation
+                    ? "text-[#FBD5D5]"
+                    : "text-white/70"
+                }`}
+              >
+                {debtStatusText}
+              </p>
             </div>
             <button
               type="button"
-              className="ml-4 text-xs text-white/80 hover:text-white"
+              onClick={() => setIsDebtPayoffOpen(true)}
+              className="ml-4 rounded-full px-3 py-2 text-xs font-semibold text-white/80 transition hover:text-white"
             >
               Edit
             </button>
@@ -1371,13 +1566,17 @@ export default function Dashboard() {
               setEditingAccount(null);
               setEditButtonForId(null);
             }}
-            onSave={({ name, balance, accountCategory, creditLimit, aprPercent }) => {
+            onSave={({ name, balance, accountCategory, creditLimit, aprPercent, apr, minimumPayment, startingBalance, isDebt }) => {
               handleSaveEditedAccount(editingAccount, {
                 name,
                 balance,
                 accountCategory,
                 creditLimit,
                 aprPercent,
+                apr,
+                minimumPayment,
+                startingBalance,
+                isDebt,
               });
               setEditingAccount(null);
               setEditButtonForId(null);
@@ -1385,6 +1584,20 @@ export default function Dashboard() {
             onDelete={() => handleDeleteAccount(editingAccount.id)}
           />
         )}
+
+      {/* DEBT PAYOFF MODAL */}
+      {isDebtPayoffOpen && (
+        <DebtPayoffModal
+          onClose={() => setIsDebtPayoffOpen(false)}
+          debts={debtInputs}
+          summary={debtPayoffSummary}
+          settings={debtPayoffSettings}
+          totalMinimumPayments={totalMinimumPayments}
+          onModeChange={updateDebtPayoffMode}
+          onMonthlyAllocationChange={updateDebtMonthlyAllocation}
+          onShowInterestChange={updateDebtShowInterest}
+        />
+      )}
 
       {/* NEW BILL MODAL */}
       {isNewBillOpen && accounts.length > 0 && (
@@ -1560,6 +1773,269 @@ const modalGhostButtonClass =
 const modalToggleActiveClass = "bg-[var(--color-accent)] text-white shadow-sm";
 const modalToggleInactiveClass =
   "border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]";
+
+type DebtPayoffModalProps = {
+  onClose: () => void;
+  debts: DebtInput[];
+  summary: DebtPayoffResult | null;
+  settings: DebtPayoffSettings;
+  totalMinimumPayments: number;
+  onModeChange: (mode: DebtPayoffMode) => void;
+  onMonthlyAllocationChange: (amount: number) => void;
+  onShowInterestChange: (show: boolean) => void;
+};
+
+function DebtPayoffModal({
+  onClose,
+  debts,
+  summary,
+  settings,
+  totalMinimumPayments,
+  onModeChange,
+  onMonthlyAllocationChange,
+  onShowInterestChange,
+}: DebtPayoffModalProps) {
+  const [allocationInput, setAllocationInput] = useState(
+    settings.monthlyAllocation.toString()
+  );
+  const [isPadOpen, setIsPadOpen] = useState(false);
+
+  useEffect(() => {
+    setAllocationInput(settings.monthlyAllocation.toString());
+  }, [settings.monthlyAllocation]);
+
+  const handleAllocationChange = (value: string) => {
+    setAllocationInput(value);
+    const parsed = parseFloat(value);
+    if (Number.isNaN(parsed)) {
+      if (value.trim() === "") {
+        onMonthlyAllocationChange(0);
+      }
+      return;
+    }
+    onMonthlyAllocationChange(Math.max(0, parsed));
+  };
+
+  const insufficient =
+    (summary?.insufficientAllocation ||
+      settings.monthlyAllocation < totalMinimumPayments) &&
+    debts.length > 0;
+
+  const displayDebts =
+    summary?.debts ??
+    debts.map((debt) => ({ ...debt, estimatedPayoffDate: null as Date | null }));
+
+  const progress =
+    summary && debts.length > 0
+      ? settings.mode === "snowball"
+        ? summary.progressToNextDebt
+        : summary.progressTotalPaid
+      : 0;
+  const progressPercent = Math.round(
+    Math.max(0, Math.min(1, progress)) * 100
+  );
+
+  const nextDebt =
+    summary?.nextDebtId && summary.debts
+      ? summary.debts.find((debt) => debt.id === summary.nextDebtId)
+      : null;
+
+  return (
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4">
+      <div className={`relative z-40 w-full max-w-4xl ${modalCardBase} p-6`}>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--color-text-secondary)]">
+              Debt tools
+            </p>
+            <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
+              Debt Payoff Progress
+            </h2>
+            <p className="text-xs text-[var(--color-text-secondary)]">
+              Switch modes, adjust your monthly allocation, and see estimated payoff dates.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className={modalCloseButtonClass}
+            aria-label="Close debt payoff"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <div className="flex items-center rounded-full bg-[var(--color-surface-alt)] px-1 py-1 text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => onModeChange("snowball")}
+              className={`rounded-full px-3 py-1 transition ${
+                settings.mode === "snowball"
+                  ? modalToggleActiveClass
+                  : modalToggleInactiveClass
+              }`}
+            >
+              Snowball
+            </button>
+            <button
+              type="button"
+              onClick={() => onModeChange("avalanche")}
+              className={`rounded-full px-3 py-1 transition ${
+                settings.mode === "avalanche"
+                  ? modalToggleActiveClass
+                  : modalToggleInactiveClass
+              }`}
+            >
+              Avalanche
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onShowInterestChange(!settings.showInterest)}
+            className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+              settings.showInterest ? modalToggleActiveClass : modalToggleInactiveClass
+            }`}
+          >
+            {settings.showInterest ? "Hide interest" : "Show interest"}
+          </button>
+        </div>
+
+        <div className="mb-4">
+          <label className={modalLabelClass}>
+            Monthly Allocation for Debt
+          </label>
+          <input
+            type="text"
+            inputMode="decimal"
+            value={allocationInput}
+            onChange={(e) => handleAllocationChange(e.target.value)}
+            onBlur={(e) => handleAllocationChange(e.target.value)}
+            className={modalInputClass}
+            placeholder="0.00"
+          />
+          <button
+            type="button"
+            onClick={() => setIsPadOpen(true)}
+            className="mt-1 text-[11px] font-semibold text-[var(--color-accent)] hover:text-[var(--color-accent-strong)]"
+          >
+            Open number pad
+          </button>
+          {insufficient && (
+            <p className="mt-1 text-xs text-[#FBD5D5]">
+              Monthly allocation must be at least your total minimum payments ({formatCurrency(totalMinimumPayments)}).
+            </p>
+          )}
+        </div>
+
+        <div className="mb-4">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+              Debts
+            </p>
+            <span className="text-[11px] text-[var(--color-text-secondary)]">
+              Progress: {progressPercent}%
+            </span>
+          </div>
+          <div className="max-h-[320px] space-y-2 overflow-y-auto pr-1">
+            {displayDebts.length === 0 ? (
+              <div className={`${modalSurfaceAltCard} px-3 py-3 text-sm text-[var(--color-text-secondary)]`}>
+                Mark an account as credit to start tracking payoff progress.
+              </div>
+            ) : (
+              displayDebts.map((debt) => (
+                <div
+                  key={debt.id}
+                  className={`grid gap-3 rounded-xl ${modalSurfaceAltCard} px-4 py-3 text-sm ${settings.showInterest ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}
+                >
+                  <div className="sm:col-span-1">
+                    <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                      {debt.name}
+                    </p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">
+                      Balance: {formatCurrency(-debt.balance)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-secondary)]">
+                      Minimum
+                    </p>
+                    <p className="font-semibold text-[var(--color-text-primary)]">
+                      {formatCurrency(debt.minimumPayment)}
+                    </p>
+                  </div>
+                  {settings.showInterest && (
+                    <div>
+                      <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-secondary)]">
+                        APR
+                      </p>
+                      <p className="font-semibold text-[var(--color-text-primary)]">
+                        {(debt.apr * 100).toFixed(2)}%
+                      </p>
+                      <p className="text-[11px] text-[var(--color-text-secondary)]">
+                        Est. monthly {formatCurrency(debt.balance * (debt.apr / 12))}
+                      </p>
+                    </div>
+                  )}
+                  <div className="sm:text-right">
+                    <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-secondary)]">
+                      Est. payoff
+                    </p>
+                    <p className="font-semibold text-[var(--color-text-primary)]">
+                      {formatFriendlyDate(debt.estimatedPayoffDate)}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/60 p-4">
+          <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+            Summary
+          </p>
+          <div className="mt-2 grid gap-3 text-sm sm:grid-cols-2">
+            <div>
+              <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-secondary)]">
+                Mode
+              </p>
+              <p className="font-semibold capitalize">{settings.mode}</p>
+              {settings.mode === "snowball" && (
+                <p className="text-[11px] text-[var(--color-text-secondary)]">
+                  Next payoff: {nextDebt?.name ?? "—"}
+                </p>
+              )}
+            </div>
+            <div className="sm:text-right">
+              <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-secondary)]">
+                Estimated debt-free
+              </p>
+              <p className="font-semibold text-[var(--color-text-primary)]">
+                {formatFriendlyDate(summary?.overallEstimatedDebtFreeDate ?? null)}
+              </p>
+              {settings.mode === "snowball" && (
+                <p className="text-[11px] text-[var(--color-text-secondary)]">
+                  Next debt est.:{" "}
+                  {formatFriendlyDate(summary?.nextDebtEstimatedPayoffDate ?? null)}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {isPadOpen && (
+        <NumberPad
+          value={allocationInput}
+          onChange={(v) => handleAllocationChange(v)}
+          onClose={() => setIsPadOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
 
 type ResetDataModalProps = {
   selected: ResetChoice | null;
@@ -2545,10 +3021,14 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
   const [balanceStr, setBalanceStr] = useState("");
   const [creditLimitStr, setCreditLimitStr] = useState("");
   const [aprPercentStr, setAprPercentStr] = useState("");
+  const [minimumPaymentStr, setMinimumPaymentStr] = useState("");
+  const [startingBalanceStr, setStartingBalanceStr] = useState("");
   const [nameError, setNameError] = useState("");
   const [balanceError, setBalanceError] = useState("");
   const [creditLimitError, setCreditLimitError] = useState("");
   const [aprError, setAprError] = useState("");
+  const [minimumPaymentError, setMinimumPaymentError] = useState("");
+  const [startingBalanceError, setStartingBalanceError] = useState("");
   const [isPadOpen, setIsPadOpen] = useState(false);
   const [accountCategory, setAccountCategory] =
     useState<AccountCategory>("asset");
@@ -2580,6 +3060,8 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
 
     let creditLimit: number | null | undefined;
     let aprPercent: number | null | undefined;
+    let minimumPayment: number | undefined;
+    let startingBalance: number | undefined;
 
     if (accountCategory === "debt") {
       const creditLimitRaw = creditLimitStr.trim();
@@ -2611,9 +3093,41 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
           setAprError("");
         }
       }
+
+      const minimumPaymentRaw = minimumPaymentStr.trim();
+      if (minimumPaymentRaw === "") {
+        minimumPayment = undefined;
+        setMinimumPaymentError("");
+      } else {
+        const parsedMinimum = parseFloat(minimumPaymentRaw);
+        if (Number.isNaN(parsedMinimum) || parsedMinimum < 0) {
+          setMinimumPaymentError("Enter a non-negative number");
+          valid = false;
+        } else {
+          minimumPayment = parsedMinimum;
+          setMinimumPaymentError("");
+        }
+      }
+
+      const startingBalanceRaw = startingBalanceStr.trim();
+      if (startingBalanceRaw === "") {
+        startingBalance = undefined;
+        setStartingBalanceError("");
+      } else {
+        const parsedStarting = parseFloat(startingBalanceRaw);
+        if (Number.isNaN(parsedStarting) || parsedStarting < 0) {
+          setStartingBalanceError("Enter a non-negative number");
+          valid = false;
+        } else {
+          startingBalance = parsedStarting;
+          setStartingBalanceError("");
+        }
+      }
     } else {
       setCreditLimitError("");
       setAprError("");
+      setMinimumPaymentError("");
+      setStartingBalanceError("");
     }
 
     if (!valid) return;
@@ -2631,6 +3145,16 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
     if (accountCategory === "debt") {
       newAccount.creditLimit = creditLimit ?? null;
       newAccount.aprPercent = aprPercent ?? null;
+      newAccount.apr =
+        aprPercent != null && !Number.isNaN(aprPercent)
+          ? aprPercent / 100
+          : undefined;
+      newAccount.isDebt = true;
+      newAccount.minimumPayment = minimumPayment;
+      newAccount.startingBalance =
+        startingBalance !== undefined
+          ? startingBalance
+          : Math.abs(normalizedAmount);
     }
 
     onSave(newAccount);
@@ -2793,6 +3317,50 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                     Annual interest rate in percent (optional).
                   </p>
                 </div>
+
+                <div>
+                  <label className={modalLabelClass}>
+                    Minimum payment (monthly)
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={minimumPaymentStr}
+                    onChange={(e) => setMinimumPaymentStr(e.target.value)}
+                    className={modalInputClass}
+                    placeholder="Optional"
+                  />
+                  {minimumPaymentError && (
+                    <p className="mt-1 text-xs text-red-500">
+                      {minimumPaymentError}
+                    </p>
+                  )}
+                  <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
+                    Leave blank to calculate or update later.
+                  </p>
+                </div>
+
+                <div>
+                  <label className={modalLabelClass}>
+                    Starting balance snapshot
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={startingBalanceStr}
+                    onChange={(e) => setStartingBalanceStr(e.target.value)}
+                    className={modalInputClass}
+                    placeholder="Defaults to current balance"
+                  />
+                  {startingBalanceError && (
+                    <p className="mt-1 text-xs text-red-500">
+                      {startingBalanceError}
+                    </p>
+                  )}
+                  <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
+                    Used to measure progress toward payoff.
+                  </p>
+                </div>
               </div>
             )}
 
@@ -2835,6 +3403,10 @@ type EditAccountModalProps = {
     accountCategory: AccountCategory;
     creditLimit?: number | null;
     aprPercent?: number | null;
+    apr?: number | null;
+    minimumPayment?: number | null;
+    startingBalance?: number | null;
+    isDebt?: boolean;
   }) => void;
   onDelete?: () => void;
 };
@@ -2853,10 +3425,20 @@ function EditAccountModal({
   const [aprPercentStr, setAprPercentStr] = useState(
     account.aprPercent != null ? account.aprPercent.toString() : ""
   );
+  const [minimumPaymentStr, setMinimumPaymentStr] = useState(
+    account.minimumPayment != null ? account.minimumPayment.toString() : ""
+  );
+  const [startingBalanceStr, setStartingBalanceStr] = useState(
+    account.startingBalance != null
+      ? Math.abs(account.startingBalance).toString()
+      : ""
+  );
   const [nameError, setNameError] = useState("");
   const [balanceError, setBalanceError] = useState("");
   const [creditLimitError, setCreditLimitError] = useState("");
   const [aprError, setAprError] = useState("");
+  const [minimumPaymentError, setMinimumPaymentError] = useState("");
+  const [startingBalanceError, setStartingBalanceError] = useState("");
   const [isPadOpen, setIsPadOpen] = useState(false);
   const [accountCategory, setAccountCategory] = useState<AccountCategory>(
     account.accountCategory ?? "asset"
@@ -2889,6 +3471,8 @@ function EditAccountModal({
 
     let creditLimit: number | null | undefined;
     let aprPercent: number | null | undefined;
+    let minimumPayment: number | undefined;
+    let startingBalance: number | undefined;
 
     if (accountCategory === "debt") {
       const creditLimitRaw = creditLimitStr.trim();
@@ -2920,15 +3504,53 @@ function EditAccountModal({
           setAprError("");
         }
       }
+
+      const minimumRaw = minimumPaymentStr.trim();
+      if (minimumRaw === "") {
+        minimumPayment = undefined;
+        setMinimumPaymentError("");
+      } else {
+        const parsedMinimum = parseFloat(minimumRaw);
+        if (Number.isNaN(parsedMinimum) || parsedMinimum < 0) {
+          setMinimumPaymentError("Enter a non-negative number");
+          valid = false;
+        } else {
+          minimumPayment = parsedMinimum;
+          setMinimumPaymentError("");
+        }
+      }
+
+      const startingRaw = startingBalanceStr.trim();
+      if (startingRaw === "") {
+        startingBalance = undefined;
+        setStartingBalanceError("");
+      } else {
+        const parsedStarting = parseFloat(startingRaw);
+        if (Number.isNaN(parsedStarting) || parsedStarting < 0) {
+          setStartingBalanceError("Enter a non-negative number");
+          valid = false;
+        } else {
+          startingBalance = parsedStarting;
+          setStartingBalanceError("");
+        }
+      }
     } else {
       setCreditLimitError("");
       setAprError("");
+      setMinimumPaymentError("");
+      setStartingBalanceError("");
     }
 
     if (!valid) return;
 
     const normalizedAmount =
       accountCategory === "debt" ? parsed : Math.abs(parsed);
+    const apr =
+      aprPercent === null
+        ? null
+        : typeof aprPercent === "number"
+          ? aprPercent / 100
+          : undefined;
 
     onSave({
       name: name.trim(),
@@ -2936,6 +3558,10 @@ function EditAccountModal({
       accountCategory,
       creditLimit,
       aprPercent,
+      apr: apr ?? undefined,
+      minimumPayment,
+      startingBalance,
+      isDebt: accountCategory === "debt",
     });
     onClose();
   };
