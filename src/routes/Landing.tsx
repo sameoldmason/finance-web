@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
+import Welcome from "./Welcome";
 import { listProfiles } from "../lib/profiles";
 
 // Decides where "/" should go
@@ -16,5 +17,9 @@ export default function Landing() {
 
   if (hasProfiles === null) return null; // brief mount—no flash
 
-  return hasProfiles ? <Navigate to="/profiles" replace /> : <Navigate to="/welcome" replace />;
+  return hasProfiles ? (
+    <Navigate to="/profiles" replace />
+  ) : (
+    <Welcome />
+  );
 }
