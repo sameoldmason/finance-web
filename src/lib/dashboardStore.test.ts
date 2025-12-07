@@ -54,7 +54,31 @@ describe("dashboardStore", () => {
 
     storage["finance-web:dashboard:profile-2"] = JSON.stringify(data);
 
-    expect(loadDashboardData("profile-2")).toEqual(data);
+    expect(loadDashboardData("profile-2")).toEqual({
+      accounts: [
+        {
+          id: "a1",
+          name: "Checking",
+          balance: 100,
+          accountCategory: "asset",
+          isDebt: false,
+          apr: undefined,
+          aprPercent: null,
+          minimumPayment: undefined,
+          startingBalance: undefined,
+        },
+      ],
+      transactions: [],
+      bills: [],
+      netWorthHistory: [],
+      netWorthViewMode: undefined,
+      hideMoney: undefined,
+      debtPayoffSettings: {
+        mode: "snowball",
+        monthlyAllocation: 0,
+        showInterest: false,
+      },
+    });
   });
 
   it("defaults missing or invalid fields to empty arrays", () => {
@@ -66,13 +90,28 @@ describe("dashboardStore", () => {
 
     expect(loadDashboardData("profile-3")).toEqual({
       accounts: [
-        { id: "a2", name: "Savings", balance: 200, accountCategory: "asset" },
+        {
+          id: "a2",
+          name: "Savings",
+          balance: 200,
+          accountCategory: "asset",
+          isDebt: false,
+          apr: undefined,
+          aprPercent: null,
+          minimumPayment: undefined,
+          startingBalance: undefined,
+        },
       ],
       transactions: [],
       bills: [],
       netWorthHistory: [],
       netWorthViewMode: undefined,
       hideMoney: undefined,
+      debtPayoffSettings: {
+        mode: "snowball",
+        monthlyAllocation: 0,
+        showInterest: false,
+      },
     });
   });
 
@@ -102,6 +141,11 @@ describe("dashboardStore", () => {
         netWorthHistory: [],
         netWorthViewMode: undefined,
         hideMoney: undefined,
+        debtPayoffSettings: {
+          mode: "snowball",
+          monthlyAllocation: 0,
+          showInterest: false,
+        },
       })
     );
   });

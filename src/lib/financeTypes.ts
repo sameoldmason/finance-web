@@ -7,12 +7,31 @@ export type Account = {
   name: string;
   balance: number;
   accountCategory: AccountCategory;
+  /** Optional explicit debt marker; falls back to accountCategory === "debt" */
+  isDebt?: boolean;
+  /** APR as a decimal (e.g. 0.2199 for 21.99%) */
+  apr?: number;
+  /** Monthly minimum payment for debt accounts */
+  minimumPayment?: number;
+  /**
+   * Balance snapshot at the start of a payoff plan; used for progress.
+   * Stored as a positive number representing the amount owed.
+   */
+  startingBalance?: number;
 
   /** Only meaningful for credit (debt) accounts; can be undefined or null */
   creditLimit?: number | null;
 
   /** APR as a percentage, e.g. 19.99 means 19.99% APR */
   aprPercent?: number | null;
+};
+
+export type DebtPayoffMode = "snowball" | "avalanche";
+
+export type DebtPayoffSettings = {
+  mode: DebtPayoffMode;
+  monthlyAllocation: number;
+  showInterest: boolean;
 };
 
 export type Transaction = {
@@ -40,6 +59,7 @@ export type DashboardData = {
   netWorthHistory?: NetWorthSnapshot[];
   netWorthViewMode?: "minimal" | "detailed";
   hideMoney?: boolean;
+  debtPayoffSettings?: DebtPayoffSettings;
 };
 
 export type NetWorthSnapshot = {
