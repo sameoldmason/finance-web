@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useActiveProfile } from "../ActiveProfileContext";
 import { createProfile, countProfiles, listProfiles } from "../lib/profiles";
 import { useTheme } from "../ThemeProvider";
 
 export default function CreateProfile() {
   const navigate = useNavigate();
+  const { setActiveProfileId } = useActiveProfile();
   const { theme, toggle } = useTheme();
 
   // Form state
@@ -16,9 +18,6 @@ export default function CreateProfile() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-
-  // After create
-  const [codes, setCodes] = useState<string[] | null>(null);
 
   // Discard modal
   const [showDiscard, setShowDiscard] = useState(false);
@@ -42,8 +41,9 @@ export default function CreateProfile() {
     setBusy(true);
     setError(null);
     try {
-      const { recoveryCodes } = createProfile({ name, password, hint });
-      setCodes(recoveryCodes); // show once
+      const { id } = createProfile({ name, password, hint });
+      setActiveProfileId(id);
+      navigate("/dashboard");
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message || "Could not create profile.");
@@ -129,8 +129,7 @@ export default function CreateProfile() {
           </div>
         )}
 
-        {!codes ? (
-          <form onSubmit={onSubmit} className="space-y-4" noValidate>
+        <form onSubmit={onSubmit} className="space-y-4" noValidate>
             <div>
               <label htmlFor="name" className="block text-sm mb-1">
                 Profile Name
@@ -227,70 +226,6 @@ export default function CreateProfile() {
               {busy ? "Creating…" : "Create Profile"}
             </button>
           </form>
-        ) : (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold text-center">
-              Save your recovery codes
-            </h2>
-            <p className="text-sm text-center opacity-80">
-              These are shown once. Store them somewhere safe.
-            </p>
-
-            <ul className="grid grid-cols-2 gap-2 text-center font-mono text-sm">
-              {codes.map((c) => (
-                <li key={c} className="rounded-lg bg-white/10 px-3 py-2">
-                  {c}
-                </li>
-              ))}
-            </ul>
-
-            {/* Buttons: Copy | Download | Done */}
-            <div className="flex items-center justify-center gap-3 pt-2">
-              {/* Copy */}
-              <button
-                onClick={() => {
-                  try {
-                    navigator.clipboard.writeText(codes.join("\n"));
-                    alert("Copied to clipboard.");
-                  } catch (error) {
-                    console.error("Failed to copy recovery codes", error);
-                    alert("Could not copy the recovery codes.");
-                  }
-                }}
-                className="rounded-xl px-4 py-2 bg-[#F5FEFA] text-[#454545] hover:bg-[#454545] hover:text-[#F5FEFA] transition"
-              >
-                Copy
-              </button>
-
-              {/* Download .txt */}
-              <button
-                onClick={() => {
-                  const content = codes.join("\n");
-                  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = `recovery-codes-${(name || "profile").trim()}.txt`;
-                  document.body.appendChild(a);
-                  a.click();
-                  a.remove();
-                  URL.revokeObjectURL(url);
-                }}
-                className="rounded-xl px-4 py-2 bg-[#F5FEFA] text-[#454545] hover:bg-[#454545] hover:text-[#F5FEFA] transition"
-              >
-                Download
-              </button>
-
-              {/* Done */}
-              <button
-                onClick={() => navigate("/profiles")}
-                className="rounded-xl px-4 py-2 bg-[#F5FEFA] text-[#454545] hover:bg-[#454545] hover:text-[#F5FEFA] transition"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Theme toggle (global) */}
