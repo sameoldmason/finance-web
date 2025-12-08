@@ -1,7 +1,7 @@
 // src/routes/Dashboard.tsx
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ThemeMode, ThemePalette, useTheme } from "../ThemeProvider";
+import { useTheme } from "../ThemeProvider";
 import { useActiveProfile } from "../ActiveProfileContext";
 import {
   Account,
@@ -198,7 +198,7 @@ function formatFriendlyDate(date: Date | null) {
 }
 
 export default function Dashboard() {
-  const { theme, currentPalette } = useTheme();
+  const { theme, currentPalette, toggle } = useTheme();
   const navigate = useNavigate();
   const { activeProfile, setActiveProfileId } = useActiveProfile();
 
@@ -254,7 +254,6 @@ export default function Dashboard() {
   const [isDeleteProfilePromptOpen, setIsDeleteProfilePromptOpen] =
     useState(false);
   const [isLogoutPromptOpen, setIsLogoutPromptOpen] = useState(false);
-  const [isThemePickerOpen, setIsThemePickerOpen] = useState(false);
   const [editingBill, setEditingBill] = useState<Bill | null>(null);
   const [isDebtPayoffOpen, setIsDebtPayoffOpen] = useState(false);
 
@@ -1193,13 +1192,6 @@ export default function Dashboard() {
 
   const appMenuItems = [
     { label: "Accounts", onClick: () => setIsAccountsListOpen(true) },
-    {
-      label: "Appearance",
-      onClick: () => {
-        setIsAppMenuOpen(false);
-        setIsThemePickerOpen(true);
-      },
-    },
     { label: "About", onClick: () => setIsAboutOpen(true) },
     { label: "Feedback", onClick: () => setIsFeedbackOpen(true) },
     {
@@ -1219,19 +1211,19 @@ export default function Dashboard() {
       onChange={(next) => setHideMoney(next)}
     >
       <div
-        className="min-h-[100svh] w-full text-brand-accent"
+        className="min-h-[100svh] w-full text-[var(--color-text-primary)]"
         style={{ backgroundColor: currentPalette.background }}
       >
         <div className="mx-auto flex h-full max-w-[1280px] px-6 py-6">
         {/* LEFT SIDEBAR – months */}
-        <aside className="mr-6 flex w-40 shrink-0 flex-col justify-end rounded-2xl bg-black/10 px-4 py-6 backdrop-blur-sm shadow-md">
+        <aside className="mr-6 flex w-40 shrink-0 flex-col justify-end rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-6 shadow-sm">
           {MONTHS.map((m) => (
             <button
               key={m}
               type="button"
-              className="w-full mb-2 flex items-center rounded-xl px-3 py-2 text-base font-bold tracking-wide bg-transparent text-[#F5FEFA]/80 hover:bg-[var(--color-surface-alt)]/10 hover:text-white transition-all duration-150"
+              className="mb-2 flex w-full items-center rounded-xl bg-transparent px-3 py-2 text-base font-bold tracking-wide text-[var(--color-text-secondary)] transition-all duration-150 hover:bg-[var(--color-surface-alt)] hover:text-[var(--color-text-primary)]"
             >
-              <span className="mr-3 h-6 w-1.5 rounded-full bg-[var(--color-surface-alt)]/10" />
+              <span className="mr-3 h-6 w-1.5 rounded-full bg-[var(--color-border)]" />
               <span className="truncate">{m}</span>
             </button>
           ))}
@@ -1240,14 +1232,14 @@ export default function Dashboard() {
         {/* MAIN AREA */}
         <div className="flex min-h-[calc(100svh-3rem)] flex-1 flex-col gap-6">
           {/* TOP BAR */}
-          <header className="flex items-center justify-between rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md">
+          <header className="flex items-center justify-between rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 shadow-sm">
             <div className="flex flex-1 items-center gap-4">
               <button
                 type="button"
                 onClick={() => setIsAppMenuOpen((prev) => !prev)}
                 aria-expanded={isAppMenuOpen}
                 aria-controls="app-menu-pills"
-                className="rounded-full px-4 py-2.5 text-left text-lg font-semibold text-white/90 transition hover:bg-[var(--color-surface-alt)]/5"
+                className="rounded-full px-4 py-2.5 text-left text-lg font-semibold text-[var(--color-text-primary)] transition hover:bg-[var(--color-surface-alt)]"
               >
                 <span className="tracking-wide">bare</span>
               </button>
@@ -1272,11 +1264,11 @@ export default function Dashboard() {
                         ? `${index * 80}ms`
                         : "0ms",
                     }}
-                    className={`rounded-full bg-[var(--color-surface-alt)]/15 px-3 py-1 text-xs font-semibold text-white/80 shadow-sm transition-all duration-300 ${
+                    className={`rounded-full bg-[var(--color-surface-alt)] px-3 py-1 text-xs font-semibold text-[var(--color-text-primary)] shadow-sm transition-all duration-300 ${
                       isAppMenuOpen
                         ? "translate-x-0 opacity-100"
                         : "-translate-x-2 opacity-0"
-                    } hover:bg-[var(--color-surface-alt)]/25`}
+                    } hover:brightness-105`}
                   >
                     {item.label}
                   </button>
@@ -1294,28 +1286,30 @@ export default function Dashboard() {
                     >
                       <input
                         value={profileNameInput}
-                        onChange={(event) => setProfileNameInput(event.target.value)}
-                        onBlur={() => handleProfileNameSubmit()}
-                        className="w-40 rounded-lg bg-[var(--color-surface-alt)]/10 px-2 py-1 text-sm text-white placeholder-white/50 shadow-inner outline-none ring-1 ring-white/20 focus:ring-white/50"
-                        placeholder="Enter name"
-                        autoFocus
-                      />
-                      <button type="submit" className="sr-only">
-                        Save profile name
-                      </button>
-                    </form>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={handleStartEditingProfileName}
-                      disabled={!activeProfile}
-                      className="text-sm font-semibold text-white/90 transition hover:text-white disabled:cursor-not-allowed disabled:text-white/40"
-                    >
-                      {profileName}
+                      onChange={(event) => setProfileNameInput(event.target.value)}
+                      onBlur={() => handleProfileNameSubmit()}
+                      className="w-40 rounded-lg bg-[var(--color-surface-alt)] px-2 py-1 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)] shadow-inner outline-none ring-1 ring-[var(--color-border)] focus:ring-[var(--color-accent)]"
+                      placeholder="Enter name"
+                      autoFocus
+                    />
+                    <button type="submit" className="sr-only">
+                      Save profile name
                     </button>
-                  )}
-                  {profileNameError && (
-                    <span className="mt-1 text-xs text-red-300">{profileNameError}</span>
+                  </form>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleStartEditingProfileName}
+                    disabled={!activeProfile}
+                    className="text-sm font-semibold text-[var(--color-text-primary)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:text-[var(--color-text-muted)]"
+                  >
+                    {profileName}
+                  </button>
+                )}
+                {profileNameError && (
+                    <span className="mt-1 text-xs text-[var(--color-negative)]">
+                      {profileNameError}
+                    </span>
                   )}
                 </div>
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-surface-alt)]/80 text-[var(--color-text-primary)]">
@@ -1328,7 +1322,7 @@ export default function Dashboard() {
           {/* TOP ROW: BALANCE + TRANSACTIONS */}
           <div className="mt-6 grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] gap-6">
             {/* CURRENT BALANCE CARD */}
-            <section className="rounded-2xl bg-black/10 px-6 pt-5 pb-2 backdrop-blur-sm shadow-md">
+            <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-6 pt-5 pb-2 shadow-sm">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] opacity-80">
@@ -1339,26 +1333,22 @@ export default function Dashboard() {
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setIsNewAccountOpen(true)}
-                  className="mt-1 flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-surface-alt)]/20 text-sm font-bold text-[#F5FEFA] hover:bg-[var(--color-surface-alt)]/30"
-                  aria-label="Add account"
-                >
-                  +
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsNewAccountOpen(true)}
+                className="mt-1 flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-accent)] text-sm font-bold text-white hover:brightness-105"
+                aria-label="Add account"
+              >
+                +
+              </button>
+            </div>
 
               {/* ACTION BUTTONS */}
               <div className="mt-4 grid grid-cols-2 gap-4">
                 {(() => {
                   const newActionBase =
-                    "w-full rounded-full bg-[#F5FEFA] py-3 text-sm font-semibold shadow-sm transition hover:bg-[#454545] hover:text-[#F5FEFA]";
-                  const newActionText =
-                    theme === "dark"
-                      ? "text-[#1f1f1f]"
-                      : "text-[var(--color-text-primary)]";
-                  const newActionClasses = `${newActionBase} ${newActionText}`;
+                    "w-full rounded-full bg-[var(--color-accent)] py-3 text-sm font-semibold text-white shadow-sm transition hover:brightness-105";
+                  const newActionClasses = `${newActionBase}`;
 
                   return (
                     <>
@@ -1397,11 +1387,11 @@ export default function Dashboard() {
                 {/* Left arrow */}
                 <button
                   type="button"
-                  onClick={handlePrevAccount}
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-[var(--color-surface-alt)]/10 text-white/80 hover:bg-[var(--color-surface-alt)]/20 hover:text-white transition"
-                >
-                  {"<"}
-                </button>
+                onClick={handlePrevAccount}
+                className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-[var(--color-surface-alt)] text-[var(--color-text-primary)] transition hover:brightness-110"
+              >
+                {"<"}
+              </button>
 
                 {/* Account pills */}
                 <div className="flex-1">
@@ -1414,11 +1404,11 @@ export default function Dashboard() {
                         <button
                           type="button"
                           onClick={() => handleAccountClick(account.id)}
-                          className={`h-10 w-full rounded-2xl text-sm font-semibold transition ${
+                          className={`h-10 w-full rounded-2xl border text-sm font-semibold transition ${
                             selectedAccount &&
                             account.id === selectedAccount.id
-                              ? "bg-[var(--color-surface-alt)]/20 text-[#F5FEFA]"
-                              : "bg-[var(--color-surface-alt)]/10 text-[#F5FEFA]/80 hover:bg-[var(--color-surface-alt)]/16"
+                              ? "border-[var(--color-accent)] bg-[var(--color-surface-alt)] text-[var(--color-text-primary)] shadow-sm"
+                              : "border-[var(--color-border)] bg-[var(--color-surface-alt)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]"
                           }`}
                         >
                           {account.name}
@@ -1429,7 +1419,7 @@ export default function Dashboard() {
                             <button
                               type="button"
                               onClick={() => setEditingAccount(account)}
-                              className="flex h-7 w-7 items-center justify-center rounded-full bg.white/20 text-xs text-[#F5FEFA] hover:bg-[var(--color-surface-alt)]/30"
+                              className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-surface-alt)] text-xs text-[var(--color-text-primary)] transition hover:brightness-110"
                               title="Edit account"
                             >
                               ✎
@@ -1443,25 +1433,25 @@ export default function Dashboard() {
                 {/* Right arrow */}
                 <button
                   type="button"
-                  onClick={handleNextAccount}
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-[var(--color-surface-alt)]/10 text-white/80 hover:bg-[var(--color-surface-alt)]/20 hover:text-white transition"
-                >
-                  {">"}
-                </button>
+                onClick={handleNextAccount}
+                className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-[var(--color-surface-alt)] text-[var(--color-text-primary)] transition hover:brightness-110"
+              >
+                {">"}
+              </button>
               </div>
             </section>
 
             {/* TRANSACTIONS CARD */}
-            <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md">
+            <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-5 shadow-sm">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-sm font-semibold">Transactions</p>
                 <button
-                  type="button"
-                  onClick={() => setIsTransactionsModalOpen(true)}
-                  className="text-xs text-white/80 hover:text-white"
-                >
-                  more
-                </button>
+                type="button"
+                onClick={() => setIsTransactionsModalOpen(true)}
+                className="text-xs font-semibold text-[var(--color-text-secondary)] transition hover:text-[var(--color-text-primary)]"
+              >
+                more
+              </button>
               </div>
 
               <div className="space-y-2 text-sm opacity-90">
@@ -1485,7 +1475,9 @@ export default function Dashboard() {
                       <span>{tx.description || "Transaction"}</span>
                       <span
                         className={
-                          tx.amount < 0 ? "text-red-200" : "text-emerald-200"
+                          tx.amount < 0
+                            ? "text-[var(--color-negative)]"
+                            : "text-[var(--color-positive)]"
                         }
                       >
                         {formatCurrency(tx.amount)}
@@ -1506,9 +1498,11 @@ export default function Dashboard() {
             />
 
             {/* UPCOMING BILLS CARD */}
-            <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md min-h-[260px]">
+            <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-5 shadow-sm min-h-[260px]">
               <div className="mb-3 flex items-center justify-between">
-                <p className="text-sm font-semibold">Upcoming Bills</p>
+                <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                  Upcoming Bills
+                </p>
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
@@ -1518,8 +1512,8 @@ export default function Dashboard() {
                     disabled={accounts.length === 0}
                     className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold transition ${
                       accounts.length === 0
-                        ? "bg-[var(--color-surface-alt)]/10 text-white/30 cursor-not-allowed"
-                        : "bg-[var(--color-surface-alt)]/20 text-[#F5FEFA] hover:bg-[var(--color-surface-alt)]/30"
+                        ? "cursor-not-allowed bg-[var(--color-surface-alt)] text-[var(--color-text-muted)]"
+                        : "bg-[var(--color-upcoming)] text-white hover:brightness-105"
                     }`}
                     aria-label="Add bill"
                     title={
@@ -1533,7 +1527,7 @@ export default function Dashboard() {
                   <button
                     type="button"
                     onClick={() => setIsBillsModalOpen(true)}
-                    className="text-xs text-white/60 hover:text-white transition"
+                    className="text-xs font-semibold text-[var(--color-text-secondary)] transition hover:text-[var(--color-text-primary)]"
                   >
                     more
                   </button>
@@ -1542,7 +1536,7 @@ export default function Dashboard() {
 
               <div className="flex min-h-[232px] flex-col">
                 {unpaidBills.length === 0 ? (
-                  <div className="flex flex-1 items-center justify-center rounded-xl bg-[var(--color-surface-alt)]/5 text-xs text-white/60">
+                  <div className="flex flex-1 items-center justify-center rounded-xl bg-[var(--color-surface-alt)] px-3 text-xs text-[var(--color-text-secondary)]">
                     No upcoming bills yet. Add your first bill to get reminders
                     here.
                   </div>
@@ -1555,15 +1549,17 @@ export default function Dashboard() {
                         .map((bill) => (
                           <div
                             key={bill.id}
-                            className="flex items-center justify-between rounded-xl bg-[var(--color-surface-alt)]/5 px-4 py-3 text-xs"
+                            className="flex items-center justify-between rounded-xl bg-[var(--color-surface-alt)] px-4 py-3 text-xs"
                           >
                             <button
                               type="button"
                               onClick={() => setEditingBill(bill)}
                               className="flex flex-1 flex-col text-left"
                             >
-                              <span className="font-semibold">{bill.name}</span>
-                              <span className="flex items-center gap-2 text-[11px] text-white/60">
+                              <span className="font-semibold text-[var(--color-text-primary)]">
+                                {bill.name}
+                              </span>
+                              <span className="flex items-center gap-2 text-[11px] text-[var(--color-text-secondary)]">
                                 <span>Due {bill.dueDate}</span>
 
                                 {(() => {
@@ -1574,10 +1570,10 @@ export default function Dashboard() {
 
                                   const badgeColor =
                                     status.tone === "danger"
-                                      ? "bg-[var(--color-surface-alt)]/20 text-[#FBD5D5]"
+                                      ? "bg-[rgba(201,79,79,0.12)] text-[var(--color-negative)]"
                                       : status.tone === "warning"
-                                        ? "bg-[var(--color-surface-alt)]/15 text-[#F2E2BE]"
-                                        : "bg-[var(--color-surface-alt)]/10 text-white/70";
+                                        ? "bg-[rgba(201,168,79,0.16)] text-[var(--color-upcoming)]"
+                                        : "bg-[rgba(175,175,175,0.18)] text-[var(--color-text-secondary)]";
 
                                   return (
                                     <span className={`${badgeBase} ${badgeColor}`}>
@@ -1589,14 +1585,14 @@ export default function Dashboard() {
                             </button>
 
                             <div className="ml-4 text-right">
-                              <div className="text-sm font-semibold text-[#E89A9A]">
+                              <div className="text-sm font-semibold text-[var(--color-negative)]">
                                 -$
                                 {bill.amount.toLocaleString("en-CA", {
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2,
                                 })}
                               </div>
-                              <div className="text-[11px] text-white/60">
+                              <div className="text-[11px] text-[var(--color-text-secondary)]">
                                 {bill.frequency === "weekly"
                                   ? "Weekly"
                                   : bill.frequency === "biweekly"
@@ -1608,7 +1604,7 @@ export default function Dashboard() {
                               <button
                                 type="button"
                                 onClick={() => handleMarkBillPaid(bill)}
-                                className="mt-1 rounded-full border border-white/30 px-3 py-1 text-[11px] font-semibold text-white/80 hover:bg-[var(--color-surface-alt)]/10"
+                                className="mt-1 rounded-full border border-[var(--color-upcoming)] px-3 py-1 text-[11px] font-semibold text-[var(--color-upcoming)] transition hover:bg-[var(--color-upcoming)] hover:text-white"
                               >
                                 Mark paid
                               </button>
@@ -1618,7 +1614,7 @@ export default function Dashboard() {
                     </div>
 
                     {unpaidBills.length > 3 && (
-                      <p className="pt-1 text-[11px] text-white/60">
+                      <p className="pt-1 text-[11px] text-[var(--color-text-secondary)]">
                         + {unpaidBills.length - 3} more bill
                         {unpaidBills.length - 3 === 1 ? "" : "s"} not shown
                       </p>
@@ -1630,7 +1626,7 @@ export default function Dashboard() {
           </div>
 
           {/* BOTTOM ROW: DEBT PAYOFF PROGRESS (placeholder) */}
-          <section className="mb-2 flex items-center justify-between rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md">
+          <section className="mb-2 flex items-center justify-between rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-4 shadow-sm">
             <div className="flex flex-1 flex-col gap-2">
               <button
                 type="button"
@@ -1648,8 +1644,8 @@ export default function Dashboard() {
               <p
                 className={`text-[11px] ${
                   debtPayoffSummary?.insufficientAllocation
-                    ? "text-[#FBD5D5]"
-                    : "text-white/70"
+                    ? "text-[var(--color-negative)]"
+                    : "text-[var(--color-text-secondary)]"
                 }`}
               >
                 {debtStatusText}
@@ -1658,7 +1654,7 @@ export default function Dashboard() {
             <button
               type="button"
               onClick={() => setIsDebtPayoffOpen(true)}
-              className="ml-4 rounded-full px-3 py-2 text-xs font-semibold text-white/80 transition hover:text-white"
+              className="ml-4 rounded-full px-3 py-2 text-xs font-semibold text-[var(--color-upcoming)] transition hover:brightness-110"
             >
               Edit
             </button>
@@ -1913,23 +1909,13 @@ export default function Dashboard() {
         <FeedbackModal onClose={() => setIsFeedbackOpen(false)} />
       )}
 
-      {isThemePickerOpen && (
-        <ThemePickerModal
-          onClose={() => setIsThemePickerOpen(false)}
-        />
-      )}
-
       {/* THEME TOGGLE */}
       <button
         type="button"
-        onClick={() => setIsThemePickerOpen(true)}
-        className={`fixed bottom-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-colors duration-200 ${
-          theme === "dark"
-            ? "bg-[var(--color-surface-alt)]/10 text-brand-accent hover:bg-[var(--color-surface-alt)]/15"
-            : "bg-black/10 text-[var(--color-text-primary)] hover:bg-black/15"
-        }`}
-        aria-label="Open appearance settings"
-        title="Open appearance settings"
+        onClick={toggle}
+        className={`fixed bottom-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-surface-alt)] text-[var(--color-text-primary)] shadow-md transition duration-200 hover:brightness-105`}
+        aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+        title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
       >
         <svg
           width="20"
@@ -2038,7 +2024,7 @@ function DebtPayoffModal({
       : null;
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4">
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-[var(--color-surface-alt)]0 px-4">
       <div className={`relative z-40 w-full max-w-4xl ${modalCardBase} p-6`}>
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
@@ -2281,7 +2267,7 @@ function ResetDataModal({
       aria-labelledby="reset-data-title"
       className="fixed inset-0 z-30 flex items-center justify-center px-4"
     >
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="absolute inset-0 bg-[var(--color-surface-alt)]0" onClick={onClose} />
       <div
         className={`relative z-40 w-full max-w-4xl ${modalCardBase} p-6 backdrop-blur-sm`}
       >
@@ -2402,7 +2388,7 @@ function DeleteProfilePrompt({ onStay, onDelete }: DeleteProfilePromptProps) {
       aria-labelledby="delete-profile-title"
       className="fixed inset-0 z-30 flex items-center justify-center px-4"
     >
-      <div className="absolute inset-0 bg-black/50" onClick={onStay} />
+      <div className="absolute inset-0 bg-[var(--color-surface-alt)]0" onClick={onStay} />
       <div
         className={`relative z-40 w-full max-w-xl ${modalCardBase} p-6 backdrop-blur-sm`}
       >
@@ -2457,7 +2443,7 @@ function DeleteProfilePrompt({ onStay, onDelete }: DeleteProfilePromptProps) {
           <button
             type="button"
             onClick={onDelete}
-            className="rounded-full bg-red-500/90 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-red-500"
+            className="rounded-full bg-[var(--color-negative)] px-5 py-2 text-xs font-semibold text-white shadow-sm transition hover:brightness-95"
           >
             Delete profile
           </button>
@@ -2480,7 +2466,7 @@ function LogoutPrompt({ onStay, onConfirm }: LogoutPromptProps) {
       aria-labelledby="logout-title"
       className="fixed inset-0 z-30 flex items-center justify-center px-4"
     >
-      <div className="absolute inset-0 bg-black/50" onClick={onStay} />
+      <div className="absolute inset-0 bg-[var(--color-surface-alt)]0" onClick={onStay} />
       <div
         className={`relative z-40 w-full max-w-md ${modalCardBase} p-6 backdrop-blur-sm`}
       >
@@ -2557,7 +2543,7 @@ function AboutModal({ onClose }: AboutModalProps) {
       aria-labelledby="about-bare-title"
       className="fixed inset-0 z-30 flex items-center justify-center px-4"
     >
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="absolute inset-0 bg-[var(--color-surface-alt)]0" onClick={onClose} />
       <div
         className={`relative z-40 w-full max-w-3xl ${modalCardBase} p-6 backdrop-blur-sm`}
       >
@@ -2624,7 +2610,7 @@ function FeedbackModal({ onClose }: FeedbackModalProps) {
       aria-labelledby="feedback-bare-title"
       className="fixed inset-0 z-30 flex items-center justify-center px-4"
     >
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="absolute inset-0 bg-[var(--color-surface-alt)]0" onClick={onClose} />
       <div
         className={`relative z-40 w-full max-w-3xl ${modalCardBase} p-6 shadow-xl backdrop-blur-sm`}
       >
@@ -2666,207 +2652,6 @@ function FeedbackModal({ onClose }: FeedbackModalProps) {
         <div className="space-y-3 leading-relaxed">
           <p className={modalSubtleTextClass}>Just text me lol</p>
         </div>
-      </div>
-    </div>
-  );
-}
-
-type ThemePickerModalProps = {
-  onClose: () => void;
-};
-
-function ThemePickerModal({ onClose }: ThemePickerModalProps) {
-  const {
-    theme,
-    setTheme,
-    currentThemeKey,
-    setThemeKey,
-    availableThemes,
-    getPalette,
-  } = useTheme();
-
-  useEffect(() => {
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onClose();
-      }
-    };
-
-    document.addEventListener("keydown", handleKey);
-    return () => document.removeEventListener("keydown", handleKey);
-  }, [onClose]);
-
-  const modeOptions: { value: ThemeMode; label: string }[] = [
-    { value: "light", label: "Light" },
-    { value: "dark", label: "Dark" },
-  ];
-
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="theme-picker-title"
-      className="fixed inset-0 z-30 flex items-center justify-center px-4"
-    >
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div
-        className="relative z-40 w-full max-w-3xl rounded-2xl p-6 shadow-xl backdrop-blur-sm"
-        style={{
-          backgroundColor: "var(--color-surface)",
-          color: "var(--color-text-primary)",
-        }}
-      >
-        <div className="mb-4 flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] opacity-60">
-              Appearance
-            </p>
-            <h2
-              id="theme-picker-title"
-              className="mt-1 text-2xl font-semibold leading-tight"
-            >
-              Theme & mode
-            </h2>
-            <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-              Pick a palette, then choose whether light or dark feels best.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full px-2 py-1 text-sm font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
-            aria-label="Close appearance dialog"
-          >
-            <svg
-              aria-hidden="true"
-              focusable="false"
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-
-        <div className="space-y-8">
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-xs uppercase tracking-[0.3em] opacity-60">
-                Theme
-              </p>
-            </div>
-            <div className="grid gap-3 md:grid-cols-2">
-              {availableThemes.map((option) => {
-                const palette = getPalette(option.key, theme);
-                const isActive = option.key === currentThemeKey;
-                return (
-                  <button
-                    key={option.key}
-                    type="button"
-                    onClick={() => setThemeKey(option.key)}
-                    className={`flex flex-col gap-3 rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-accent)] ${
-                      isActive
-                        ? "border-[var(--color-accent)]"
-                        : "border-[var(--color-border)] hover:border-[var(--color-accent)]"
-                    }`}
-                    style={{
-                      backgroundColor: palette.surfaceAlt,
-                      boxShadow: isActive
-                        ? "0 0 0 3px rgba(113, 91, 100, 0.35)"
-                        : undefined,
-                    }}
-                    aria-pressed={isActive}
-                  >
-                    <ThemePreview palette={palette} />
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold text-[var(--color-text-primary)]">
-                        {option.name}
-                      </p>
-                      <p className="text-xs text-[var(--color-text-secondary)]">
-                        {option.description}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          <section className="space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-xs uppercase tracking-[0.3em] opacity-60">
-                Mode
-              </p>
-            </div>
-            <div className="flex gap-3">
-              {modeOptions.map((modeOption) => {
-                const isActive = theme === modeOption.value;
-                return (
-                  <button
-                    key={modeOption.value}
-                    type="button"
-                    onClick={() => setTheme(modeOption.value)}
-                    className={`flex-1 rounded-full px-4 py-2 text-xs font-semibold transition ${
-                      isActive
-                        ? "bg-[var(--color-accent)] text-white shadow-sm"
-                        : "border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]"
-                    }`}
-                    aria-pressed={isActive}
-                  >
-                    {modeOption.label}
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ThemePreview({ palette }: { palette: ThemePalette }) {
-  return (
-    <div
-      className="rounded-2xl border p-2"
-      style={{ borderColor: palette.border, backgroundColor: palette.surface }}
-    >
-      <div
-        className="h-3 w-full rounded-full"
-        style={{ backgroundColor: palette.background }}
-      />
-      <div className="mt-2 flex gap-2">
-        <div
-          className="h-12 w-10 rounded"
-          style={{ backgroundColor: palette.neutral }}
-        />
-        <div className="flex-1 space-y-2">
-          <div
-            className="h-3 rounded"
-            style={{ backgroundColor: palette.surfaceAlt }}
-          />
-          <div
-            className="h-3 w-3/4 rounded"
-            style={{ backgroundColor: palette.surfaceAlt }}
-          />
-        </div>
-      </div>
-      <div className="mt-2 flex gap-1">
-        <span
-          className="h-2 flex-1 rounded"
-          style={{ backgroundColor: palette.accent }}
-        />
-        <span
-          className="h-2 flex-1 rounded"
-          style={{ backgroundColor: palette.accentStrong }}
-        />
       </div>
     </div>
   );
@@ -2934,7 +2719,7 @@ function NewTransactionModal({
 
   return (
     <>
-      <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
+      <div className="fixed inset-0 z-20 flex items-center justify-center bg-[var(--color-surface-alt)]0 px-4">
         <div className={`w-full max-w-md ${modalCardBase} p-6`}>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold">
@@ -2985,7 +2770,7 @@ function NewTransactionModal({
                   Open number pad
                 </button>
                 {amountError && (
-                  <p className="mt-1 text-xs text-red-500">{amountError}</p>
+                  <p className="mt-1 text-xs text-[var(--color-negative)]">{amountError}</p>
                 )}
               </div>
 
@@ -3119,7 +2904,7 @@ function AccountsListModal({
     : "No accounts yet. Add your first account to get started.";
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4">
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-[var(--color-surface-alt)]0 px-4">
       <div className={`w-full max-w-lg ${modalCardBase} p-6`}>
         <div className="mb-4 flex items-center justify-between">
           <div>
@@ -3199,7 +2984,7 @@ function AccountsListModal({
                       e.stopPropagation();
                       onDelete(account.id);
                     }}
-                    className="rounded-full border border-red-300/70 bg-[var(--color-surface)] px-4 py-2 text-xs font-semibold text-red-500 transition hover:bg-red-500/10"
+                    className="rounded-full border border-[rgba(201,79,79,0.35)] bg-[var(--color-surface)] px-4 py-2 text-xs font-semibold text-[var(--color-negative)] transition hover:bg-[rgba(201,79,79,0.12)]"
                   >
                     Delete account
                   </button>
@@ -3360,7 +3145,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
 
   return (
     <>
-      <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
+      <div className="fixed inset-0 z-20 flex items-center justify-center bg-[var(--color-surface-alt)]0 px-4">
         <div className={`w-full max-w-md ${modalCardBase} p-6`}>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold">
@@ -3388,7 +3173,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                 placeholder="e.g. Chequing, Savings 2, Travel"
               />
               {nameError && (
-                <p className="mt-1 text-xs text-red-500">{nameError}</p>
+                <p className="mt-1 text-xs text-[var(--color-negative)]">{nameError}</p>
               )}
             </div>
 
@@ -3413,7 +3198,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                 Open number pad
               </button>
               {balanceError && (
-                <p className="mt-1 text-xs text-red-500">{balanceError}</p>
+                <p className="mt-1 text-xs text-[var(--color-negative)]">{balanceError}</p>
               )}
               <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
                 {accountCategory === "debt"
@@ -3483,7 +3268,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                     placeholder="Optional"
                   />
                   {creditLimitError && (
-                    <p className="mt-1 text-xs text-red-500">
+                    <p className="mt-1 text-xs text-[var(--color-negative)]">
                       {creditLimitError}
                     </p>
                   )}
@@ -3508,7 +3293,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                     <span className="text-sm font-semibold text-[var(--color-text-secondary)]">%</span>
                   </div>
                   {aprError && (
-                    <p className="mt-1 text-xs text-red-500">{aprError}</p>
+                    <p className="mt-1 text-xs text-[var(--color-negative)]">{aprError}</p>
                   )}
                   <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
                     Annual interest rate in percent (optional).
@@ -3528,7 +3313,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                     placeholder="Optional"
                   />
                   {minimumPaymentError && (
-                    <p className="mt-1 text-xs text-red-500">
+                    <p className="mt-1 text-xs text-[var(--color-negative)]">
                       {minimumPaymentError}
                     </p>
                   )}
@@ -3550,7 +3335,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                     placeholder="Defaults to current balance"
                   />
                   {startingBalanceError && (
-                    <p className="mt-1 text-xs text-red-500">
+                    <p className="mt-1 text-xs text-[var(--color-negative)]">
                       {startingBalanceError}
                     </p>
                   )}
@@ -3765,7 +3550,7 @@ function EditAccountModal({
 
   return (
     <>
-      <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4">
+      <div className="fixed inset-0 z-30 flex items-center justify-center bg-[var(--color-surface-alt)]0 px-4">
         <div className={`w-full max-w-md ${modalCardBase} p-6`}>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
@@ -3792,7 +3577,7 @@ function EditAccountModal({
                 className={modalInputClass}
               />
               {nameError && (
-                <p className="mt-1 text-xs text-red-500">{nameError}</p>
+                <p className="mt-1 text-xs text-[var(--color-negative)]">{nameError}</p>
               )}
             </div>
 
@@ -3816,7 +3601,7 @@ function EditAccountModal({
                 Open number pad
               </button>
               {balanceError && (
-                <p className="mt-1 text-xs text-red-500">{balanceError}</p>
+                <p className="mt-1 text-xs text-[var(--color-negative)]">{balanceError}</p>
               )}
               <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
                 {accountCategory === "debt"
@@ -3886,7 +3671,7 @@ function EditAccountModal({
                       placeholder="Optional"
                     />
                     {creditLimitError && (
-                      <p className="mt-1 text-xs text-red-500">
+                      <p className="mt-1 text-xs text-[var(--color-negative)]">
                         {creditLimitError}
                       </p>
                     )}
@@ -3911,7 +3696,7 @@ function EditAccountModal({
                       <span className="text-sm font-semibold text-[var(--color-text-secondary)]">%</span>
                     </div>
                     {aprError && (
-                      <p className="mt-1 text-xs text-red-500">{aprError}</p>
+                      <p className="mt-1 text-xs text-[var(--color-negative)]">{aprError}</p>
                     )}
                     <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
                       Annual interest rate in percent (optional).
@@ -3925,7 +3710,7 @@ function EditAccountModal({
                 <button
                   type="button"
                   onClick={onDelete}
-                  className="rounded-full border border-red-300/70 bg-[var(--color-surface)] px-4 py-2 text-xs font-semibold text-red-500 transition hover:bg-red-500/10"
+                  className="rounded-full border border-[rgba(201,79,79,0.35)] bg-[var(--color-surface)] px-4 py-2 text-xs font-semibold text-[var(--color-negative)] transition hover:bg-[rgba(201,79,79,0.12)]"
                 >
                   Delete account
                 </button>
@@ -4025,7 +3810,7 @@ function NewTransferModal({
 
   return (
     <>
-      <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
+      <div className="fixed inset-0 z-20 flex items-center justify-center bg-[var(--color-surface-alt)]0 px-4">
         <div className={`w-full max-w-md ${modalCardBase} p-6`}>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
@@ -4100,7 +3885,7 @@ function NewTransferModal({
                 Open number pad
               </button>
               {amountError && (
-                <p className="mt-1 text-xs text-red-500">{amountError}</p>
+                <p className="mt-1 text-xs text-[var(--color-negative)]">{amountError}</p>
               )}
             </div>
 
@@ -4128,7 +3913,7 @@ function NewTransferModal({
                 placeholder="e.g. Move to savings"
               />
               {formError && (
-                <p className="mt-1 text-xs text-red-500">{formError}</p>
+                <p className="mt-1 text-xs text-[var(--color-negative)]">{formError}</p>
               )}
             </div>
 
@@ -4215,7 +4000,7 @@ function NewBillModal({
 
   return (
     <>
-      <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
+      <div className="fixed inset-0 z-20 flex items-center justify-center bg-[var(--color-surface-alt)]0 px-4">
         <div className={`w-full max-w-md ${modalCardBase} p-6`}>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">New Bill</h2>
@@ -4403,7 +4188,7 @@ function BillsListModal({
     accounts.find((a) => a.id === id)?.name || "Unknown";
 
   return (
-    <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
+    <div className="fixed inset-0 z-20 flex items-center justify-center bg-[var(--color-surface-alt)]0 px-4">
       <div className={`flex w-full max-w-2xl max-h-[70vh] flex-col ${modalCardBase} p-6`}>
         <div className="mb-4 flex items-center justify-between">
           <div>
@@ -4527,7 +4312,7 @@ function EditBillModal({
   };
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4">
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-[var(--color-surface-alt)]0 px-4">
       <div className={`w-full max-w-md ${modalCardBase} p-6`}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
@@ -4728,7 +4513,7 @@ function TransactionsHistoryModal({
     "ml-2 rounded-full border border-[var(--color-border)] px-2 py-1 text-xs font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-alt)]";
 
   return (
-    <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
+    <div className="fixed inset-0 z-20 flex items-center justify-center bg-[var(--color-surface-alt)]0 px-4">
       <div className={`flex w-full max-w-2xl max-h-[70vh] flex-col ${modalCardBase} p-6`}>
         <div className="mb-4 flex items-center justify-between">
           <div>
@@ -4739,7 +4524,7 @@ function TransactionsHistoryModal({
               <button
                 type="button"
                 className={`${sortBtnBase} ${
-                  sortMode === "date" ? "bg-black/5" : ""
+                  sortMode === "date" ? "bg-[var(--color-surface-alt)]" : ""
                 }`}
                 onClick={() => setSortMode("date")}
                 title="Sort by date"
@@ -4749,7 +4534,7 @@ function TransactionsHistoryModal({
               <button
                 type="button"
                 className={`${sortBtnBase} ${
-                  sortMode === "expense" ? "bg-black/5" : ""
+                  sortMode === "expense" ? "bg-[var(--color-surface-alt)]" : ""
                 }`}
                 onClick={() => setSortMode("expense")}
                 title="Show expenses first"
@@ -4759,7 +4544,7 @@ function TransactionsHistoryModal({
               <button
                 type="button"
                 className={`${sortBtnBase} ${
-                  sortMode === "income" ? "bg-black/5" : ""
+                  sortMode === "income" ? "bg-[var(--color-surface-alt)]" : ""
                 }`}
                 onClick={() => setSortMode("income")}
                 title="Show income first"
@@ -4809,7 +4594,7 @@ function TransactionsHistoryModal({
                       type="button"
                       onClick={() => onEditAmount(tx)}
                       className={`text-right text-sm font-semibold ${
-                        tx.amount < 0 ? "text-red-500" : "text-emerald-600"
+                        tx.amount < 0 ? "text-[var(--color-negative)]" : "text-[var(--color-positive)]"
                       }`}
                     >
                       {formatCurrency(tx.amount)}
@@ -4817,7 +4602,7 @@ function TransactionsHistoryModal({
                     <button
                       type="button"
                       onClick={() => onDelete(tx.id)}
-                      className="rounded-full px-2 py-1 text-xs font-semibold text-red-500 hover:bg-red-50"
+                      className="rounded-full px-2 py-1 text-xs font-semibold text-[var(--color-negative)] hover:bg-[rgba(201,79,79,0.1)]"
                       aria-label={`Delete ${tx.description || "transaction"}`}
                     >
                       Delete
@@ -4874,7 +4659,7 @@ function EditTransactionDetailsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4">
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-[var(--color-surface-alt)]0 px-4">
       <div className={`w-full max-w-md ${modalCardBase} p-6`}>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
@@ -4932,7 +4717,7 @@ function EditTransactionDetailsModal({
             >
               Open number pad
             </button>
-            {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+            {error && <p className="mt-1 text-xs text-[var(--color-negative)]">{error}</p>}
           </div>
 
           <div className="mt-4 flex items-center justify-between gap-3">
@@ -4942,7 +4727,7 @@ function EditTransactionDetailsModal({
                 onDelete(transaction.id);
               onClose();
             }}
-              className="rounded-full bg-red-500/10 px-4 py-2 text-xs font-semibold text-red-600 shadow-sm hover:bg-red-500/20"
+              className="rounded-full bg-[rgba(201,79,79,0.12)] px-4 py-2 text-xs font-semibold text-[var(--color-negative)] shadow-sm transition hover:bg-[rgba(201,79,79,0.18)]"
             >
               Delete
             </button>
@@ -5010,7 +4795,7 @@ function EditTransactionAmountModal({
 
   return (
     <>
-      <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4">
+      <div className="fixed inset-0 z-30 flex items-center justify-center bg-[var(--color-surface-alt)]0 px-4">
         <div className={`w-full max-w-sm ${modalCardBase} p-6`}>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
@@ -5046,7 +4831,7 @@ function EditTransactionAmountModal({
                 Open number pad
               </button>
               {error && (
-                <p className="mt-1 text-xs text-red-500">{error}</p>
+                <p className="mt-1 text-xs text-[var(--color-negative)]">{error}</p>
               )}
             </div>
 
@@ -5162,3 +4947,5 @@ function NumberPad({ value, onChange, onClose }: NumberPadProps) {
     </div>
   );
 }
+
+

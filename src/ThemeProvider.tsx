@@ -14,107 +14,60 @@ export type ThemePalette = {
   neutral: string;
   textPrimary: string;
   textSecondary: string;
+  textMuted: string;
+  positive: string;
+  negative: string;
+  upcoming: string;
 };
 
-type ThemeDefinition = {
-  name: string;
-  description: string;
-  light: ThemePalette;
-  dark: ThemePalette;
+const BASE_PALETTE: Record<ThemeMode, ThemePalette> = {
+  light: {
+    background: "#F4F1ED",
+    surface: "#FFFFFF",
+    surfaceAlt: "#F7F5F3",
+    border: "#DAD3CA",
+    accent: "#C9A84F",
+    accentStrong: "#AD8E3D",
+    neutral: "#E7E0D7",
+    textPrimary: "#2B2B2B",
+    textSecondary: "#7A7A7A",
+    textMuted: "#AFAFAF",
+    positive: "#3A7D44",
+    negative: "#C94F4F",
+    upcoming: "#C9A84F",
+  },
+  dark: {
+    background: "#1F1B17",
+    surface: "#26211C",
+    surfaceAlt: "#2F2821",
+    border: "#3C352C",
+    accent: "#C9A84F",
+    accentStrong: "#AD8E3D",
+    neutral: "#4A4236",
+    textPrimary: "#F4F1ED",
+    textSecondary: "#D0C6B6",
+    textMuted: "#9D9486",
+    positive: "#7BC58A",
+    negative: "#E08C8C",
+    upcoming: "#D9C175",
+  },
 };
-
-const THEME_REGISTRY = {
-  bare: {
-    name: "bare",
-    description: "The current bare palette you already know.",
-    light: {
-      background: "#F5F7FA",
-      surface: "#E9F2F5",
-      surfaceAlt: "#FDFDFD",
-      border: "#C2D0D6",
-      accent: "#715B64",
-      accentStrong: "#5E4A54",
-      neutral: "#D9D2CB",
-      textPrimary: "#1F1F1F",
-      textSecondary: "#57514F",
-    },
-    dark: {
-      background: "#0B1324",
-      surface: "#111827",
-      surfaceAlt: "#1F2937",
-      border: "#374151",
-      accent: "#9EB6BD",
-      accentStrong: "#7B95A2",
-      neutral: "#2E3B50",
-      textPrimary: "#F8FAFC",
-      textSecondary: "#CBD5F5",
-    },
-  },
-  warm: {
-    name: "Warm Set",
-    description: "Soft, cozy, grounded tones inspired by gentle afternoons.",
-    light: {
-      background: "#F2E8E1",
-      surface: "#FFF7F2",
-      surfaceAlt: "#FCEEE5",
-      border: "#8A6E63",
-      accent: "#C8A28A",
-      accentStrong: "#8A6E63",
-      neutral: "#DCCFC6",
-      textPrimary: "#4F372B",
-      textSecondary: "#8A6E63",
-    },
-    dark: {
-      background: "#362E2B",
-      surface: "#4A403C",
-      surfaceAlt: "#362E2B",
-      border: "#5E4A43",
-      accent: "#8A6F63",
-      accentStrong: "#C8A28A",
-      neutral: "#4A403C",
-      textPrimary: "#FDF6EE",
-      textSecondary: "#D7CBC0",
-    },
-  },
-} as const;
-
-type ThemeRegistry = typeof THEME_REGISTRY;
-export type ThemeKey = keyof ThemeRegistry;
-
-const AVAILABLE_THEMES = (Object.keys(THEME_REGISTRY) as ThemeKey[]).map(
-  (key) => ({
-    key,
-    name: THEME_REGISTRY[key].name,
-    description: THEME_REGISTRY[key].description,
-  })
-);
 
 type ThemeCtx = {
   theme: ThemeMode;
   setTheme: (mode: ThemeMode) => void;
   toggle: () => void;
-  currentThemeKey: ThemeKey;
-  setThemeKey: (key: ThemeKey) => void;
-  availableThemes: typeof AVAILABLE_THEMES;
   currentPalette: ThemePalette;
-  getPalette: (key: ThemeKey, mode?: ThemeMode) => ThemePalette;
 };
 
 const Ctx = createContext<ThemeCtx | null>(null);
 
-const STORAGE_KEYS = {
-  mode: "theme",
-  selection: "theme-selection",
-};
-
-function resolvePalette(key: ThemeKey, mode: ThemeMode): ThemePalette {
-  return THEME_REGISTRY[key][mode];
-}
+const STORAGE_KEY_MODE = "theme";
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<ThemeMode>(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEYS.mode);
+      const stored = localStorage.getItem(STORAGE_KEY_MODE);
       if (stored === "light" || stored === "dark") return stored;
 
       const systemDark =
@@ -128,27 +81,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   });
 
-  const [currentThemeKey, setCurrentThemeKey] = useState<ThemeKey>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEYS.selection) as ThemeKey | null;
-      if (stored && stored in THEME_REGISTRY) return stored;
-    } catch {
-      // ignore
-    }
-    return "bare";
-  });
-
-  const currentPalette = useMemo(
-    () => resolvePalette(currentThemeKey, theme),
-    [currentThemeKey, theme]
-  );
+  const currentPalette = useMemo(() => BASE_PALETTE[theme], [theme]);
 
   useEffect(() => {
     const root = document.documentElement;
     root.dataset.theme = theme;
-    root.dataset.themeVariant = currentThemeKey;
     try {
-      localStorage.setItem(STORAGE_KEYS.mode, theme);
+      localStorage.setItem(STORAGE_KEY_MODE, theme);
     } catch (error) {
       console.warn("Failed to persist theme mode", error);
     }
@@ -162,29 +101,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.style.setProperty("--color-neutral", currentPalette.neutral);
     root.style.setProperty("--color-text-primary", currentPalette.textPrimary);
     root.style.setProperty("--color-text-secondary", currentPalette.textSecondary);
+    root.style.setProperty("--color-text-muted", currentPalette.textMuted);
+    root.style.setProperty("--color-positive", currentPalette.positive);
+    root.style.setProperty("--color-negative", currentPalette.negative);
+    root.style.setProperty("--color-upcoming", currentPalette.upcoming);
     root.style.setProperty("--color-scheme", theme);
-  }, [theme, currentThemeKey, currentPalette]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.selection, currentThemeKey);
-    } catch (error) {
-      console.warn("Failed to persist theme selection", error);
-    }
-  }, [currentThemeKey]);
+  }, [theme, currentPalette]);
 
   const value = useMemo<ThemeCtx>(
     () => ({
       theme,
       setTheme,
       toggle: () => setTheme((prev) => (prev === "dark" ? "light" : "dark")),
-      currentThemeKey,
-      setThemeKey: setCurrentThemeKey,
-      availableThemes: AVAILABLE_THEMES,
       currentPalette,
-      getPalette: (key, mode = theme) => resolvePalette(key, mode),
     }),
-    [theme, currentThemeKey, currentPalette]
+    [theme, currentPalette]
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
