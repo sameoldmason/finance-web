@@ -1219,19 +1219,18 @@ export default function Dashboard() {
       onChange={(next) => setHideMoney(next)}
     >
       <div
-        className="min-h-[100svh] w-full text-brand-accent"
-        style={{ backgroundColor: currentPalette.background }}
+        className="min-h-[100svh] w-full bg-background text-textPrimary"
       >
         <div className="mx-auto flex h-full max-w-[1280px] px-6 py-6">
         {/* LEFT SIDEBAR – months */}
-        <aside className="mr-6 flex w-40 shrink-0 flex-col justify-end rounded-2xl bg-black/10 px-4 py-6 backdrop-blur-sm shadow-md">
+        <aside className="mr-6 flex w-40 shrink-0 flex-col justify-end rounded-2xl bg-sidebar px-4 py-6 shadow-md">
           {MONTHS.map((m) => (
             <button
               key={m}
               type="button"
-              className="w-full mb-2 flex items-center rounded-xl px-3 py-2 text-base font-bold tracking-wide bg-transparent text-[#F5FEFA]/80 hover:bg-[var(--color-surface-alt)]/10 hover:text-white transition-all duration-150"
+              className="w-full mb-2 flex items-center rounded-xl px-3 py-2 text-base font-bold tracking-wide bg-transparent text-textMuted hover:bg-borderSoft hover:text-textPrimary transition-all duration-150"
             >
-              <span className="mr-3 h-6 w-1.5 rounded-full bg-[var(--color-surface-alt)]/10" />
+              <span className="mr-3 h-6 w-1.5 rounded-full bg-accent" />
               <span className="truncate">{m}</span>
             </button>
           ))}
@@ -1240,14 +1239,14 @@ export default function Dashboard() {
         {/* MAIN AREA */}
         <div className="flex min-h-[calc(100svh-3rem)] flex-1 flex-col gap-6">
           {/* TOP BAR */}
-          <header className="flex items-center justify-between rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md">
+          <header className="flex items-center justify-between rounded-2xl bg-cardDebt px-6 py-4 shadow-md">
             <div className="flex flex-1 items-center gap-4">
               <button
                 type="button"
                 onClick={() => setIsAppMenuOpen((prev) => !prev)}
                 aria-expanded={isAppMenuOpen}
                 aria-controls="app-menu-pills"
-                className="rounded-full px-4 py-2.5 text-left text-lg font-semibold text-white/90 transition hover:bg-[var(--color-surface-alt)]/5"
+                className="rounded-full px-4 py-2.5 text-left text-lg font-semibold text-textPrimary transition hover:bg-borderSoft"
               >
                 <span className="tracking-wide">bare</span>
               </button>
@@ -1272,11 +1271,11 @@ export default function Dashboard() {
                         ? `${index * 80}ms`
                         : "0ms",
                     }}
-                    className={`rounded-full bg-[var(--color-surface-alt)]/15 px-3 py-1 text-xs font-semibold text-white/80 shadow-sm transition-all duration-300 ${
+                    className={`rounded-full bg-borderSoft px-3 py-1 text-xs font-semibold text-textMuted shadow-sm transition-all duration-300 ${
                       isAppMenuOpen
                         ? "translate-x-0 opacity-100"
                         : "-translate-x-2 opacity-0"
-                    } hover:bg-[var(--color-surface-alt)]/25`}
+                    } hover:bg-borderMedium`}
                   >
                     {item.label}
                   </button>
@@ -1296,7 +1295,7 @@ export default function Dashboard() {
                         value={profileNameInput}
                         onChange={(event) => setProfileNameInput(event.target.value)}
                         onBlur={() => handleProfileNameSubmit()}
-                        className="w-40 rounded-lg bg-[var(--color-surface-alt)]/10 px-2 py-1 text-sm text-white placeholder-white/50 shadow-inner outline-none ring-1 ring-white/20 focus:ring-white/50"
+                        className="w-40 rounded-lg border border-borderSoft bg-background px-2 py-1 text-sm text-textPrimary placeholder-textSubtle shadow-inner outline-none ring-1 ring-borderSoft focus:ring-borderMedium"
                         placeholder="Enter name"
                         autoFocus
                       />
@@ -1309,16 +1308,16 @@ export default function Dashboard() {
                       type="button"
                       onClick={handleStartEditingProfileName}
                       disabled={!activeProfile}
-                      className="text-sm font-semibold text-white/90 transition hover:text-white disabled:cursor-not-allowed disabled:text-white/40"
+                      className="text-sm font-semibold text-textPrimary transition hover:text-accent disabled:cursor-not-allowed disabled:text-textSubtle"
                     >
                       {profileName}
                     </button>
                   )}
                   {profileNameError && (
-                    <span className="mt-1 text-xs text-red-300">{profileNameError}</span>
+                    <span className="mt-1 text-xs text-red-700">{profileNameError}</span>
                   )}
                 </div>
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-surface-alt)]/80 text-[var(--color-text-primary)]">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full border border-primaryButtonBorder bg-primaryButton text-toggleDark">
                   <span className="text-xs font-semibold">{avatarInitial}</span>
                 </div>
               </div>
@@ -1328,13 +1327,13 @@ export default function Dashboard() {
           {/* TOP ROW: BALANCE + TRANSACTIONS */}
           <div className="mt-6 grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] gap-6">
             {/* CURRENT BALANCE CARD */}
-            <section className="rounded-2xl bg-black/10 px-6 pt-5 pb-2 backdrop-blur-sm shadow-md">
+            <section className="rounded-2xl bg-cardGreen px-6 pt-5 pb-2 shadow-md">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] opacity-80">
+                  <p className="text-xs uppercase tracking-[0.2em] text-textSubtle">
                     Current Balance
                   </p>
-                  <p className="mt-1 text-3xl font-extrabold">
+                  <p className="mt-1 text-3xl font-extrabold text-textPrimary">
                     {formatCurrency(selectedAccount?.balance ?? 0)}
                   </p>
                 </div>
@@ -1342,7 +1341,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={() => setIsNewAccountOpen(true)}
-                  className="mt-1 flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-surface-alt)]/20 text-sm font-bold text-[#F5FEFA] hover:bg-[var(--color-surface-alt)]/30"
+                  className="mt-1 flex h-7 w-7 items-center justify-center rounded-full border border-primaryButtonBorder bg-primaryButton text-sm font-bold text-toggleDark hover:bg-primaryButtonBorder"
                   aria-label="Add account"
                 >
                   +
@@ -1352,13 +1351,8 @@ export default function Dashboard() {
               {/* ACTION BUTTONS */}
               <div className="mt-4 grid grid-cols-2 gap-4">
                 {(() => {
-                  const newActionBase =
-                    "w-full rounded-full bg-[#F5FEFA] py-3 text-sm font-semibold shadow-sm transition hover:bg-[#454545] hover:text-[#F5FEFA]";
-                  const newActionText =
-                    theme === "dark"
-                      ? "text-[#1f1f1f]"
-                      : "text-[var(--color-text-primary)]";
-                  const newActionClasses = `${newActionBase} ${newActionText}`;
+                  const newActionClasses =
+                    "w-full rounded-full border border-primaryButtonBorder bg-primaryButton py-3 text-sm font-semibold text-toggleDark shadow-sm transition hover:bg-primaryButtonBorder active:brightness-95";
 
                   return (
                     <>
@@ -1398,7 +1392,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={handlePrevAccount}
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-[var(--color-surface-alt)]/10 text-white/80 hover:bg-[var(--color-surface-alt)]/20 hover:text-white transition"
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-borderSoft text-textMuted hover:bg-borderMedium hover:text-textPrimary transition"
                 >
                   {"<"}
                 </button>
@@ -1417,8 +1411,8 @@ export default function Dashboard() {
                           className={`h-10 w-full rounded-2xl text-sm font-semibold transition ${
                             selectedAccount &&
                             account.id === selectedAccount.id
-                              ? "bg-[var(--color-surface-alt)]/20 text-[#F5FEFA]"
-                              : "bg-[var(--color-surface-alt)]/10 text-[#F5FEFA]/80 hover:bg-[var(--color-surface-alt)]/16"
+                              ? "bg-accent text-background"
+                              : "bg-cardDebt text-textMuted hover:bg-borderSoft"
                           }`}
                         >
                           {account.name}
@@ -1429,7 +1423,7 @@ export default function Dashboard() {
                             <button
                               type="button"
                               onClick={() => setEditingAccount(account)}
-                              className="flex h-7 w-7 items-center justify-center rounded-full bg.white/20 text-xs text-[#F5FEFA] hover:bg-[var(--color-surface-alt)]/30"
+                              className="flex h-7 w-7 items-center justify-center rounded-full border border-primaryButtonBorder bg-primaryButton text-xs text-toggleDark hover:bg-primaryButtonBorder"
                               title="Edit account"
                             >
                               ✎
@@ -1444,7 +1438,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={handleNextAccount}
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-[var(--color-surface-alt)]/10 text-white/80 hover:bg-[var(--color-surface-alt)]/20 hover:text-white transition"
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-borderSoft text-textMuted hover:bg-borderMedium hover:text-textPrimary transition"
                 >
                   {">"}
                 </button>
@@ -1452,21 +1446,21 @@ export default function Dashboard() {
             </section>
 
             {/* TRANSACTIONS CARD */}
-            <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md">
+            <section className="rounded-2xl bg-cardOrange px-6 py-5 shadow-md">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-sm font-semibold">Transactions</p>
                 <button
                   type="button"
                   onClick={() => setIsTransactionsModalOpen(true)}
-                  className="text-xs text-white/80 hover:text-white"
+                  className="text-xs text-textMuted hover:text-textPrimary"
                 >
                   more
                 </button>
               </div>
 
-              <div className="space-y-2 text-sm opacity-90">
+              <div className="space-y-2 text-sm text-textPrimary">
                 {visibleTransactions.length === 0 && (
-                  <div className="text-xs opacity-60">
+                  <div className="text-xs text-textSubtle">
                     No transactions yet for this account.
                   </div>
                 )}
@@ -1480,12 +1474,12 @@ export default function Dashboard() {
                       key={tx.id}
                       type="button"
                       onClick={() => setEditingDetailsTx(tx)}
-                      className="flex w-full items-center justify-between rounded-xl bg-[var(--color-surface-alt)]/5 px-3 py-2 text-left hover:bg-[var(--color-surface-alt)]/10"
+                      className="flex w-full items-center justify-between rounded-xl bg-cardDebt px-3 py-2 text-left hover:bg-borderSoft"
                     >
                       <span>{tx.description || "Transaction"}</span>
                       <span
                         className={
-                          tx.amount < 0 ? "text-red-200" : "text-emerald-200"
+                          tx.amount < 0 ? "text-red-700" : "text-emerald-700"
                         }
                       >
                         {formatCurrency(tx.amount)}
@@ -1506,7 +1500,7 @@ export default function Dashboard() {
             />
 
             {/* UPCOMING BILLS CARD */}
-            <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md min-h-[260px]">
+            <section className="rounded-2xl bg-cardOrange px-6 py-5 shadow-md min-h-[260px]">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-sm font-semibold">Upcoming Bills</p>
                 <div className="flex items-center gap-3">
@@ -1518,8 +1512,8 @@ export default function Dashboard() {
                     disabled={accounts.length === 0}
                     className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold transition ${
                       accounts.length === 0
-                        ? "bg-[var(--color-surface-alt)]/10 text-white/30 cursor-not-allowed"
-                        : "bg-[var(--color-surface-alt)]/20 text-[#F5FEFA] hover:bg-[var(--color-surface-alt)]/30"
+                        ? "border border-borderSoft bg-borderSoft text-textSubtle cursor-not-allowed"
+                        : "border border-primaryButtonBorder bg-primaryButton text-toggleDark hover:bg-primaryButtonBorder"
                     }`}
                     aria-label="Add bill"
                     title={
@@ -1533,7 +1527,7 @@ export default function Dashboard() {
                   <button
                     type="button"
                     onClick={() => setIsBillsModalOpen(true)}
-                    className="text-xs text-white/60 hover:text-white transition"
+                    className="text-xs text-textMuted hover:text-textPrimary transition"
                   >
                     more
                   </button>
@@ -1542,7 +1536,7 @@ export default function Dashboard() {
 
               <div className="flex min-h-[232px] flex-col">
                 {unpaidBills.length === 0 ? (
-                  <div className="flex flex-1 items-center justify-center rounded-xl bg-[var(--color-surface-alt)]/5 text-xs text-white/60">
+                  <div className="flex flex-1 items-center justify-center rounded-xl bg-cardDebt text-xs text-textSubtle">
                     No upcoming bills yet. Add your first bill to get reminders
                     here.
                   </div>
@@ -1555,7 +1549,7 @@ export default function Dashboard() {
                         .map((bill) => (
                           <div
                             key={bill.id}
-                            className="flex items-center justify-between rounded-xl bg-[var(--color-surface-alt)]/5 px-4 py-3 text-xs"
+                            className="flex items-center justify-between rounded-xl bg-cardDebt px-4 py-3 text-xs"
                           >
                             <button
                               type="button"
@@ -1563,7 +1557,7 @@ export default function Dashboard() {
                               className="flex flex-1 flex-col text-left"
                             >
                               <span className="font-semibold">{bill.name}</span>
-                              <span className="flex items-center gap-2 text-[11px] text-white/60">
+                              <span className="flex items-center gap-2 text-[11px] text-textMuted">
                                 <span>Due {bill.dueDate}</span>
 
                                 {(() => {
@@ -1574,10 +1568,10 @@ export default function Dashboard() {
 
                                   const badgeColor =
                                     status.tone === "danger"
-                                      ? "bg-[var(--color-surface-alt)]/20 text-[#FBD5D5]"
+                                      ? "bg-accent text-background"
                                       : status.tone === "warning"
-                                        ? "bg-[var(--color-surface-alt)]/15 text-[#F2E2BE]"
-                                        : "bg-[var(--color-surface-alt)]/10 text-white/70";
+                                        ? "bg-primaryButtonBorder text-toggleDark"
+                                        : "bg-borderSoft text-textMuted";
 
                                   return (
                                     <span className={`${badgeBase} ${badgeColor}`}>
@@ -1589,14 +1583,14 @@ export default function Dashboard() {
                             </button>
 
                             <div className="ml-4 text-right">
-                              <div className="text-sm font-semibold text-[#E89A9A]">
+                              <div className="text-sm font-semibold text-accent">
                                 -$
                                 {bill.amount.toLocaleString("en-CA", {
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2,
                                 })}
                               </div>
-                              <div className="text-[11px] text-white/60">
+                              <div className="text-[11px] text-textSubtle">
                                 {bill.frequency === "weekly"
                                   ? "Weekly"
                                   : bill.frequency === "biweekly"
@@ -1608,7 +1602,7 @@ export default function Dashboard() {
                               <button
                                 type="button"
                                 onClick={() => handleMarkBillPaid(bill)}
-                                className="mt-1 rounded-full border border-white/30 px-3 py-1 text-[11px] font-semibold text-white/80 hover:bg-[var(--color-surface-alt)]/10"
+                                className="mt-1 rounded-full border border-borderMedium px-3 py-1 text-[11px] font-semibold text-textPrimary hover:bg-primaryButton"
                               >
                                 Mark paid
                               </button>
@@ -1618,7 +1612,7 @@ export default function Dashboard() {
                     </div>
 
                     {unpaidBills.length > 3 && (
-                      <p className="pt-1 text-[11px] text-white/60">
+                      <p className="pt-1 text-[11px] text-textSubtle">
                         + {unpaidBills.length - 3} more bill
                         {unpaidBills.length - 3 === 1 ? "" : "s"} not shown
                       </p>
@@ -1630,26 +1624,26 @@ export default function Dashboard() {
           </div>
 
           {/* BOTTOM ROW: DEBT PAYOFF PROGRESS (placeholder) */}
-          <section className="mb-2 flex items-center justify-between rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md">
+          <section className="mb-2 flex items-center justify-between rounded-2xl bg-cardDebt px-6 py-4 shadow-md">
             <div className="flex flex-1 flex-col gap-2">
               <button
                 type="button"
                 onClick={() => setIsDebtPayoffOpen(true)}
-                className="w-fit rounded-md text-left text-sm font-semibold text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:ring-offset-2 focus:ring-offset-transparent"
+                className="w-fit rounded-md text-left text-sm font-semibold text-textPrimary outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-transparent"
               >
                 Debt Payoff Progress
               </button>
-              <div className="h-4 w-full rounded-full border border-[var(--color-border)] bg-[var(--color-surface-alt)]">
+              <div className="h-4 w-full rounded-full border border-borderSoft bg-borderSoft">
                 <div
-                  className="h-4 rounded-full bg-[var(--color-accent)] transition-[width] duration-300 ease-out"
+                  className="h-4 rounded-full bg-accent transition-[width] duration-300 ease-out"
                   style={{ width: `${debtProgressPercent}%` }}
                 />
               </div>
               <p
                 className={`text-[11px] ${
                   debtPayoffSummary?.insufficientAllocation
-                    ? "text-[#FBD5D5]"
-                    : "text-white/70"
+                    ? "text-red-700"
+                    : "text-textMuted"
                 }`}
               >
                 {debtStatusText}
@@ -1658,7 +1652,7 @@ export default function Dashboard() {
             <button
               type="button"
               onClick={() => setIsDebtPayoffOpen(true)}
-              className="ml-4 rounded-full px-3 py-2 text-xs font-semibold text-white/80 transition hover:text-white"
+              className="ml-4 rounded-full border border-primaryButtonBorder bg-primaryButton px-3 py-2 text-xs font-semibold text-toggleDark transition hover:bg-primaryButtonBorder"
             >
               Edit
             </button>
@@ -1925,8 +1919,8 @@ export default function Dashboard() {
         onClick={() => setIsThemePickerOpen(true)}
         className={`fixed bottom-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-colors duration-200 ${
           theme === "dark"
-            ? "bg-[var(--color-surface-alt)]/10 text-brand-accent hover:bg-[var(--color-surface-alt)]/15"
-            : "bg-black/10 text-[var(--color-text-primary)] hover:bg-black/15"
+            ? "bg-toggleDark text-background hover:bg-toggleDark/90"
+            : "bg-primaryButton text-toggleDark hover:bg-primaryButtonBorder"
         }`}
         aria-label="Open appearance settings"
         title="Open appearance settings"
@@ -2120,7 +2114,7 @@ function DebtPayoffModal({
             Open number pad
           </button>
           {insufficient && (
-            <p className="mt-1 text-xs text-[#FBD5D5]">
+            <p className="mt-1 text-xs text-red-700">
               Monthly allocation must be at least your total minimum payments ({formatCurrency(totalMinimumPayments)}).
             </p>
           )}
@@ -4264,7 +4258,7 @@ function NewBillModal({
                     Open number pad
                   </button>
                   {amountError && (
-                    <p className="text-[11px] text-[#C95454]">{amountError}</p>
+                    <p className="text-[11px] text-red-700">{amountError}</p>
                   )}
                 </div>
               </div>
@@ -4449,7 +4443,7 @@ function BillsListModal({
                     </button>
 
                     <div className="ml-4 text-right">
-                      <div className="text-sm font-semibold text-[#C95454]">
+                      <div className="text-sm font-semibold text-accent">
                         -$
                         {bill.amount.toLocaleString("en-CA", {
                           minimumFractionDigits: 2,
@@ -4571,7 +4565,7 @@ function EditBillModal({
                 className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
               />
               {amountError && (
-                <p className="mt-1 text-xs text-[#C95454]">{amountError}</p>
+                <p className="mt-1 text-xs text-red-700">{amountError}</p>
               )}
             </div>
 

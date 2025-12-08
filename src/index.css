@@ -4,16 +4,16 @@
 @tailwind utilities;
 
 :root {
-  --color-app-background: #0b1324;
-  --color-surface: #111827;
-  --color-surface-alt: #1f2937;
-  --color-border: #374151;
-  --color-accent: #9eb6bd;
-  --color-accent-strong: #7b95a2;
-  --color-neutral: #2e3b50;
-  --color-text-primary: #f8fafc;
-  --color-text-secondary: #cbd5f5;
-  --color-scheme: dark;
+  --color-app-background: #F9F3D6;
+  --color-surface: #F7F2D9;
+  --color-surface-alt: #F4ECC9;
+  --color-border: #C9C3A6;
+  --color-accent: #E37B3F;
+  --color-accent-strong: #2F3A30;
+  --color-neutral: #E4DFC8;
+  --color-text-primary: #1C1C1C;
+  --color-text-secondary: #676451;
+  --color-scheme: light;
 }
 
 html,
@@ -60,11 +60,11 @@ input[type="date"] {
 
 /* Style the calendar icon (Brave/Chrome/Edge/WebKit) */
 input[type="date"]::-webkit-calendar-picker-indicator {
-  background-color: #715B64;      /* brand accent */
+  background-color: #E37B3F;      /* accent */
   border-radius: 9999px;
   padding: 4px;
   cursor: pointer;
-  filter: invert(1);              /* make icon white on dark background */
+  filter: invert(1);              /* keep icon high-contrast */
   opacity: 0.85;
 }
 

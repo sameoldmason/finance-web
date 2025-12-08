@@ -68,12 +68,12 @@ export function NetWorthCard({
   const isDetailed = viewMode === "detailed";
 
   return (
-    <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md">
+    <section className="rounded-2xl bg-cardYellow px-6 py-5 shadow-md">
       <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm font-semibold">Net Worth</p>
+        <p className="text-sm font-semibold text-textPrimary">Net Worth</p>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center rounded-full bg-white/10 p-1 text-xs">
+          <div className="flex items-center rounded-full bg-borderSoft p-1 text-xs">
             {["minimal", "detailed"].map((mode) => {
               const typedMode = mode as ViewMode;
               const isActive = viewMode === typedMode;
@@ -84,8 +84,8 @@ export function NetWorthCard({
                   onClick={() => onViewModeChange(typedMode)}
                   className={`rounded-full px-3 py-1 font-semibold transition ${
                     isActive
-                      ? "bg-white text-[#454545]"
-                      : "text-white/70 hover:text-white"
+                      ? "bg-toggleDark text-background"
+                      : "text-textMuted hover:text-textPrimary"
                   }`}
                 >
                   {typedMode === "minimal" ? "Minimal" : "Detailed"}
@@ -97,7 +97,7 @@ export function NetWorthCard({
           <button
             type="button"
             onClick={toggleHideMoney}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/15"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-primaryButtonBorder bg-primaryButton text-toggleDark hover:bg-primaryButtonBorder"
             aria-label={hideMoney ? "Show amounts" : "Hide amounts"}
           >
             {hideMoney ? (
@@ -141,23 +141,23 @@ export function NetWorthCard({
       </div>
 
       {!hasData ? (
-        <div className="flex h-56 items-center justify-center rounded-xl bg-white/5 text-center text-xs text-white/70">
+        <div className="flex h-56 items-center justify-center rounded-xl bg-cardDebt text-center text-xs text-textSubtle">
           Add your first account or transaction to start tracking your net worth.
         </div>
       ) : (
         <div className="space-y-4">
           <div className="flex items-baseline justify-between">
             <div>
-              <p className="text-3xl font-extrabold">
+              <p className="text-3xl font-extrabold text-textPrimary">
                 {formatMoney(netWorth, { hide: hideMoney })}
               </p>
-              <p className="mt-1 text-xs text-white/70">
+              <p className="mt-1 text-xs text-textMuted">
                 {isDetailed && changeSincePrevious !== null ? (
                   <span
                     className={
                       changeSincePrevious >= 0
-                        ? "text-emerald-200"
-                        : "text-red-200"
+                        ? "text-emerald-700"
+                        : "text-red-700"
                     }
                   >
                     {changeSincePrevious >= 0 ? "↑" : "↓"} {" "}
@@ -173,32 +173,32 @@ export function NetWorthCard({
             </div>
           </div>
 
-          <div className="h-44 rounded-xl bg-white/5 px-2 py-1">
+          <div className="h-44 rounded-xl bg-cardDebt px-2 py-1">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trimmedHistory} margin={{ top: 10, bottom: 0 }}>
                 <defs>
                   <linearGradient id="netWorthGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#F5FEFA" stopOpacity={0.6} />
-                    <stop offset="95%" stopColor="#F5FEFA" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#E37B3F" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#E37B3F" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(47,58,48,0.2)" />
                 <XAxis
                   dataKey="date"
                   tickFormatter={formatDateLabel}
-                  stroke="rgba(255,255,255,0.6)"
-                  tick={{ fontSize: 11 }}
+                  stroke="#676451"
+                  tick={{ fontSize: 11, fill: "#676451" }}
                 />
                 <YAxis
-                  stroke="rgba(255,255,255,0.6)"
+                  stroke="#676451"
                   tickFormatter={(value) => formatMoney(value as number, { hide: hideMoney })}
-                  tick={{ fontSize: 11 }}
+                  tick={{ fontSize: 11, fill: "#676451" }}
                   width={70}
                 />
                 <Tooltip
                   contentStyle={{
-                    background: "rgba(33, 41, 52, 0.85)",
-                    border: "1px solid rgba(255,255,255,0.1)",
+                    background: "rgba(244, 236, 201, 0.95)",
+                    border: "1px solid #C9C3A6",
                     borderRadius: "10px",
                   }}
                   labelFormatter={(label) => formatDateLabel(label as string)}
@@ -209,7 +209,7 @@ export function NetWorthCard({
                 <Area
                   type="monotone"
                   dataKey="value"
-                  stroke="#F5FEFA"
+                  stroke="#E37B3F"
                   fillOpacity={1}
                   fill="url(#netWorthGradient)"
                   strokeWidth={2}
@@ -219,28 +219,28 @@ export function NetWorthCard({
           </div>
 
           {isDetailed && (
-            <div className="grid grid-cols-3 gap-4 text-xs text-white/80">
-              <div className="rounded-xl bg-white/5 px-3 py-2">
-                <p className="text-[11px] uppercase tracking-wide text-white/60">
+            <div className="grid grid-cols-3 gap-4 text-xs text-textPrimary">
+              <div className="rounded-xl bg-cardDebt px-3 py-2">
+                <p className="text-[11px] uppercase tracking-wide text-textSubtle">
                   Assets
                 </p>
-                <p className="text-sm font-semibold">
+                <p className="text-sm font-semibold text-textPrimary">
                   {formatMoney(totalAssets, { hide: hideMoney })}
                 </p>
               </div>
-              <div className="rounded-xl bg-white/5 px-3 py-2">
-                <p className="text-[11px] uppercase tracking-wide text-white/60">
+              <div className="rounded-xl bg-cardDebt px-3 py-2">
+                <p className="text-[11px] uppercase tracking-wide text-textSubtle">
                   Debts
                 </p>
-                <p className="text-sm font-semibold">
+                <p className="text-sm font-semibold text-textPrimary">
                   {formatMoney(totalDebts, { hide: hideMoney })}
                 </p>
               </div>
-              <div className="rounded-xl bg-white/5 px-3 py-2">
-                <p className="text-[11px] uppercase tracking-wide text-white/60">
+              <div className="rounded-xl bg-cardDebt px-3 py-2">
+                <p className="text-[11px] uppercase tracking-wide text-textSubtle">
                   Net Worth
                 </p>
-                <p className="text-sm font-semibold">
+                <p className="text-sm font-semibold text-textPrimary">
                   {formatMoney(netWorth, { hide: hideMoney })}
                 </p>
               </div>

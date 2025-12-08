@@ -7,18 +7,25 @@ export default function Welcome() {
 
   const handleClick = () => setTimeout(() => navigate("/profiles/new"), 200);
 
-  const lightBg = "bg-brand-primary bg-gradient-to-b from-[#B6C8CE] via-brand-primary to-[#869BA1]";
-  const darkBg  = "bg-[#1E3A5F] bg-gradient-to-b from-[#2E517F] via-[#1E3A5F] to-[#10263F]";
+  const lightBg =
+    "bg-background bg-gradient-to-b from-background via-cardDebt to-sidebar";
+  const darkBg =
+    "bg-toggleDark bg-gradient-to-b from-toggleDark via-toggleDark to-toggleDark";
+  const textTone = theme === "dark" ? "text-background" : "text-textPrimary";
 
   return (
-    <div className={`min-h-[100svh] w-full flex items-center justify-center ${theme === "dark" ? darkBg : lightBg} text-brand-accent`}>
+    <div
+      className={`min-h-[100svh] w-full flex items-center justify-center ${theme === "dark" ? darkBg : lightBg} ${textTone}`}
+    >
       <div className="-translate-y-8 flex flex-col items-center">
         <h1 className="text-6xl font-bold font-outfit mb-2">Welcome!</h1>
-        <p className="text-lg font-light font-outfit mb-6">Create a profile.</p>
+        <p className="text-lg font-light font-outfit mb-6 text-textMuted">
+          Create a profile.
+        </p>
 
         <button
           onClick={handleClick}
-          className="w-20 h-20 rounded-full bg-brand-accent flex items-center justify-center text-4xl text-[#454545] shadow-md transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-brand-primary"
+          className="w-20 h-20 rounded-full border border-primaryButtonBorder bg-primaryButton flex items-center justify-center text-4xl text-toggleDark shadow-md transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent"
           aria-label="Create profile"
         >
           +
@@ -30,8 +37,8 @@ export default function Welcome() {
         onClick={toggle}
         className={`fixed bottom-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-md backdrop-blur-sm transition-colors duration-200 ${
           theme === "dark"
-            ? "bg-white/10 text-brand-accent hover:bg-white/15"
-            : "bg-black/10 text-[#454545] hover:bg-black/15"
+            ? "bg-toggleDark text-background hover:bg-toggleDark/90"
+            : "bg-primaryButton text-toggleDark hover:bg-primaryButtonBorder"
         }`}
         aria-label="Toggle theme"
         aria-pressed={theme === "dark"}

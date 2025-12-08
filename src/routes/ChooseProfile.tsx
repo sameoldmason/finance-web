@@ -12,16 +12,21 @@ export default function ChooseProfile() {
   const [deleteMode, setDeleteMode] = useState(false);
   const [confirmFor, setConfirmFor] = useState<Profile | null>(null);
 
-  useEffect(() => { setProfiles(listProfiles()); }, []);
+  useEffect(() => {
+    setProfiles(listProfiles());
+  }, []);
   const refresh = useCallback(() => setProfiles(listProfiles()), []);
 
-  const lightBg = "bg-brand-primary bg-gradient-to-b from-[#B6C8CE] via-brand-primary to-[#869BA1]";
-  const darkBg  = "bg-[#1E3A5F] bg-gradient-to-b from-[#2E517F] via-[#1E3A5F] to-[#10263F]";
+  const lightBg =
+    "bg-background bg-gradient-to-b from-background via-cardDebt to-sidebar";
+  const darkBg =
+    "bg-toggleDark bg-gradient-to-b from-toggleDark via-toggleDark to-toggleDark";
+  const textTone = theme === "dark" ? "text-background" : "text-textPrimary";
 
   const handleOpen = (id: string) => {
-  if (deleteMode) return;
-  navigate(`/profiles/${id}/unlock`);
-};
+    if (deleteMode) return;
+    navigate(`/profiles/${id}/unlock`);
+  };
 
 
   const requestDelete = (p: Profile) => setConfirmFor(p);
@@ -40,18 +45,28 @@ export default function ChooseProfile() {
   };
 
   return (
-    <div className={`min-h-[100svh] w-full flex items-center justify-center ${theme === "dark" ? darkBg : lightBg} text-brand-accent`}>
+    <div
+      className={`min-h-[100svh] w-full flex items-center justify-center ${
+        theme === "dark" ? darkBg : lightBg
+      } ${textTone}`}
+    >
       <div className="w-full max-w-[880px] px-6 py-10 relative">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-center tracking-tight mb-1">Welcome Back!</h1>
-        <p className="text-center opacity-80 mb-8">Choose a profile.</p>
+        <h1 className="text-4xl md:text-5xl font-extrabold text-center tracking-tight mb-1">
+          Welcome Back!
+        </h1>
+        <p className="text-center text-textMuted mb-8">Choose a profile.</p>
 
         <div className="flex items-center justify-center gap-8 md:gap-10">
           {profiles.map((p) => (
             <div key={p.id} className="relative">
-              <button onClick={() => handleOpen(p.id)} className="group relative h-24 w-24 md:h-28 md:w-28 rounded-full ring-2 ring-white/70 hover:ring-white shadow-md transition" title={p.name}>
+              <button
+                onClick={() => handleOpen(p.id)}
+                className="group relative h-24 w-24 md:h-28 md:w-28 rounded-full ring-2 ring-borderMedium hover:ring-accent shadow-md transition"
+                title={p.name}
+              >
                 <div className="absolute inset-0 rounded-full overflow-hidden">
-                  <div className="h-full w-full flex items-center justify-center bg-white/90">
-                    <span className="text-2xl md:text-3xl font-semibold text-[#3b3b3b]">
+                  <div className="h-full w-full flex items-center justify-center bg-cardDebt">
+                    <span className="text-2xl md:text-3xl font-semibold text-toggleDark">
                       {p.name.split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase()}
                     </span>
                   </div>
@@ -76,8 +91,13 @@ export default function ChooseProfile() {
             </div>
           ))}
 
-          <Link to="/profiles/new" className="h-24 w-24 md:h-28 md:w-28 rounded-full bg-white/85 hover:bg-white transition flex items-center justify-center shadow-md" aria-label="Create new profile" title="Create new profile">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#3b3b3b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <Link
+            to="/profiles/new"
+            className="h-24 w-24 md:h-28 md:w-28 rounded-full border border-primaryButtonBorder bg-primaryButton hover:bg-primaryButtonBorder transition flex items-center justify-center shadow-md"
+            aria-label="Create new profile"
+            title="Create new profile"
+          >
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2F3A30" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 5v14M5 12h14" />
             </svg>
           </Link>
@@ -89,7 +109,7 @@ export default function ChooseProfile() {
             className={`fixed bottom-4 left-4 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-md backdrop-blur-sm transition ${
               deleteMode
                 ? "bg-red-500/90 text-white hover:bg-red-500"
-                : "bg-black/10 text-[#454545] hover:bg-black/15"
+                : "bg-primaryButton text-toggleDark hover:bg-primaryButtonBorder"
             }`}
             aria-pressed={deleteMode}
             aria-label={deleteMode ? "Exit delete mode" : "Delete profiles"}
@@ -110,8 +130,8 @@ export default function ChooseProfile() {
         onClick={toggle}
         className={`fixed bottom-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-md backdrop-blur-sm transition-colors duration-200 ${
           theme === "dark"
-            ? "bg-white/10 text-brand-accent hover:bg-white/15"
-            : "bg-black/10 text-[#454545] hover:bg-black/15"
+            ? "bg-toggleDark text-background hover:bg-toggleDark/90"
+            : "bg-primaryButton text-toggleDark hover:bg-primaryButtonBorder"
         }`}
         aria-label="Toggle theme"
         aria-pressed={theme === "dark"}

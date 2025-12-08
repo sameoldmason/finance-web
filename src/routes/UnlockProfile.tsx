@@ -28,9 +28,10 @@ export default function UnlockProfile() {
   }, [id, navigate]);
 
   const lightBg =
-    "bg-brand-primary bg-gradient-to-b from-[#B6C8CE] via-brand-primary to-[#869BA1]";
+    "bg-background bg-gradient-to-b from-background via-cardDebt to-sidebar";
   const darkBg =
-    "bg-[#1E3A5F] bg-gradient-to-b from-[#2E517F] via-[#1E3A5F] to-[#10263F]";
+    "bg-toggleDark bg-gradient-to-b from-toggleDark via-toggleDark to-toggleDark";
+  const textTone = theme === "dark" ? "text-background" : "text-textPrimary";
 
   const initials = useMemo(() => {
     const parts = profileName.trim().split(/\s+/).filter(Boolean);
@@ -65,12 +66,12 @@ export default function UnlockProfile() {
     <div
       className={`min-h-[100svh] w-full flex items-center justify-center ${
         theme === "dark" ? darkBg : lightBg
-      } text-brand-accent relative`}
+      } ${textTone} relative`}
     >
       {/* Back */}
       <button
         onClick={() => navigate("/profiles")}
-        className="absolute top-4 left-4 flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/15 transition"
+        className="absolute top-4 left-4 flex items-center justify-center w-10 h-10 rounded-full border border-borderMedium bg-primaryButton text-toggleDark hover:bg-primaryButtonBorder transition"
         aria-label="Back"
         title="Back"
       >
@@ -89,19 +90,19 @@ export default function UnlockProfile() {
         </svg>
       </button>
 
-      <div className="-translate-y-6 w-full max-w-[760px] rounded-2xl bg-black/10 p-8 backdrop-blur-sm shadow-md">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-center tracking-tight">
+      <div className="-translate-y-6 w-full max-w-[760px] rounded-2xl bg-cardDebt p-8 shadow-md">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-center tracking-tight text-textPrimary">
           Welcome Back!
         </h1>
-        <p className="text-center opacity-80 mt-1 mb-8">Enter Password</p>
+        <p className="text-center text-textMuted mt-1 mb-8">Enter Password</p>
 
         <form
           onSubmit={onSubmit}
           className="flex items-start justify-center gap-6"
         >
           {/* Avatar */}
-          <div className="relative h-16 w-16 md:h-20 md:w-20 rounded-full ring-2 ring-white/60 overflow-hidden bg-white/90 flex items-center justify-center">
-            <span className="text-2xl md:text-3xl font-semibold text-[#3b3b3b]">
+          <div className="relative h-16 w-16 md:h-20 md:w-20 rounded-full ring-2 ring-primaryButtonBorder overflow-hidden bg-cardDebt flex items-center justify-center">
+            <span className="text-2xl md:text-3xl font-semibold text-toggleDark">
               {initials}
             </span>
           </div>
@@ -115,21 +116,21 @@ export default function UnlockProfile() {
                 autoFocus
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-[300px] md:w-[360px] rounded-lg bg-white/80 text-[#222] placeholder-[#666] px-3 py-2 outline-none focus:ring-2 focus:ring-brand-primary"
+                className="w-[300px] md:w-[360px] rounded-lg border border-borderSoft bg-background px-3 py-2 text-textPrimary placeholder-textSubtle outline-none focus:ring-2 focus:ring-accent"
                 placeholder="Password"
                 aria-label="Password"
               />
-              <p className="px-1 text-xs leading-snug text-white/80">
+              <p className="px-1 text-xs leading-snug text-textSubtle">
                 {passwordHint ? `Hint: ${passwordHint}` : "No hint saved for this profile."}
               </p>
             </div>
             <button
               type="submit"
               disabled={!password || busy}
-              className={`rounded-xl px-4 py-2 transition ${
+              className={`rounded-xl border px-4 py-2 transition ${
                 !password || busy
-                  ? "bg-white/20 text-white/60 cursor-not-allowed"
-                  : "bg-brand-accent text-[#454545] hover:brightness-110 active:brightness-95"
+                  ? "border-borderSoft bg-borderSoft text-textSubtle cursor-not-allowed"
+                  : "border-primaryButtonBorder bg-primaryButton text-toggleDark hover:bg-primaryButtonBorder active:brightness-95"
               }`}
             >
               {busy ? "…" : "Unlock"}
@@ -139,7 +140,7 @@ export default function UnlockProfile() {
 
         {error && (
           <p
-            className="text-sm text-red-200 text-center mt-4"
+            className="text-sm text-red-700 text-center mt-4"
             role="alert"
             aria-live="assertive"
           >
@@ -153,8 +154,8 @@ export default function UnlockProfile() {
         onClick={toggle}
         className={`fixed bottom-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-md backdrop-blur-sm transition-colors duration-200 ${
           theme === "dark"
-            ? "bg-white/10 text-brand-accent hover:bg-white/15"
-            : "bg-black/10 text-[#454545] hover:bg-black/15"
+            ? "bg-toggleDark text-background hover:bg-toggleDark/90"
+            : "bg-primaryButton text-toggleDark hover:bg-primaryButtonBorder"
         }`}
         aria-label="Toggle theme"
         aria-pressed={theme === "dark"}
