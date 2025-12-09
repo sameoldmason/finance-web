@@ -7,6 +7,7 @@ Live site: https://finance-web-delta.vercel.app
 ---
 
 ## What's live
+
 - Profiles: create up to 3 profiles with a password and optional hint, unlock screen, rename, delete, and session-level rehydration of the active profile.
 - Appearance: theme picker with palette options (bare, warm) plus light/dark modes; floating shortcut button.
 - Accounts: add debit or credit accounts with balances; credit supports limits, APR %, minimum payments, and starting balance snapshots; edit/delete/restore through the accounts list; balance changes generate adjustment transactions.
@@ -20,6 +21,7 @@ Live site: https://finance-web-delta.vercel.app
 ---
 
 ## Data and storage
+
 - Profiles, dashboard data, and theme choices are stored in `localStorage`; the active profile id is kept in `sessionStorage`.
 - No remote storage or sync. Clearing browser storage will wipe the app.
 - Passwords are stored locally (not hashed); they are a light lock for shared devices, not strong security.
@@ -27,14 +29,16 @@ Live site: https://finance-web-delta.vercel.app
 ---
 
 ## Project structure
+
 - `src/routes/` - Landing, Welcome, profile create/unlock, Dashboard.
 - `src/lib/` - Persistence, finance types, net worth and debt-payoff math.
-- `src/components/dashboard/` - Net worth card.
+- `src/components/dashboard/ – Dashboard components (header, accounts, bills, net worth, debt payoff).
 - `src/ThemeProvider.tsx`, `src/MoneyVisibilityContext.tsx` - Theme palette/mode and hide-money state.
 
 ---
 
 ## Tech stack
+
 - React 19, TypeScript, Vite, React Router.
 - TailwindCSS for styling.
 - Recharts for net worth charting.
@@ -50,3 +54,5 @@ npm run dev
 
 Build: `npm run build` then `npm run preview`  
 Tests: `npm test`
+
+Note: Project may switch to path aliases in the future (@components/_, @lib/_) to reduce long relative imports.
