@@ -211,9 +211,7 @@ export default function Dashboard() {
   >("detailed");
   const [hideMoney, setHideMoney] = useState(false);
   const [debtPayoffSettings, setDebtPayoffSettings] =
-    useState<DebtPayoffSettings>(DEFAULT_DEBT_SETTINGS);
-  const [isAppMenuOpen, setIsAppMenuOpen] = useState(false);
-  const [isAboutOpen, setIsAboutOpen] = useState(false);
+    useState<DebtPayoffSettings>(DEFAULT_DEBT_SETTINGS);  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [pendingOverpay, setPendingOverpay] = useState<{
     accountId: string;
     accountName: string;
@@ -224,7 +222,6 @@ export default function Dashboard() {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isEditingProfileName, setIsEditingProfileName] = useState(false);
   const [profileNameInput, setProfileNameInput] = useState("");
-  const [profileNameError, setProfileNameError] = useState("");
 
   // Modals
   const [isNewTxOpen, setIsNewTxOpen] = useState(false);
@@ -1166,9 +1163,7 @@ export default function Dashboard() {
 
   const profileName = activeProfile?.name ?? "Profile";
   const avatarInitial = profileName.trim().charAt(0)?.toUpperCase() || "P";
-  const [isAppMenuOpen, setIsAppMenuOpen] = useState(false);
-const [isEditingProfileName, setIsEditingProfileName] = useState(false);
-const [profileNameInput, setProfileNameInput] = useState("");
+ const [isAppMenuOpen, setIsAppMenuOpen] = useState(false);
 const [profileNameError, setProfileNameError] = useState("");
 
 
