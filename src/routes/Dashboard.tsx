@@ -1,5 +1,5 @@
 // src/routes/Dashboard.tsx
-import { DashboardHeader } from "./dashboard/DashboardHeader";
+import { DashboardHeader } from "../components/dashboard/DashboardHeader";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ThemeMode, ThemePalette, useTheme } from "../ThemeProvider";
@@ -205,13 +205,16 @@ export default function Dashboard() {
   const [bills, setBills] = useState<Bill[]>([]);
 
   // Net worth
-  const [netWorthHistory, setNetWorthHistory] = useState<NetWorthSnapshot[]>([]);
+  const [netWorthHistory, setNetWorthHistory] = useState<NetWorthSnapshot[]>(
+    []
+  );
   const [netWorthViewMode, setNetWorthViewMode] = useState<
     "minimal" | "detailed"
   >("detailed");
   const [hideMoney, setHideMoney] = useState(false);
   const [debtPayoffSettings, setDebtPayoffSettings] =
-    useState<DebtPayoffSettings>(DEFAULT_DEBT_SETTINGS);  const [isAboutOpen, setIsAboutOpen] = useState(false);
+    useState<DebtPayoffSettings>(DEFAULT_DEBT_SETTINGS);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [pendingOverpay, setPendingOverpay] = useState<{
     accountId: string;
     accountName: string;
@@ -228,8 +231,7 @@ export default function Dashboard() {
   const [isTransferOpen, setIsTransferOpen] = useState(false);
   const [isAccountsListOpen, setIsAccountsListOpen] = useState(false);
   const [isNewAccountOpen, setIsNewAccountOpen] = useState(false);
-  const [isTransactionsModalOpen, setIsTransactionsModalOpen] =
-    useState(false);
+  const [isTransactionsModalOpen, setIsTransactionsModalOpen] = useState(false);
   const [isNewBillOpen, setIsNewBillOpen] = useState(false);
   const [isBillsModalOpen, setIsBillsModalOpen] = useState(false);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -332,9 +334,7 @@ export default function Dashboard() {
     setNetWorthHistory(loaded.netWorthHistory ?? []);
     setNetWorthViewMode(loaded.netWorthViewMode ?? "detailed");
     setHideMoney(loaded.hideMoney ?? false);
-    setDebtPayoffSettings(
-      loaded.debtPayoffSettings ?? DEFAULT_DEBT_SETTINGS
-    );
+    setDebtPayoffSettings(loaded.debtPayoffSettings ?? DEFAULT_DEBT_SETTINGS);
     setEditButtonForId(null);
   }, [activeProfile?.id]);
 
@@ -416,8 +416,8 @@ export default function Dashboard() {
           typeof acc.apr === "number"
             ? acc.apr
             : typeof acc.aprPercent === "number"
-              ? acc.aprPercent / 100
-              : 0.2; // default fallback when no APR is provided
+            ? acc.aprPercent / 100
+            : 0.2; // default fallback when no APR is provided
         const minimumPayment =
           typeof acc.minimumPayment === "number"
             ? Math.max(0, acc.minimumPayment)
@@ -467,14 +467,14 @@ export default function Dashboard() {
     debtInputs.length === 0
       ? "Add a debt account to start tracking."
       : debtPayoffSummary?.insufficientAllocation
-        ? "Monthly allocation must be at least your total minimum payments."
-        : debtPayoffSettings.mode === "snowball"
-          ? `Next payoff: ${nextDebtName ?? "—"} · Est. ${formatFriendlyDate(
-              debtPayoffSummary?.nextDebtEstimatedPayoffDate ?? null
-            )}`
-          : `Estimated debt-free: ${formatFriendlyDate(
-              debtPayoffSummary?.overallEstimatedDebtFreeDate ?? null
-            )}`;
+      ? "Monthly allocation must be at least your total minimum payments."
+      : debtPayoffSettings.mode === "snowball"
+      ? `Next payoff: ${nextDebtName ?? "—"} · Est. ${formatFriendlyDate(
+          debtPayoffSummary?.nextDebtEstimatedPayoffDate ?? null
+        )}`
+      : `Estimated debt-free: ${formatFriendlyDate(
+          debtPayoffSummary?.overallEstimatedDebtFreeDate ?? null
+        )}`;
 
   const updateDebtPayoffMode = (mode: DebtPayoffMode) => {
     setDebtPayoffSettings((prev) => ({ ...prev, mode }));
@@ -617,21 +617,29 @@ export default function Dashboard() {
     if (!existing) return;
 
     const isTransfer = isTransferTransaction(existing);
-    const partner = isTransfer ? findTransferPartner(existing, transactions) : undefined;
+    const partner = isTransfer
+      ? findTransferPartner(existing, transactions)
+      : undefined;
 
     const nextAmount =
       updates.amount !== undefined ? updates.amount : existing.amount;
     const partnerAmount = partner ? -nextAmount : undefined;
 
     let groupId =
-      existing.transferGroupId ?? partner?.transferGroupId ?? (isTransfer ? crypto.randomUUID() : undefined);
+      existing.transferGroupId ??
+      partner?.transferGroupId ??
+      (isTransfer ? crypto.randomUUID() : undefined);
 
     const primaryDelta = nextAmount - existing.amount;
     const partnerDelta =
-      partner && partnerAmount !== undefined ? partnerAmount - partner.amount : 0;
+      partner && partnerAmount !== undefined
+        ? partnerAmount - partner.amount
+        : 0;
 
     if (!skipOverpayCheck) {
-      const primaryAccount = accounts.find((acc) => acc.id === existing.accountId);
+      const primaryAccount = accounts.find(
+        (acc) => acc.id === existing.accountId
+      );
       if (primaryAccount && willOverpayDebt(primaryAccount, primaryDelta)) {
         const nextBalance = primaryAccount.balance + primaryDelta;
         setPendingOverpay({
@@ -645,7 +653,9 @@ export default function Dashboard() {
       }
 
       if (partner && partnerAmount !== undefined) {
-        const partnerAccount = accounts.find((acc) => acc.id === partner.accountId);
+        const partnerAccount = accounts.find(
+          (acc) => acc.id === partner.accountId
+        );
         if (partnerAccount && willOverpayDebt(partnerAccount, partnerDelta)) {
           const nextBalance = partnerAccount.balance + partnerDelta;
           setPendingOverpay({
@@ -750,8 +760,8 @@ export default function Dashboard() {
       typeof newAccount.apr === "number"
         ? newAccount.apr
         : typeof newAccount.aprPercent === "number"
-          ? newAccount.aprPercent / 100
-          : undefined;
+        ? newAccount.aprPercent / 100
+        : undefined;
     const startingBalance =
       isDebt && newAccount.startingBalance === undefined
         ? Math.abs(newAccount.balance)
@@ -778,13 +788,7 @@ export default function Dashboard() {
 
   // Transfer between accounts
   function handleTransfer(
-    {
-      fromAccountId,
-      toAccountId,
-      amount,
-      date,
-      note,
-    }: TransferInput,
+    { fromAccountId, toAccountId, amount, date, note }: TransferInput,
     skipOverpayCheck = false
   ) {
     if (!amount || amount <= 0) return;
@@ -800,10 +804,7 @@ export default function Dashboard() {
 
     if (!fromAccount || !toAccount) return;
 
-    if (
-      !skipOverpayCheck &&
-      willOverpayDebt(toAccount, toDelta)
-    ) {
+    if (!skipOverpayCheck && willOverpayDebt(toAccount, toDelta)) {
       const nextBalance = toAccount.balance + toDelta;
       setPendingOverpay({
         accountId: toAccount.id,
@@ -886,23 +887,22 @@ export default function Dashboard() {
         ? typeof updates.apr === "number"
           ? updates.apr
           : nextAprPercent != null
-            ? nextAprPercent / 100
-            : typeof original.apr === "number"
-              ? original.apr
-              : original.aprPercent != null
-                ? original.aprPercent / 100
-                : undefined
+          ? nextAprPercent / 100
+          : typeof original.apr === "number"
+          ? original.apr
+          : original.aprPercent != null
+          ? original.aprPercent / 100
+          : undefined
         : undefined;
     const nextMinimumPayment =
       nextCategory === "debt"
         ? updates.minimumPayment ?? original.minimumPayment
         : undefined;
-    const nextStartingBalance =
-      isDebt
-        ? updates.startingBalance ??
-          original.startingBalance ??
-          Math.abs(nextBalance)
-        : undefined;
+    const nextStartingBalance = isDebt
+      ? updates.startingBalance ??
+        original.startingBalance ??
+        Math.abs(nextBalance)
+      : undefined;
 
     setAccounts((prev) =>
       prev.map((acc) =>
@@ -1092,9 +1092,7 @@ export default function Dashboard() {
     try {
       await deleteProfile(activeProfile.id);
       try {
-        localStorage.removeItem(
-          `finance-web:dashboard:${activeProfile.id}`
-        );
+        localStorage.removeItem(`finance-web:dashboard:${activeProfile.id}`);
       } catch (err) {
         console.warn("Failed to clear dashboard cache for profile", err);
       }
@@ -1138,7 +1136,9 @@ export default function Dashboard() {
       setProfileNameError("");
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Failed to update profile name.";
+        error instanceof Error
+          ? error.message
+          : "Failed to update profile name.";
       setProfileNameError(message);
     }
   }
@@ -1163,9 +1163,8 @@ export default function Dashboard() {
 
   const profileName = activeProfile?.name ?? "Profile";
   const avatarInitial = profileName.trim().charAt(0)?.toUpperCase() || "P";
- const [isAppMenuOpen, setIsAppMenuOpen] = useState(false);
-const [profileNameError, setProfileNameError] = useState("");
-
+  const [isAppMenuOpen, setIsAppMenuOpen] = useState(false);
+  const [profileNameError, setProfileNameError] = useState("");
 
   // Compute which accounts to show in the 2-pill carousel
   let visibleAccounts: Account[] = [];
@@ -1199,23 +1198,22 @@ const [profileNameError, setProfileNameError] = useState("");
     { label: "Log Out", onClick: handleLogout },
   ];
 
-const headerProps = {
-  appMenuItems,
-  isAppMenuOpen,
-  onToggleAppMenu: () => setIsAppMenuOpen((prev) => !prev),
+  const headerProps = {
+    appMenuItems,
+    isAppMenuOpen,
+    onToggleAppMenu: () => setIsAppMenuOpen((prev) => !prev),
 
-  activeProfileExists: !!activeProfile,
-  profileName,
-  isEditingProfileName,
-  profileNameInput,
-  profileNameError,
-  onProfileNameInputChange: (value: string) => setProfileNameInput(value),
-  onProfileNameSubmit: handleProfileNameSubmit,
-  onStartEditingProfileName: handleStartEditingProfileName,
+    activeProfileExists: !!activeProfile,
+    profileName,
+    isEditingProfileName,
+    profileNameInput,
+    profileNameError,
+    onProfileNameInputChange: (value: string) => setProfileNameInput(value),
+    onProfileNameSubmit: handleProfileNameSubmit,
+    onStartEditingProfileName: handleStartEditingProfileName,
 
-  avatarInitial,
-};
-
+    avatarInitial,
+  };
 
   return (
     <MoneyVisibilityProvider
@@ -1228,9 +1226,8 @@ const headerProps = {
       >
         <div className="flex min-h-[100svh] flex-col">
           {/* TOP BAR */}
-          
-          <DashboardHeader {...headerProps} />
 
+          <DashboardHeader {...headerProps} />
 
           <main className="w-full flex-1">
             <div className="w-full mx-auto px-4 pb-6 pt-6 sm:px-6 lg:px-8 space-y-8">
@@ -1275,7 +1272,9 @@ const headerProps = {
                             onClick={() => setIsNewTxOpen(true)}
                             className={newActionClasses}
                           >
-                            <span className="btn-label-full">New Transaction</span>
+                            <span className="btn-label-full">
+                              New Transaction
+                            </span>
                             <span className="btn-label-wrap">
                               New
                               <br />
@@ -1393,7 +1392,9 @@ const headerProps = {
                           <span>{tx.description || "Transaction"}</span>
                           <span
                             className={
-                              tx.amount < 0 ? "text-red-200" : "text-emerald-200"
+                              tx.amount < 0
+                                ? "text-red-200"
+                                : "text-emerald-200"
                             }
                           >
                             {formatCurrency(tx.amount)}
@@ -1441,8 +1442,8 @@ const headerProps = {
                   <div className="flex min-h-[232px] flex-col">
                     {unpaidBills.length === 0 ? (
                       <div className="flex flex-1 items-center justify-center rounded-xl bg-[var(--color-surface-alt)]/5 text-xs text-white/60">
-                        No upcoming bills yet. Add your first bill to get reminders
-                        here.
+                        No upcoming bills yet. Add your first bill to get
+                        reminders here.
                       </div>
                     ) : (
                       <div className="flex flex-1 flex-col">
@@ -1460,7 +1461,9 @@ const headerProps = {
                                   onClick={() => setEditingBill(bill)}
                                   className="flex flex-1 flex-col text-left"
                                 >
-                                  <span className="font-semibold">{bill.name}</span>
+                                  <span className="font-semibold">
+                                    {bill.name}
+                                  </span>
                                   <span className="flex items-center gap-2 text-[11px] text-white/60">
                                     <span>Due {bill.dueDate}</span>
 
@@ -1474,11 +1477,13 @@ const headerProps = {
                                         status.tone === "danger"
                                           ? "bg-[var(--color-surface-alt)]/20 text-[#FBD5D5]"
                                           : status.tone === "warning"
-                                            ? "bg-[var(--color-surface-alt)]/15 text-[#F2E2BE]"
-                                            : "bg-[var(--color-surface-alt)]/10 text-white/70";
+                                          ? "bg-[var(--color-surface-alt)]/15 text-[#F2E2BE]"
+                                          : "bg-[var(--color-surface-alt)]/10 text-white/70";
 
                                       return (
-                                        <span className={`${badgeBase} ${badgeColor}`}>
+                                        <span
+                                          className={`${badgeBase} ${badgeColor}`}
+                                        >
                                           {status.label}
                                         </span>
                                       );
@@ -1498,10 +1503,10 @@ const headerProps = {
                                     {bill.frequency === "weekly"
                                       ? "Weekly"
                                       : bill.frequency === "biweekly"
-                                        ? "Bi-weekly"
-                                        : bill.frequency === "once"
-                                          ? "One-time"
-                                          : "Monthly"}
+                                      ? "Bi-weekly"
+                                      : bill.frequency === "once"
+                                      ? "One-time"
+                                      : "Monthly"}
                                   </div>
                                   <button
                                     type="button"
@@ -1575,104 +1580,118 @@ const headerProps = {
           </main>
         </div>
 
-      {/* NEW TRANSACTION MODAL */}
-      {isNewTxOpen && selectedAccount && (
-        <NewTransactionModal
-          onClose={() => setIsNewTxOpen(false)}
-          accounts={accounts}
-          selectedAccountId={selectedAccountId}
-          onSave={addTransaction}
-        />
-      )}
+        {/* NEW TRANSACTION MODAL */}
+        {isNewTxOpen && selectedAccount && (
+          <NewTransactionModal
+            onClose={() => setIsNewTxOpen(false)}
+            accounts={accounts}
+            selectedAccountId={selectedAccountId}
+            onSave={addTransaction}
+          />
+        )}
 
-      {/* NEW TRANSFER MODAL */}
-      {isTransferOpen && selectedAccount && (
-        <NewTransferModal
-          onClose={() => setIsTransferOpen(false)}
-          accounts={accounts}
-          selectedAccountId={selectedAccountId}
-          onTransfer={handleTransfer}
-        />
-      )}
+        {/* NEW TRANSFER MODAL */}
+        {isTransferOpen && selectedAccount && (
+          <NewTransferModal
+            onClose={() => setIsTransferOpen(false)}
+            accounts={accounts}
+            selectedAccountId={selectedAccountId}
+            onTransfer={handleTransfer}
+          />
+        )}
 
-      {/* OVERPAY CONFIRMATION MODAL */}
-      {pendingOverpay && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
-          <div className={`w-full max-w-md ${modalCardBase} p-6 backdrop-blur-sm`}>
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
-                Confirm Overpayment
-              </h2>
-              <button
-                type="button"
-                onClick={() => setPendingOverpay(null)}
-                className={modalCloseButtonClass}
-              >
-                ✕
-              </button>
-            </div>
+        {/* OVERPAY CONFIRMATION MODAL */}
+        {pendingOverpay && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+            <div
+              className={`w-full max-w-md ${modalCardBase} p-6 backdrop-blur-sm`}
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
+                  Confirm Overpayment
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setPendingOverpay(null)}
+                  className={modalCloseButtonClass}
+                >
+                  ✕
+                </button>
+              </div>
 
-            <p className="text-sm text-[var(--color-text-secondary)]">
-              Paying {formatCurrency(Math.abs(pendingOverpay.delta))} will push{" "}
-              <span className="font-semibold text-[var(--color-text-primary)]">
-                {pendingOverpay.accountName}
-              </span>{" "}
-              above $0 (new balance {formatCurrency(pendingOverpay.nextBalance)}). Continue?
-            </p>
+              <p className="text-sm text-[var(--color-text-secondary)]">
+                Paying {formatCurrency(Math.abs(pendingOverpay.delta))} will
+                push{" "}
+                <span className="font-semibold text-[var(--color-text-primary)]">
+                  {pendingOverpay.accountName}
+                </span>{" "}
+                above $0 (new balance{" "}
+                {formatCurrency(pendingOverpay.nextBalance)}). Continue?
+              </p>
 
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setPendingOverpay(null)}
-                className={modalGhostButtonClass}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const action = pendingOverpay.onConfirm;
-                  setPendingOverpay(null);
-                  action?.();
-                }}
-                className={modalPrimaryButtonClass}
-              >
-                Continue anyway
-              </button>
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPendingOverpay(null)}
+                  className={modalGhostButtonClass}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const action = pendingOverpay.onConfirm;
+                    setPendingOverpay(null);
+                    action?.();
+                  }}
+                  className={modalPrimaryButtonClass}
+                >
+                  Continue anyway
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* ACCOUNTS LIST MODAL */}
-      {isAccountsListOpen && (
-        <AccountsListModal
-          accounts={accounts}
-          deletedAccounts={deletedAccounts}
-          onRestore={handleRestoreAccount}
-          onDelete={handleDeleteAccount}
-          onSelectAccount={handleOpenAccountEditor}
-          onClose={() => setIsAccountsListOpen(false)}
-        />
-      )}
+        {/* ACCOUNTS LIST MODAL */}
+        {isAccountsListOpen && (
+          <AccountsListModal
+            accounts={accounts}
+            deletedAccounts={deletedAccounts}
+            onRestore={handleRestoreAccount}
+            onDelete={handleDeleteAccount}
+            onSelectAccount={handleOpenAccountEditor}
+            onClose={() => setIsAccountsListOpen(false)}
+          />
+        )}
 
-      {/* NEW ACCOUNT MODAL */}
-      {isNewAccountOpen && (
-        <NewAccountModal
-          onClose={() => setIsNewAccountOpen(false)}
-          onSave={handleAddAccount}
-        />
-      )}
+        {/* NEW ACCOUNT MODAL */}
+        {isNewAccountOpen && (
+          <NewAccountModal
+            onClose={() => setIsNewAccountOpen(false)}
+            onSave={handleAddAccount}
+          />
+        )}
 
-      {/* EDIT ACCOUNT MODAL */}
-      {editingAccount && (
+        {/* EDIT ACCOUNT MODAL */}
+        {editingAccount && (
           <EditAccountModal
             account={editingAccount}
             onClose={() => {
               setEditingAccount(null);
               setEditButtonForId(null);
             }}
-            onSave={({ name, balance, accountCategory, creditLimit, aprPercent, apr, minimumPayment, startingBalance, isDebt }) => {
+            onSave={({
+              name,
+              balance,
+              accountCategory,
+              creditLimit,
+              aprPercent,
+              apr,
+              minimumPayment,
+              startingBalance,
+              isDebt,
+            }) => {
               handleSaveEditedAccount(editingAccount, {
                 name,
                 balance,
@@ -1691,170 +1710,166 @@ const headerProps = {
           />
         )}
 
-      {/* DEBT PAYOFF MODAL */}
-      {isDebtPayoffOpen && (
-        <DebtPayoffModal
-          onClose={() => setIsDebtPayoffOpen(false)}
-          debts={debtInputs}
-          summary={debtPayoffSummary}
-          settings={debtPayoffSettings}
-          totalMinimumPayments={totalMinimumPayments}
-          onModeChange={updateDebtPayoffMode}
-          onMonthlyAllocationChange={updateDebtMonthlyAllocation}
-          onShowInterestChange={updateDebtShowInterest}
-        />
-      )}
+        {/* DEBT PAYOFF MODAL */}
+        {isDebtPayoffOpen && (
+          <DebtPayoffModal
+            onClose={() => setIsDebtPayoffOpen(false)}
+            debts={debtInputs}
+            summary={debtPayoffSummary}
+            settings={debtPayoffSettings}
+            totalMinimumPayments={totalMinimumPayments}
+            onModeChange={updateDebtPayoffMode}
+            onMonthlyAllocationChange={updateDebtMonthlyAllocation}
+            onShowInterestChange={updateDebtShowInterest}
+          />
+        )}
 
-      {/* NEW BILL MODAL */}
-      {isNewBillOpen && accounts.length > 0 && (
-        <NewBillModal
-          onClose={() => setIsNewBillOpen(false)}
-          accounts={accounts}
-          selectedAccountId={selectedAccountId}
-          onSave={handleAddBill}
-        />
-      )}
+        {/* NEW BILL MODAL */}
+        {isNewBillOpen && accounts.length > 0 && (
+          <NewBillModal
+            onClose={() => setIsNewBillOpen(false)}
+            accounts={accounts}
+            selectedAccountId={selectedAccountId}
+            onSave={handleAddBill}
+          />
+        )}
 
-      {/* FULL BILLS MODAL */}
-      {isBillsModalOpen && bills.length > 0 && (
-        <BillsListModal
-          bills={bills}
-          accounts={accounts}
-          onClose={() => setIsBillsModalOpen(false)}
-          onEdit={(bill) => {
-            setEditingBill(bill);
-            setIsBillsModalOpen(false);
-          }}
-          onMarkPaid={(bill) => handleMarkBillPaid(bill)}
-        />
-      )}
+        {/* FULL BILLS MODAL */}
+        {isBillsModalOpen && bills.length > 0 && (
+          <BillsListModal
+            bills={bills}
+            accounts={accounts}
+            onClose={() => setIsBillsModalOpen(false)}
+            onEdit={(bill) => {
+              setEditingBill(bill);
+              setIsBillsModalOpen(false);
+            }}
+            onMarkPaid={(bill) => handleMarkBillPaid(bill)}
+          />
+        )}
 
-      {/* EDIT BILL MODAL */}
-      {editingBill && (
-        <EditBillModal
-          bill={editingBill}
-          accounts={accounts}
-          onClose={() => setEditingBill(null)}
-          onSave={(updated) => {
-            handleUpdateBill(updated);
-            setEditingBill(null);
-          }}
-        />
-      )}
+        {/* EDIT BILL MODAL */}
+        {editingBill && (
+          <EditBillModal
+            bill={editingBill}
+            accounts={accounts}
+            onClose={() => setEditingBill(null)}
+            onSave={(updated) => {
+              handleUpdateBill(updated);
+              setEditingBill(null);
+            }}
+          />
+        )}
 
-      {/* FULL TRANSACTIONS MODAL */}
-      {isTransactionsModalOpen && selectedAccount && (
-        <TransactionsHistoryModal
-          onClose={() => setIsTransactionsModalOpen(false)}
-          account={selectedAccount}
-          transactions={transactions.filter(
-            (tx) => tx.accountId === selectedAccount.id
-          )}
-          onEditDetails={(tx) => setEditingDetailsTx(tx)}
-          onEditAmount={(tx) => setEditingAmountTx(tx)}
-          onDelete={handleDeleteTransaction}
-        />
-      )}
+        {/* FULL TRANSACTIONS MODAL */}
+        {isTransactionsModalOpen && selectedAccount && (
+          <TransactionsHistoryModal
+            onClose={() => setIsTransactionsModalOpen(false)}
+            account={selectedAccount}
+            transactions={transactions.filter(
+              (tx) => tx.accountId === selectedAccount.id
+            )}
+            onEditDetails={(tx) => setEditingDetailsTx(tx)}
+            onEditAmount={(tx) => setEditingAmountTx(tx)}
+            onDelete={handleDeleteTransaction}
+          />
+        )}
 
-      {/* EDIT TRANSACTION – DETAILS */}
-      {editingDetailsTx && (
-        <EditTransactionDetailsModal
-          transaction={editingDetailsTx}
-          onClose={() => setEditingDetailsTx(null)}
-          onSave={(updates) => {
-            handleUpdateTransaction(editingDetailsTx.id, updates);
-            setEditingDetailsTx(null);
-          }}
-          onDelete={handleDeleteTransaction}
-        />
-      )}
+        {/* EDIT TRANSACTION – DETAILS */}
+        {editingDetailsTx && (
+          <EditTransactionDetailsModal
+            transaction={editingDetailsTx}
+            onClose={() => setEditingDetailsTx(null)}
+            onSave={(updates) => {
+              handleUpdateTransaction(editingDetailsTx.id, updates);
+              setEditingDetailsTx(null);
+            }}
+            onDelete={handleDeleteTransaction}
+          />
+        )}
 
-      {/* EDIT TRANSACTION – AMOUNT */}
-      {editingAmountTx && (
-        <EditTransactionAmountModal
-          transaction={editingAmountTx}
-          onClose={() => setEditingAmountTx(null)}
-          onSave={(amount) => {
-            handleUpdateTransaction(editingAmountTx.id, { amount });
-            setEditingAmountTx(null);
-          }}
-        />
-      )}
+        {/* EDIT TRANSACTION – AMOUNT */}
+        {editingAmountTx && (
+          <EditTransactionAmountModal
+            transaction={editingAmountTx}
+            onClose={() => setEditingAmountTx(null)}
+            onSave={(amount) => {
+              handleUpdateTransaction(editingAmountTx.id, { amount });
+              setEditingAmountTx(null);
+            }}
+          />
+        )}
 
-      {isResetModalOpen && (
-        <ResetDataModal
-          selected={resetChoice}
-          onSelect={setResetChoice}
-          onConfirm={() => {
-            if (resetChoice) {
-              performReset(resetChoice);
-            }
-          }}
-          onClose={() => {
-            setIsResetModalOpen(false);
-            setResetChoice(null);
-          }}
-          disableConfirm={!resetChoice || !activeProfile}
-        />
-      )}
+        {isResetModalOpen && (
+          <ResetDataModal
+            selected={resetChoice}
+            onSelect={setResetChoice}
+            onConfirm={() => {
+              if (resetChoice) {
+                performReset(resetChoice);
+              }
+            }}
+            onClose={() => {
+              setIsResetModalOpen(false);
+              setResetChoice(null);
+            }}
+            disableConfirm={!resetChoice || !activeProfile}
+          />
+        )}
 
-      {isDeleteProfilePromptOpen && (
-        <DeleteProfilePrompt
-          onStay={() => setIsDeleteProfilePromptOpen(false)}
-          onDelete={handleDeleteProfileAfterReset}
-        />
-      )}
+        {isDeleteProfilePromptOpen && (
+          <DeleteProfilePrompt
+            onStay={() => setIsDeleteProfilePromptOpen(false)}
+            onDelete={handleDeleteProfileAfterReset}
+          />
+        )}
 
-      {isLogoutPromptOpen && (
-        <LogoutPrompt
-          onStay={() => setIsLogoutPromptOpen(false)}
-          onConfirm={handleConfirmLogout}
-        />
-      )}
+        {isLogoutPromptOpen && (
+          <LogoutPrompt
+            onStay={() => setIsLogoutPromptOpen(false)}
+            onConfirm={handleConfirmLogout}
+          />
+        )}
 
-      {/* ABOUT MODAL */}
-      {isAboutOpen && (
-        <AboutModal onClose={() => setIsAboutOpen(false)} />
-      )}
+        {/* ABOUT MODAL */}
+        {isAboutOpen && <AboutModal onClose={() => setIsAboutOpen(false)} />}
 
-      {/* FEEDBACK MODAL */}
-      {isFeedbackOpen && (
-        <FeedbackModal onClose={() => setIsFeedbackOpen(false)} />
-      )}
+        {/* FEEDBACK MODAL */}
+        {isFeedbackOpen && (
+          <FeedbackModal onClose={() => setIsFeedbackOpen(false)} />
+        )}
 
-      {isThemePickerOpen && (
-        <ThemePickerModal
-          onClose={() => setIsThemePickerOpen(false)}
-        />
-      )}
+        {isThemePickerOpen && (
+          <ThemePickerModal onClose={() => setIsThemePickerOpen(false)} />
+        )}
 
-      {/* THEME TOGGLE */}
-      <button
-        type="button"
-        onClick={() => setIsThemePickerOpen(true)}
-        className={`fixed bottom-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-colors duration-200 ${
-          theme === "dark"
-            ? "bg-[var(--color-surface-alt)]/10 text-brand-accent hover:bg-[var(--color-surface-alt)]/15"
-            : "bg-black/10 text-[var(--color-text-primary)] hover:bg-black/15"
-        }`}
-        aria-label="Open appearance settings"
-        title="Open appearance settings"
-      >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+        {/* THEME TOGGLE */}
+        <button
+          type="button"
+          onClick={() => setIsThemePickerOpen(true)}
+          className={`fixed bottom-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-colors duration-200 ${
+            theme === "dark"
+              ? "bg-[var(--color-surface-alt)]/10 text-brand-accent hover:bg-[var(--color-surface-alt)]/15"
+              : "bg-black/10 text-[var(--color-text-primary)] hover:bg-black/15"
+          }`}
+          aria-label="Open appearance settings"
+          title="Open appearance settings"
         >
-          <circle cx="12" cy="11" r="4" />
-          <path d="M10 18h4M10 21h4" />
-        </svg>
-      </button>
-    </div>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="11" r="4" />
+            <path d="M10 18h4M10 21h4" />
+          </svg>
+        </button>
+      </div>
     </MoneyVisibilityProvider>
   );
 }
@@ -1929,7 +1944,10 @@ function DebtPayoffModal({
 
   const displayDebts =
     summary?.debts ??
-    debts.map((debt) => ({ ...debt, estimatedPayoffDate: null as Date | null }));
+    debts.map((debt) => ({
+      ...debt,
+      estimatedPayoffDate: null as Date | null,
+    }));
 
   const progress =
     summary && debts.length > 0
@@ -1937,9 +1955,7 @@ function DebtPayoffModal({
         ? summary.progressToNextDebt
         : summary.progressTotalPaid
       : 0;
-  const progressPercent = Math.round(
-    Math.max(0, Math.min(1, progress)) * 100
-  );
+  const progressPercent = Math.round(Math.max(0, Math.min(1, progress)) * 100);
 
   const nextDebt =
     summary?.nextDebtId && summary.debts
@@ -1958,7 +1974,8 @@ function DebtPayoffModal({
               Debt Payoff Progress
             </h2>
             <p className="text-xs text-[var(--color-text-secondary)]">
-              Switch modes, adjust your monthly allocation, and see estimated payoff dates.
+              Switch modes, adjust your monthly allocation, and see estimated
+              payoff dates.
             </p>
           </div>
           <button
@@ -2001,7 +2018,9 @@ function DebtPayoffModal({
             type="button"
             onClick={() => onShowInterestChange(!settings.showInterest)}
             className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-              settings.showInterest ? modalToggleActiveClass : modalToggleInactiveClass
+              settings.showInterest
+                ? modalToggleActiveClass
+                : modalToggleInactiveClass
             }`}
           >
             {settings.showInterest ? "Hide interest" : "Show interest"}
@@ -2009,9 +2028,7 @@ function DebtPayoffModal({
         </div>
 
         <div className="mb-4">
-          <label className={modalLabelClass}>
-            Monthly Allocation for Debt
-          </label>
+          <label className={modalLabelClass}>Monthly Allocation for Debt</label>
           <input
             type="text"
             inputMode="decimal"
@@ -2030,7 +2047,8 @@ function DebtPayoffModal({
           </button>
           {insufficient && (
             <p className="mt-1 text-xs text-[#FBD5D5]">
-              Monthly allocation must be at least your total minimum payments ({formatCurrency(totalMinimumPayments)}).
+              Monthly allocation must be at least your total minimum payments (
+              {formatCurrency(totalMinimumPayments)}).
             </p>
           )}
         </div>
@@ -2046,14 +2064,18 @@ function DebtPayoffModal({
           </div>
           <div className="max-h-[320px] space-y-2 overflow-y-auto pr-1">
             {displayDebts.length === 0 ? (
-              <div className={`${modalSurfaceAltCard} px-3 py-3 text-sm text-[var(--color-text-secondary)]`}>
+              <div
+                className={`${modalSurfaceAltCard} px-3 py-3 text-sm text-[var(--color-text-secondary)]`}
+              >
                 Mark an account as credit to start tracking payoff progress.
               </div>
             ) : (
               displayDebts.map((debt) => (
                 <div
                   key={debt.id}
-                  className={`grid gap-3 rounded-xl ${modalSurfaceAltCard} px-4 py-3 text-sm ${settings.showInterest ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}
+                  className={`grid gap-3 rounded-xl ${modalSurfaceAltCard} px-4 py-3 text-sm ${
+                    settings.showInterest ? "sm:grid-cols-4" : "sm:grid-cols-3"
+                  }`}
                 >
                   <div className="sm:col-span-1">
                     <p className="text-sm font-semibold text-[var(--color-text-primary)]">
@@ -2080,7 +2102,8 @@ function DebtPayoffModal({
                         {(debt.apr * 100).toFixed(2)}%
                       </p>
                       <p className="text-[11px] text-[var(--color-text-secondary)]">
-                        Est. monthly {formatCurrency(debt.balance * (debt.apr / 12))}
+                        Est. monthly{" "}
+                        {formatCurrency(debt.balance * (debt.apr / 12))}
                       </p>
                     </div>
                   )}
@@ -2119,12 +2142,16 @@ function DebtPayoffModal({
                 Estimated debt-free
               </p>
               <p className="font-semibold text-[var(--color-text-primary)]">
-                {formatFriendlyDate(summary?.overallEstimatedDebtFreeDate ?? null)}
+                {formatFriendlyDate(
+                  summary?.overallEstimatedDebtFreeDate ?? null
+                )}
               </p>
               {settings.mode === "snowball" && (
                 <p className="text-[11px] text-[var(--color-text-secondary)]">
                   Next debt est.:{" "}
-                  {formatFriendlyDate(summary?.nextDebtEstimatedPayoffDate ?? null)}
+                  {formatFriendlyDate(
+                    summary?.nextDebtEstimatedPayoffDate ?? null
+                  )}
                 </p>
               )}
             </div>
@@ -2164,12 +2191,14 @@ function ResetDataModal({
     {
       key: "transactions",
       title: "Delete only transactions",
-      detail: "Clear everyday income and expenses. Transfers and accounts stay put.",
+      detail:
+        "Clear everyday income and expenses. Transfers and accounts stay put.",
     },
     {
       key: "transfers",
       title: "Delete only transfers",
-      detail: "Remove transfer history while keeping transactions and account balances.",
+      detail:
+        "Remove transfer history while keeping transactions and account balances.",
     },
     {
       key: "transactions-transfers",
@@ -2179,7 +2208,8 @@ function ResetDataModal({
     {
       key: "accounts-all",
       title: "Accounts + transactions + transfers",
-      detail: "Start fresh with empty accounts. You can delete the profile next if you want.",
+      detail:
+        "Start fresh with empty accounts. You can delete the profile next if you want.",
     },
   ];
 
@@ -2206,7 +2236,8 @@ function ResetDataModal({
               Choose what to reset
             </h2>
             <p className={`${modalSubtleTextClass} mt-1`}>
-              Stay on the dashboard for the first three options. The last option offers a profile delete.
+              Stay on the dashboard for the first three options. The last option
+              offers a profile delete.
             </p>
           </div>
           <button
@@ -2351,8 +2382,8 @@ function DeleteProfilePrompt({ onStay, onDelete }: DeleteProfilePromptProps) {
         </div>
 
         <p className={modalSubtleTextClass}>
-          Accounts, transactions, and transfers are cleared. Stay to rebuild the dashboard,
-          or delete the profile to head back to the profile selector.
+          Accounts, transactions, and transfers are cleared. Stay to rebuild the
+          dashboard, or delete the profile to head back to the profile selector.
         </p>
 
         <div className="mt-5 flex items-center justify-end gap-3">
@@ -2429,8 +2460,8 @@ function LogoutPrompt({ onStay, onConfirm }: LogoutPromptProps) {
         </div>
 
         <p className={modalSubtleTextClass}>
-          We&apos;ll take you back to the profile screen. Your data stays saved for the next
-          sign in.
+          We&apos;ll take you back to the profile screen. Your data stays saved
+          for the next sign in.
         </p>
 
         <div className="mt-5 flex items-center justify-end gap-3">
@@ -2494,21 +2525,39 @@ function AboutModal({ onClose }: AboutModalProps) {
 
         <div className="space-y-3 leading-relaxed">
           <p className={modalSubtleTextClass}>
-            bare.money is a simple personal finance dashboard I'm building for myself.
+            bare.money is a simple personal finance dashboard I'm building for
+            myself.
             <br />
-            In Toronto, "bare" means a lot - and that's what money usually feels like. A lot to think about. A lot to manage. A lot to learn. I wanted something that made all of that feel lighter. Something clean, fast, and not packed with features I'd never touch. So I made my own.
+            In Toronto, "bare" means a lot - and that's what money usually feels
+            like. A lot to think about. A lot to manage. A lot to learn. I
+            wanted something that made all of that feel lighter. Something
+            clean, fast, and not packed with features I'd never touch. So I made
+            my own.
           </p>
           <p className={modalSubtleTextClass}>
-            The app keeps everything straightforward. You can create profiles, manage accounts, track income and expenses, move money around, and see your activity at a glance. Everything stays stored locally in your browser - your data is yours. No sign-ups. No syncing. No servers. Just a calm, simple tool that helps you understand where your money is going.
+            The app keeps everything straightforward. You can create profiles,
+            manage accounts, track income and expenses, move money around, and
+            see your activity at a glance. Everything stays stored locally in
+            your browser - your data is yours. No sign-ups. No syncing. No
+            servers. Just a calm, simple tool that helps you understand where
+            your money is going.
           </p>
           <p className={modalSubtleTextClass}>
-            bare.money is still growing. Soon, it'll include recurring bills, net-worth tracking, and debt payoff tools. The goal is for all of it to feel soft, minimal, and personal - something that supports your life instead of overwhelming it.
+            bare.money is still growing. Soon, it'll include recurring bills,
+            net-worth tracking, and debt payoff tools. The goal is for all of it
+            to feel soft, minimal, and personal - something that supports your
+            life instead of overwhelming it.
           </p>
           <p className={modalSubtleTextClass}>
-            You don't need to be a finance expert. You don't need perfect habits. You just need a place to start.
+            You don't need to be a finance expert. You don't need perfect
+            habits. You just need a place to start.
           </p>
           <p className={modalSubtleTextClass}>
-            This project isn't a company or a startup (at least not yet). It's just me learning, building, and trying to get my money right. I want bare.money to reflect that journey - real progress, real mistakes, and real change. If it works for me, maybe it'll work for anyone else who feels the same way.
+            This project isn't a company or a startup (at least not yet). It's
+            just me learning, building, and trying to get my money right. I want
+            bare.money to reflect that journey - real progress, real mistakes,
+            and real change. If it works for me, maybe it'll work for anyone
+            else who feels the same way.
           </p>
           <p className={modalSubtleTextClass}>
             If you like this calm, honest approach to budgeting, stick around.
@@ -2823,8 +2872,7 @@ function NewTransactionModal({
       txType === "income" ? Math.abs(amountNumber) : -Math.abs(amountNumber);
 
     const date =
-      (formData.get("date") as string) ||
-      new Date().toISOString().slice(0, 10);
+      (formData.get("date") as string) || new Date().toISOString().slice(0, 10);
 
     const description =
       (formData.get("description") as string) || "Transaction";
@@ -2846,9 +2894,7 @@ function NewTransactionModal({
       <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
         <div className={`w-full max-w-md ${modalCardBase} p-6`}>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">
-              New Transaction
-            </h2>
+            <h2 className="text-lg font-semibold">New Transaction</h2>
             <button
               type="button"
               onClick={onClose}
@@ -2957,10 +3003,7 @@ function NewTransactionModal({
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                className={modalPrimaryButtonClass}
-              >
+              <button type="submit" className={modalPrimaryButtonClass}>
                 Save Transaction
               </button>
             </div>
@@ -3042,9 +3085,7 @@ function AccountsListModal({
               type="button"
               onClick={() => setShowDeleted((prev) => !prev)}
               className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                showDeleted
-                  ? modalToggleActiveClass
-                  : modalToggleInactiveClass
+                showDeleted ? modalToggleActiveClass : modalToggleInactiveClass
               }`}
             >
               {showDeleted ? "Show active" : "Show deleted"}
@@ -3087,7 +3128,9 @@ function AccountsListModal({
                   {formatCurrency(account.balance)}
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-[var(--color-text-primary)]">{account.name}</p>
+                  <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                    {account.name}
+                  </p>
                   <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-secondary)]">
                     {getAccountCategoryLabel(account.accountCategory)}
                   </p>
@@ -3272,9 +3315,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
       <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
         <div className={`w-full max-w-md ${modalCardBase} p-6`}>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">
-              New Account
-            </h2>
+            <h2 className="text-lg font-semibold">New Account</h2>
             <button
               type="button"
               onClick={onClose}
@@ -3286,9 +3327,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className={modalLabelClass}>
-                Account name
-              </label>
+              <label className={modalLabelClass}>Account name</label>
               <input
                 type="text"
                 value={name}
@@ -3302,9 +3341,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
             </div>
 
             <div>
-              <label className={modalLabelClass}>
-                Starting balance
-              </label>
+              <label className={modalLabelClass}>Starting balance</label>
               <input
                 name="amount"
                 type="text"
@@ -3332,9 +3369,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
             </div>
 
             <div>
-              <p className={modalLabelClass}>
-                Account type
-              </p>
+              <p className={modalLabelClass}>Account type</p>
               <div className="grid grid-cols-2 gap-3 text-xs">
                 {(
                   [
@@ -3348,7 +3383,11 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                       label: "Credit",
                       hint: "Credit cards, loans, other liabilities",
                     },
-                  ] satisfies { value: AccountCategory; label: string; hint: string }[]
+                  ] satisfies {
+                    value: AccountCategory;
+                    label: string;
+                    hint: string;
+                  }[]
                 ).map((option) => (
                   <label
                     key={option.value}
@@ -3380,9 +3419,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
             {accountCategory === "debt" && (
               <div className="space-y-4">
                 <div>
-                  <label className={modalLabelClass}>
-                    Credit limit
-                  </label>
+                  <label className={modalLabelClass}>Credit limit</label>
                   <input
                     type="text"
                     inputMode="decimal"
@@ -3402,9 +3439,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                 </div>
 
                 <div>
-                  <label className={modalLabelClass}>
-                    APR
-                  </label>
+                  <label className={modalLabelClass}>APR</label>
                   <div className="flex items-center gap-2">
                     <input
                       type="text"
@@ -3414,7 +3449,9 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                       className={modalInputClass}
                       placeholder="e.g. 19.99"
                     />
-                    <span className="text-sm font-semibold text-[var(--color-text-secondary)]">%</span>
+                    <span className="text-sm font-semibold text-[var(--color-text-secondary)]">
+                      %
+                    </span>
                   </div>
                   {aprError && (
                     <p className="mt-1 text-xs text-red-500">{aprError}</p>
@@ -3478,10 +3515,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                className={modalPrimaryButtonClass}
-              >
+              <button type="submit" className={modalPrimaryButtonClass}>
                 Save Account
               </button>
             </div>
@@ -3655,8 +3689,8 @@ function EditAccountModal({
       aprPercent === null
         ? null
         : typeof aprPercent === "number"
-          ? aprPercent / 100
-          : undefined;
+        ? aprPercent / 100
+        : undefined;
 
     onSave({
       name: name.trim(),
@@ -3691,9 +3725,7 @@ function EditAccountModal({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className={modalLabelClass}>
-                Account name
-              </label>
+              <label className={modalLabelClass}>Account name</label>
               <input
                 type="text"
                 value={name}
@@ -3706,9 +3738,7 @@ function EditAccountModal({
             </div>
 
             <div>
-              <label className={modalLabelClass}>
-                Balance
-              </label>
+              <label className={modalLabelClass}>Balance</label>
               <input
                 type="text"
                 inputMode="decimal"
@@ -3735,9 +3765,7 @@ function EditAccountModal({
             </div>
 
             <div>
-              <p className={modalLabelClass}>
-                Account type
-              </p>
+              <p className={modalLabelClass}>Account type</p>
               <div className="grid grid-cols-2 gap-3 text-xs">
                 {(
                   [
@@ -3751,7 +3779,11 @@ function EditAccountModal({
                       label: "Credit",
                       hint: "Credit cards, loans, other liabilities",
                     },
-                  ] satisfies { value: AccountCategory; label: string; hint: string }[]
+                  ] satisfies {
+                    value: AccountCategory;
+                    label: string;
+                    hint: string;
+                  }[]
                 ).map((option) => (
                   <label
                     key={option.value}
@@ -3782,52 +3814,50 @@ function EditAccountModal({
 
             {accountCategory === "debt" && (
               <div className="space-y-4">
-                  <div>
-                    <label className={modalLabelClass}>
-                      Credit limit
-                    </label>
+                <div>
+                  <label className={modalLabelClass}>Credit limit</label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={creditLimitStr}
+                    onChange={(e) => setCreditLimitStr(e.target.value)}
+                    className={modalInputClass}
+                    placeholder="Optional"
+                  />
+                  {creditLimitError && (
+                    <p className="mt-1 text-xs text-red-500">
+                      {creditLimitError}
+                    </p>
+                  )}
+                  <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
+                    Total available credit on this account (optional).
+                  </p>
+                </div>
+
+                <div>
+                  <label className={modalLabelClass}>APR</label>
+                  <div className="flex items-center gap-2">
                     <input
                       type="text"
                       inputMode="decimal"
-                      value={creditLimitStr}
-                      onChange={(e) => setCreditLimitStr(e.target.value)}
+                      value={aprPercentStr}
+                      onChange={(e) => setAprPercentStr(e.target.value)}
                       className={modalInputClass}
-                      placeholder="Optional"
+                      placeholder="e.g. 19.99"
                     />
-                    {creditLimitError && (
-                      <p className="mt-1 text-xs text-red-500">
-                        {creditLimitError}
-                      </p>
-                    )}
-                    <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
-                      Total available credit on this account (optional).
-                    </p>
+                    <span className="text-sm font-semibold text-[var(--color-text-secondary)]">
+                      %
+                    </span>
                   </div>
-
-                  <div>
-                    <label className={modalLabelClass}>
-                      APR
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        value={aprPercentStr}
-                        onChange={(e) => setAprPercentStr(e.target.value)}
-                        className={modalInputClass}
-                        placeholder="e.g. 19.99"
-                      />
-                      <span className="text-sm font-semibold text-[var(--color-text-secondary)]">%</span>
-                    </div>
-                    {aprError && (
-                      <p className="mt-1 text-xs text-red-500">{aprError}</p>
-                    )}
-                    <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
-                      Annual interest rate in percent (optional).
-                    </p>
-                  </div>
+                  {aprError && (
+                    <p className="mt-1 text-xs text-red-500">{aprError}</p>
+                  )}
+                  <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
+                    Annual interest rate in percent (optional).
+                  </p>
                 </div>
-              )}
+              </div>
+            )}
 
             <div className="flex items-center justify-between gap-3 pt-2">
               {onDelete ? (
@@ -3850,10 +3880,7 @@ function EditAccountModal({
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className={modalPrimaryButtonClass}
-                >
+                <button type="submit" className={modalPrimaryButtonClass}>
                   Save Changes
                 </button>
               </div>
@@ -3916,8 +3943,7 @@ function NewTransferModal({
     }
 
     const date =
-      (formData.get("date") as string) ||
-      new Date().toISOString().slice(0, 10);
+      (formData.get("date") as string) || new Date().toISOString().slice(0, 10);
 
     const note = (formData.get("note") as string) || "";
 
@@ -3952,9 +3978,7 @@ function NewTransferModal({
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={modalLabelClass}>
-                  From
-                </label>
+                <label className={modalLabelClass}>From</label>
                 <select
                   name="fromAccountId"
                   defaultValue={selectedAccountId}
@@ -3968,9 +3992,7 @@ function NewTransferModal({
                 </select>
               </div>
               <div>
-                <label className={modalLabelClass}>
-                  To
-                </label>
+                <label className={modalLabelClass}>To</label>
                 <select
                   name="toAccountId"
                   defaultValue={
@@ -3989,9 +4011,7 @@ function NewTransferModal({
             </div>
 
             <div>
-              <label className={modalLabelClass}>
-                Amount
-              </label>
+              <label className={modalLabelClass}>Amount</label>
               <input
                 name="amount"
                 type="text"
@@ -4014,9 +4034,7 @@ function NewTransferModal({
             </div>
 
             <div>
-              <label className={modalLabelClass}>
-                Date
-              </label>
+              <label className={modalLabelClass}>Date</label>
               <input
                 name="date"
                 type="date"
@@ -4027,9 +4045,7 @@ function NewTransferModal({
             </div>
 
             <div>
-              <label className={modalLabelClass}>
-                Note (optional)
-              </label>
+              <label className={modalLabelClass}>Note (optional)</label>
               <input
                 name="note"
                 type="text"
@@ -4049,10 +4065,7 @@ function NewTransferModal({
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                className={modalPrimaryButtonClass}
-              >
+              <button type="submit" className={modalPrimaryButtonClass}>
                 Save Transfer
               </button>
             </div>
@@ -4127,7 +4140,9 @@ function NewBillModal({
       <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
         <div className={`w-full max-w-md ${modalCardBase} p-6`}>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">New Bill</h2>
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
+              New Bill
+            </h2>
             <button
               type="button"
               onClick={onClose}
@@ -4139,9 +4154,7 @@ function NewBillModal({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className={modalLabelClass}>
-                Bill name
-              </label>
+              <label className={modalLabelClass}>Bill name</label>
               <input
                 name="name"
                 placeholder="e.g. Phone bill"
@@ -4151,9 +4164,7 @@ function NewBillModal({
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={modalLabelClass}>
-                  Amount
-                </label>
+                <label className={modalLabelClass}>Amount</label>
                 <div className="flex flex-col gap-1">
                   <input
                     name="amount"
@@ -4179,9 +4190,7 @@ function NewBillModal({
               </div>
 
               <div>
-                <label className={modalLabelClass}>
-                  Due date
-                </label>
+                <label className={modalLabelClass}>Due date</label>
                 <input
                   type="date"
                   name="dueDate"
@@ -4193,9 +4202,7 @@ function NewBillModal({
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={modalLabelClass}>
-                  Pay from
-                </label>
+                <label className={modalLabelClass}>Pay from</label>
                 <select
                   name="accountId"
                   defaultValue={selectedAccountId}
@@ -4210,47 +4217,53 @@ function NewBillModal({
               </div>
 
               <div>
-              <label className={modalLabelClass}>
-                Frequency
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setFrequency("once")}
-                  className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
-                    frequency === "once" ? modalToggleActiveClass : modalToggleInactiveClass
-                  }`}
-                >
-                  Once
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFrequency("weekly")}
-                  className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
-                    frequency === "weekly" ? modalToggleActiveClass : modalToggleInactiveClass
-                  }`}
-                >
-                  Weekly
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFrequency("biweekly")}
-                  className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
-                    frequency === "biweekly" ? modalToggleActiveClass : modalToggleInactiveClass
-                  }`}
-                >
-                  Bi-weekly
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFrequency("monthly")}
-                  className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
-                    frequency === "monthly" ? modalToggleActiveClass : modalToggleInactiveClass
-                  }`}
-                >
-                  Monthly
-                </button>
-              </div>
+                <label className={modalLabelClass}>Frequency</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFrequency("once")}
+                    className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
+                      frequency === "once"
+                        ? modalToggleActiveClass
+                        : modalToggleInactiveClass
+                    }`}
+                  >
+                    Once
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFrequency("weekly")}
+                    className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
+                      frequency === "weekly"
+                        ? modalToggleActiveClass
+                        : modalToggleInactiveClass
+                    }`}
+                  >
+                    Weekly
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFrequency("biweekly")}
+                    className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
+                      frequency === "biweekly"
+                        ? modalToggleActiveClass
+                        : modalToggleInactiveClass
+                    }`}
+                  >
+                    Bi-weekly
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFrequency("monthly")}
+                    className={`flex-1 rounded-full px-3 py-2 text-xs font-semibold ${
+                      frequency === "monthly"
+                        ? modalToggleActiveClass
+                        : modalToggleInactiveClass
+                    }`}
+                  >
+                    Monthly
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -4262,10 +4275,7 @@ function NewBillModal({
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                className={modalPrimaryButtonClass}
-              >
+              <button type="submit" className={modalPrimaryButtonClass}>
                 Save Bill
               </button>
             </div>
@@ -4313,10 +4323,14 @@ function BillsListModal({
 
   return (
     <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
-      <div className={`flex w-full max-w-2xl max-h-[70vh] flex-col ${modalCardBase} p-6`}>
+      <div
+        className={`flex w-full max-w-2xl max-h-[70vh] flex-col ${modalCardBase} p-6`}
+      >
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">All Bills</h2>
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
+              All Bills
+            </h2>
             <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
               Tap a bill to edit it, or mark it as paid.
             </p>
@@ -4338,8 +4352,7 @@ function BillsListModal({
           <div className="flex-1 overflow-y-auto pr-1">
             <div className="space-y-2 text-sm">
               {sorted.map((bill) => {
-                const isOneTimePaid =
-                  bill.frequency === "once" && bill.isPaid;
+                const isOneTimePaid = bill.frequency === "once" && bill.isPaid;
 
                 return (
                   <div
@@ -4369,10 +4382,10 @@ function BillsListModal({
                         {bill.frequency === "weekly"
                           ? "Weekly"
                           : bill.frequency === "biweekly"
-                            ? "Bi-weekly"
-                            : bill.frequency === "once"
-                              ? "One-time"
-                              : "Monthly"}
+                          ? "Bi-weekly"
+                          : bill.frequency === "once"
+                          ? "One-time"
+                          : "Monthly"}
                         {isOneTimePaid && " · Paid"}
                       </div>
 
@@ -4453,9 +4466,7 @@ function EditBillModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className={modalLabelClass}>
-              Bill name
-            </label>
+            <label className={modalLabelClass}>Bill name</label>
             <input
               type="text"
               value={name}
@@ -4466,9 +4477,7 @@ function EditBillModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={modalLabelClass}>
-                Amount
-              </label>
+              <label className={modalLabelClass}>Amount</label>
               <input
                 type="text"
                 inputMode="decimal"
@@ -4485,9 +4494,7 @@ function EditBillModal({
             </div>
 
             <div>
-              <label className={modalLabelClass}>
-                Due date
-              </label>
+              <label className={modalLabelClass}>Due date</label>
               <input
                 type="date"
                 value={dueDate}
@@ -4499,9 +4506,7 @@ function EditBillModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={modalLabelClass}>
-                Pay from
-              </label>
+              <label className={modalLabelClass}>Pay from</label>
               <select
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
@@ -4516,9 +4521,7 @@ function EditBillModal({
             </div>
 
             <div>
-              <label className={modalLabelClass}>
-                Frequency
-              </label>
+              <label className={modalLabelClass}>Frequency</label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
@@ -4576,10 +4579,7 @@ function EditBillModal({
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              className={modalPrimaryButtonClass}
-            >
+            <button type="submit" className={modalPrimaryButtonClass}>
               Save Changes
             </button>
           </div>
@@ -4610,8 +4610,7 @@ function TransactionsHistoryModal({
   const [sortMode, setSortMode] = useState<SortMode>("date");
 
   const sorted = [...transactions].sort((a, b) => {
-    const dateDiff =
-      new Date(b.date).getTime() - new Date(a.date).getTime();
+    const dateDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
 
     if (sortMode === "date") {
       return dateDiff;
@@ -4638,7 +4637,9 @@ function TransactionsHistoryModal({
 
   return (
     <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
-      <div className={`flex w-full max-w-2xl max-h-[70vh] flex-col ${modalCardBase} p-6`}>
+      <div
+        className={`flex w-full max-w-2xl max-h-[70vh] flex-col ${modalCardBase} p-6`}
+      >
         <div className="mb-4 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
@@ -4747,7 +4748,11 @@ function TransactionsHistoryModal({
 type EditTransactionDetailsModalProps = {
   transaction: Transaction;
   onClose: () => void;
-  onSave: (updates: { description: string; date: string; amount: number }) => void;
+  onSave: (updates: {
+    description: string;
+    date: string;
+    amount: number;
+  }) => void;
   onDelete: (id: string) => void;
 };
 
@@ -4800,9 +4805,7 @@ function EditTransactionDetailsModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className={modalLabelClass}>
-              Description
-            </label>
+            <label className={modalLabelClass}>Description</label>
             <input
               type="text"
               value={description}
@@ -4811,9 +4814,7 @@ function EditTransactionDetailsModal({
             />
           </div>
           <div>
-            <label className={modalLabelClass}>
-              Date
-            </label>
+            <label className={modalLabelClass}>Date</label>
             <input
               type="date"
               value={date}
@@ -4823,9 +4824,7 @@ function EditTransactionDetailsModal({
           </div>
 
           <div>
-            <label className={modalLabelClass}>
-              Amount
-            </label>
+            <label className={modalLabelClass}>Amount</label>
             <input
               type="text"
               inputMode="decimal"
@@ -4849,8 +4848,8 @@ function EditTransactionDetailsModal({
               type="button"
               onClick={() => {
                 onDelete(transaction.id);
-              onClose();
-            }}
+                onClose();
+              }}
               className="rounded-full bg-red-500/10 px-4 py-2 text-xs font-semibold text-red-600 shadow-sm hover:bg-red-500/20"
             >
               Delete
@@ -4863,10 +4862,7 @@ function EditTransactionDetailsModal({
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                className={modalPrimaryButtonClass}
-              >
+              <button type="submit" className={modalPrimaryButtonClass}>
                 Save Changes
               </button>
             </div>
@@ -4936,9 +4932,7 @@ function EditTransactionAmountModal({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className={modalLabelClass}>
-                Amount
-              </label>
+              <label className={modalLabelClass}>Amount</label>
               <input
                 type="text"
                 inputMode="decimal"
@@ -4954,9 +4948,7 @@ function EditTransactionAmountModal({
               >
                 Open number pad
               </button>
-              {error && (
-                <p className="mt-1 text-xs text-red-500">{error}</p>
-              )}
+              {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
             </div>
 
             <div className="mt-4 flex items-center justify-end gap-3">
@@ -4967,10 +4959,7 @@ function EditTransactionAmountModal({
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                className={modalPrimaryButtonClass}
-              >
+              <button type="submit" className={modalPrimaryButtonClass}>
                 Save Amount
               </button>
             </div>
