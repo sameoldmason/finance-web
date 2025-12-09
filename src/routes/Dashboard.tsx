@@ -1299,10 +1299,10 @@ export default function Dashboard() {
           </header>
 
           <main className="w-full flex-1">
-            <div className="w-full mx-auto px-4 pb-10 pt-6 sm:px-6 lg:px-8 space-y-10">
-              <div className="grid grid-cols-1 gap-x-6 gap-y-10 md:grid-cols-3 content-between min-h-[calc(100svh-220px)]">
+            <div className="w-full mx-auto px-4 pb-6 pt-6 sm:px-6 lg:px-8 space-y-8">
+              <div className="grid grid-cols-1 gap-x-6 gap-y-8 md:grid-cols-3">
                 {/* CURRENT BALANCE CARD */}
-                <section className="rounded-2xl bg-black/10 px-6 pt-5 pb-2 backdrop-blur-sm shadow-md md:col-span-2 md:order-1 xl:px-8 xl:pt-7 xl:pb-4 xl:min-h-[220px]">
+                <section className="rounded-2xl bg-black/10 px-6 pt-5 pb-2 backdrop-blur-sm shadow-md md:col-span-2 md:order-1 xl:px-8 xl:pt-7 xl:pb-4 xl:min-h-[260px]">
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="text-xs uppercase tracking-[0.2em] opacity-80">
@@ -1426,7 +1426,7 @@ export default function Dashboard() {
                 </section>
 
                 {/* TRANSACTIONS CARD */}
-                <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md md:col-span-1 md:order-2 xl:px-7 xl:py-7 xl:min-h-[220px]">
+                <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md md:col-span-1 md:order-2 xl:px-7 xl:py-7 xl:min-h-[260px]">
                   <div className="mb-3 flex items-center justify-between">
                     <p className="text-sm font-semibold">Transactions</p>
                     <button
@@ -1593,7 +1593,7 @@ export default function Dashboard() {
                 </section>
 
                 {/* DEBT PAYOFF PROGRESS */}
-                <section className="mb-2 flex flex-col gap-4 rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md md:col-span-3 md:order-5 md:flex-row md:items-center md:justify-between xl:px-7 xl:py-5 xl:min-h-[110px]">
+                <section className="flex flex-col gap-4 rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md md:col-span-3 md:order-5 md:flex-row md:items-center md:justify-between xl:px-7 xl:py-5 xl:min-h-[110px]">
                   <div className="flex flex-1 flex-col gap-2">
                     <button
                       type="button"
