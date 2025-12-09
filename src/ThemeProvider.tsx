@@ -39,15 +39,15 @@ const THEME_REGISTRY = {
       textSecondary: "#676451",
     },
     dark: {
-      background: "#F9F3D6",
-      surface: "#F7F2D9",
-      surfaceAlt: "#F4ECC9",
-      border: "#C9C3A6",
-      accent: "#E37B3F",
+      background: "#17120F",
+      surface: "#2A2320",
+      surfaceAlt: "#211916",
+      border: "#514238",
+      accent: "#F18A4A",
       accentStrong: "#2F3A30",
-      neutral: "#E4DFC8",
-      textPrimary: "#1C1C1C",
-      textSecondary: "#676451",
+      neutral: "#3A2F28",
+      textPrimary: "#F9F3D6",
+      textSecondary: "#D0C8A8",
     },
   },
   warm: {
@@ -65,15 +65,15 @@ const THEME_REGISTRY = {
       textSecondary: "#676451",
     },
     dark: {
-      background: "#F9F3D6",
-      surface: "#F7F2D9",
-      surfaceAlt: "#F4ECC9",
-      border: "#C9C3A6",
-      accent: "#E37B3F",
+      background: "#17120F",
+      surface: "#2A2320",
+      surfaceAlt: "#211916",
+      border: "#514238",
+      accent: "#F18A4A",
       accentStrong: "#2F3A30",
-      neutral: "#E4DFC8",
-      textPrimary: "#1C1C1C",
-      textSecondary: "#676451",
+      neutral: "#3A2F28",
+      textPrimary: "#F9F3D6",
+      textSecondary: "#D0C8A8",
     },
   },
 } as const;
@@ -145,6 +145,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const root = document.documentElement;
+    root.classList.toggle("dark", theme === "dark");
     root.dataset.theme = theme;
     root.dataset.themeVariant = currentThemeKey;
     try {
@@ -152,17 +153,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.warn("Failed to persist theme mode", error);
     }
-
-    root.style.setProperty("--color-app-background", currentPalette.background);
-    root.style.setProperty("--color-surface", currentPalette.surface);
-    root.style.setProperty("--color-surface-alt", currentPalette.surfaceAlt);
-    root.style.setProperty("--color-border", currentPalette.border);
-    root.style.setProperty("--color-accent", currentPalette.accent);
-    root.style.setProperty("--color-accent-strong", currentPalette.accentStrong);
-    root.style.setProperty("--color-neutral", currentPalette.neutral);
-    root.style.setProperty("--color-text-primary", currentPalette.textPrimary);
-    root.style.setProperty("--color-text-secondary", currentPalette.textSecondary);
-    root.style.setProperty("--color-scheme", theme);
   }, [theme, currentThemeKey, currentPalette]);
 
   useEffect(() => {
@@ -187,7 +177,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     [theme, currentThemeKey, currentPalette]
   );
 
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+  return (
+    <Ctx.Provider value={value}>
+      <div className={theme === "dark" ? "dark" : ""}>{children}</div>
+    </Ctx.Provider>
+  );
 }
 
 export function useTheme() {

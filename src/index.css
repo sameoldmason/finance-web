@@ -16,6 +16,19 @@
   --color-scheme: light;
 }
 
+.dark {
+  --color-app-background: #17120F;
+  --color-surface: #2A2320;
+  --color-surface-alt: #211916;
+  --color-border: #514238;
+  --color-accent: #F18A4A;
+  --color-accent-strong: #2F3A30;
+  --color-neutral: #3A2F28;
+  --color-text-primary: #F9F3D6;
+  --color-text-secondary: #D0C8A8;
+  --color-scheme: dark;
+}
+
 html,
 body,
 #root {

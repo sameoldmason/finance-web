@@ -1292,20 +1292,21 @@ export default function Dashboard() {
   ];
 
   const sidebarButtonBase =
-    "h-10 w-10 rounded-full flex items-center justify-center text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100 transition-colors";
-  const activeSidebarButtonClass = "bg-neutral-800 text-neutral-100";
+    "h-10 w-10 rounded-full flex items-center justify-center text-textMuted dark:text-textMutedDark hover:bg-sidebar dark:hover:bg-sidebarDark hover:text-textPrimary dark:hover:text-textPrimaryDark transition-colors";
+  const activeSidebarButtonClass =
+    "bg-sidebar dark:bg-sidebarDark text-textPrimary dark:text-textPrimaryDark border border-borderSoft dark:border-borderSoftDark";
 
   return (
     <MoneyVisibilityProvider
       initialHideMoney={hideMoney}
       onChange={(next) => setHideMoney(next)}
     >
-      <div className="min-h-[100svh] w-full bg-background text-textPrimary">
+      <div className="min-h-[100svh] w-full bg-background dark:bg-backgroundDark text-textPrimary dark:text-textPrimaryDark">
         <div className="mx-auto flex min-h-[100svh] max-w-[1280px] gap-6 px-6 py-6">
           {/* LEFT SIDEBAR – collapsed nav */}
-          <aside className="flex min-h-[calc(100svh-3rem)] w-16 shrink-0 flex-col items-center justify-between border-r border-neutral-800 bg-neutral-900 py-4">
+          <aside className="flex min-h-[calc(100svh-3rem)] w-16 shrink-0 flex-col items-center justify-between border-r border-borderMedium dark:border-borderMediumDark bg-sidebar dark:bg-sidebarDark py-4">
             <div className="flex flex-col items-center gap-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-800 text-sm font-semibold text-neutral-100">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-cardDebt dark:bg-cardDebtDark text-sm font-semibold text-textPrimary dark:text-textPrimaryDark">
                 B
               </div>
             </div>
@@ -1365,14 +1366,14 @@ export default function Dashboard() {
           {/* MAIN AREA */}
           <main className="flex min-h-[calc(100svh-3rem)] flex-1 flex-col gap-6">
           {/* TOP BAR */}
-          <header className="flex items-center justify-between rounded-2xl bg-cardDebt px-6 py-4 shadow-md">
+          <header className="flex items-center justify-between rounded-2xl bg-cardDebt dark:bg-cardDebtDark px-6 py-4 shadow-md">
             <div className="flex flex-1 items-center gap-4">
               <button
                 type="button"
                 onClick={() => setIsAppMenuOpen((prev) => !prev)}
                 aria-expanded={isAppMenuOpen}
                 aria-controls="app-menu-pills"
-                className="rounded-full px-4 py-2.5 text-left text-lg font-semibold text-textPrimary transition hover:bg-borderSoft"
+                className="rounded-full px-4 py-2.5 text-left text-lg font-semibold text-textPrimary dark:text-textPrimaryDark transition hover:bg-borderSoft dark:bg-borderSoftDark dark:hover:bg-borderSoft dark:bg-borderSoftDark"
               >
                 <span className="tracking-wide">bare</span>
               </button>
@@ -1397,11 +1398,11 @@ export default function Dashboard() {
                         ? `${index * 80}ms`
                         : "0ms",
                     }}
-                    className={`rounded-full bg-borderSoft px-3 py-1 text-xs font-semibold text-textMuted shadow-sm transition-all duration-300 ${
+                    className={`rounded-full bg-borderSoft dark:bg-borderSoftDark px-3 py-1 text-xs font-semibold text-textMuted dark:text-textMutedDark shadow-sm transition-all duration-300 ${
                       isAppMenuOpen
                         ? "translate-x-0 opacity-100"
                         : "-translate-x-2 opacity-0"
-                    } hover:bg-borderMedium`}
+                    } hover:bg-borderMedium dark:bg-borderMediumDark dark:hover:bg-borderMedium dark:bg-borderMediumDark`}
                   >
                     {item.label}
                   </button>
@@ -1421,7 +1422,7 @@ export default function Dashboard() {
                         value={profileNameInput}
                         onChange={(event) => setProfileNameInput(event.target.value)}
                         onBlur={() => handleProfileNameSubmit()}
-                        className="w-40 rounded-lg border border-borderSoft bg-background px-2 py-1 text-sm text-textPrimary placeholder-textSubtle shadow-inner outline-none ring-1 ring-borderSoft focus:ring-borderMedium"
+                        className="w-40 rounded-lg border border-borderSoft dark:border-borderSoftDark bg-background dark:bg-backgroundDark px-2 py-1 text-sm text-textPrimary dark:text-textPrimaryDark placeholder-textSubtle shadow-inner outline-none ring-1 ring-borderSoft focus:ring-borderMedium"
                         placeholder="Enter name"
                         autoFocus
                       />
@@ -1434,7 +1435,7 @@ export default function Dashboard() {
                       type="button"
                       onClick={handleStartEditingProfileName}
                       disabled={!activeProfile}
-                      className="text-sm font-semibold text-textPrimary transition hover:text-accent disabled:cursor-not-allowed disabled:text-textSubtle"
+                      className="text-sm font-semibold text-textPrimary dark:text-textPrimaryDark transition hover:text-accent disabled:cursor-not-allowed disabled:text-textSubtle dark:text-textSubtleDark"
                     >
                       {profileName}
                     </button>
@@ -1443,7 +1444,7 @@ export default function Dashboard() {
                     <span className="mt-1 text-xs text-red-700">{profileNameError}</span>
                   )}
                 </div>
-                <div className="flex h-8 w-8 items-center justify-center rounded-full border border-primaryButtonBorder bg-primaryButton text-toggleDark">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full border border-primaryButtonBorder dark:border-primaryButtonBorderDark bg-primaryButton dark:bg-primaryButtonDark text-toggleDark dark:text-toggleDarkText">
                   <span className="text-xs font-semibold">{avatarInitial}</span>
                 </div>
               </div>
@@ -1453,13 +1454,13 @@ export default function Dashboard() {
           {/* TOP ROW: BALANCE + TRANSACTIONS */}
           <div className="mt-6 grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] gap-6">
             {/* CURRENT BALANCE CARD */}
-            <section className="rounded-2xl bg-cardGreen px-6 pt-5 pb-2 shadow-md">
+            <section className="rounded-2xl bg-cardGreen dark:bg-cardGreenDark px-6 pt-5 pb-2 shadow-md">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-textSubtle">
+                  <p className="text-xs uppercase tracking-[0.2em] text-textSubtle dark:text-textSubtleDark">
                     Current Balance
                   </p>
-                  <p className="mt-1 text-3xl font-extrabold text-textPrimary">
+                  <p className="mt-1 text-3xl font-extrabold text-textPrimary dark:text-textPrimaryDark">
                     {formatCurrency(selectedAccount?.balance ?? 0)}
                   </p>
                 </div>
@@ -1467,7 +1468,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={() => setIsNewAccountOpen(true)}
-                  className="mt-1 flex h-7 w-7 items-center justify-center rounded-full border border-primaryButtonBorder bg-primaryButton text-sm font-bold text-toggleDark hover:bg-primaryButtonBorder"
+                  className="mt-1 flex h-7 w-7 items-center justify-center rounded-full border border-primaryButtonBorder dark:border-primaryButtonBorderDark bg-primaryButton dark:bg-primaryButtonDark text-sm font-bold text-toggleDark dark:text-toggleDarkText hover:bg-primaryButtonBorder dark:hover:bg-primaryButtonBorderDark"
                   aria-label="Add account"
                 >
                   +
@@ -1478,7 +1479,7 @@ export default function Dashboard() {
               <div className="mt-4 grid grid-cols-2 gap-4">
                 {(() => {
                   const newActionClasses =
-                    "w-full rounded-full border border-primaryButtonBorder bg-primaryButton py-3 text-sm font-semibold text-toggleDark shadow-sm transition hover:bg-primaryButtonBorder active:brightness-95";
+                    "w-full rounded-full border border-primaryButtonBorder dark:border-primaryButtonBorderDark bg-primaryButton dark:bg-primaryButtonDark py-3 text-sm font-semibold text-toggleDark dark:text-toggleDarkText shadow-sm transition hover:bg-primaryButtonBorder dark:hover:bg-primaryButtonBorderDark active:brightness-95";
 
                   return (
                     <>
@@ -1518,7 +1519,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={handlePrevAccount}
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-borderSoft text-textMuted hover:bg-borderMedium hover:text-textPrimary transition"
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-borderSoft dark:bg-borderSoftDark text-textMuted dark:text-textMutedDark hover:bg-borderMedium dark:bg-borderMediumDark dark:hover:bg-borderMedium dark:bg-borderMediumDark hover:text-textPrimary dark:text-textPrimaryDark transition"
                 >
                   {"<"}
                 </button>
@@ -1538,7 +1539,7 @@ export default function Dashboard() {
                             selectedAccount &&
                             account.id === selectedAccount.id
                               ? "bg-accent text-background"
-                              : "bg-cardDebt text-textMuted hover:bg-borderSoft"
+                              : "bg-cardDebt dark:bg-cardDebtDark text-textMuted dark:text-textMutedDark hover:bg-borderSoft dark:bg-borderSoftDark dark:hover:bg-borderSoft dark:bg-borderSoftDark"
                           }`}
                         >
                           {account.name}
@@ -1549,7 +1550,7 @@ export default function Dashboard() {
                             <button
                               type="button"
                               onClick={() => setEditingAccount(account)}
-                              className="flex h-7 w-7 items-center justify-center rounded-full border border-primaryButtonBorder bg-primaryButton text-xs text-toggleDark hover:bg-primaryButtonBorder"
+                              className="flex h-7 w-7 items-center justify-center rounded-full border border-primaryButtonBorder dark:border-primaryButtonBorderDark bg-primaryButton dark:bg-primaryButtonDark text-xs text-toggleDark dark:text-toggleDarkText hover:bg-primaryButtonBorder dark:hover:bg-primaryButtonBorderDark"
                               title="Edit account"
                             >
                               ✎
@@ -1564,7 +1565,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={handleNextAccount}
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-borderSoft text-textMuted hover:bg-borderMedium hover:text-textPrimary transition"
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-borderSoft dark:bg-borderSoftDark text-textMuted dark:text-textMutedDark hover:bg-borderMedium dark:bg-borderMediumDark dark:hover:bg-borderMedium dark:bg-borderMediumDark hover:text-textPrimary dark:text-textPrimaryDark transition"
                 >
                   {">"}
                 </button>
@@ -1572,21 +1573,21 @@ export default function Dashboard() {
             </section>
 
             {/* TRANSACTIONS CARD */}
-            <section className="rounded-2xl bg-cardOrange px-6 py-5 shadow-md">
+            <section className="rounded-2xl bg-cardOrange dark:bg-cardOrangeDark px-6 py-5 shadow-md">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-sm font-semibold">Transactions</p>
                 <button
                   type="button"
                   onClick={() => setIsTransactionsModalOpen(true)}
-                  className="text-xs text-textMuted hover:text-textPrimary"
+                  className="text-xs text-textMuted dark:text-textMutedDark hover:text-textPrimary dark:text-textPrimaryDark"
                 >
                   more
                 </button>
               </div>
 
-              <div className="space-y-2 text-sm text-textPrimary">
+              <div className="space-y-2 text-sm text-textPrimary dark:text-textPrimaryDark">
                 {visibleTransactions.length === 0 && (
-                  <div className="text-xs text-textSubtle">
+                  <div className="text-xs text-textSubtle dark:text-textSubtleDark">
                     No transactions yet for this account.
                   </div>
                 )}
@@ -1600,7 +1601,7 @@ export default function Dashboard() {
                       key={tx.id}
                       type="button"
                       onClick={() => setEditingDetailsTx(tx)}
-                      className="flex w-full items-center justify-between rounded-xl bg-cardDebt px-3 py-2 text-left hover:bg-borderSoft"
+                      className="flex w-full items-center justify-between rounded-xl bg-cardDebt dark:bg-cardDebtDark px-3 py-2 text-left hover:bg-borderSoft dark:bg-borderSoftDark dark:hover:bg-borderSoft dark:bg-borderSoftDark"
                     >
                       <span>{tx.description || "Transaction"}</span>
                       <span
@@ -1626,7 +1627,7 @@ export default function Dashboard() {
             />
 
             {/* UPCOMING BILLS CARD */}
-            <section className="rounded-2xl bg-cardOrange px-6 py-5 shadow-md min-h-[260px]">
+            <section className="rounded-2xl bg-cardOrange dark:bg-cardOrangeDark px-6 py-5 shadow-md min-h-[260px]">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-sm font-semibold">Upcoming Bills</p>
                 <div className="flex items-center gap-3">
@@ -1638,8 +1639,8 @@ export default function Dashboard() {
                     disabled={accounts.length === 0}
                     className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold transition ${
                       accounts.length === 0
-                        ? "border border-borderSoft bg-borderSoft text-textSubtle cursor-not-allowed"
-                        : "border border-primaryButtonBorder bg-primaryButton text-toggleDark hover:bg-primaryButtonBorder"
+                        ? "border border-borderSoft dark:border-borderSoftDark bg-borderSoft dark:bg-borderSoftDark text-textSubtle dark:text-textSubtleDark cursor-not-allowed"
+                        : "border border-primaryButtonBorder dark:border-primaryButtonBorderDark bg-primaryButton dark:bg-primaryButtonDark text-toggleDark dark:text-toggleDarkText hover:bg-primaryButtonBorder dark:hover:bg-primaryButtonBorderDark"
                     }`}
                     aria-label="Add bill"
                     title={
@@ -1653,7 +1654,7 @@ export default function Dashboard() {
                   <button
                     type="button"
                     onClick={() => setIsBillsModalOpen(true)}
-                    className="text-xs text-textMuted hover:text-textPrimary transition"
+                    className="text-xs text-textMuted dark:text-textMutedDark hover:text-textPrimary dark:text-textPrimaryDark transition"
                   >
                     more
                   </button>
@@ -1662,7 +1663,7 @@ export default function Dashboard() {
 
               <div className="flex min-h-[232px] flex-col">
                 {unpaidBills.length === 0 ? (
-                  <div className="flex flex-1 items-center justify-center rounded-xl bg-cardDebt text-xs text-textSubtle">
+                  <div className="flex flex-1 items-center justify-center rounded-xl bg-cardDebt dark:bg-cardDebtDark text-xs text-textSubtle dark:text-textSubtleDark">
                     No upcoming bills yet. Add your first bill to get reminders
                     here.
                   </div>
@@ -1675,7 +1676,7 @@ export default function Dashboard() {
                         .map((bill) => (
                           <div
                             key={bill.id}
-                            className="flex items-center justify-between rounded-xl bg-cardDebt px-4 py-3 text-xs"
+                            className="flex items-center justify-between rounded-xl bg-cardDebt dark:bg-cardDebtDark px-4 py-3 text-xs"
                           >
                             <button
                               type="button"
@@ -1683,7 +1684,7 @@ export default function Dashboard() {
                               className="flex flex-1 flex-col text-left"
                             >
                               <span className="font-semibold">{bill.name}</span>
-                              <span className="flex items-center gap-2 text-[11px] text-textMuted">
+                              <span className="flex items-center gap-2 text-[11px] text-textMuted dark:text-textMutedDark">
                                 <span>Due {bill.dueDate}</span>
 
                                 {(() => {
@@ -1696,8 +1697,8 @@ export default function Dashboard() {
                                     status.tone === "danger"
                                       ? "bg-accent text-background"
                                       : status.tone === "warning"
-                                        ? "bg-primaryButtonBorder text-toggleDark"
-                                        : "bg-borderSoft text-textMuted";
+                                        ? "bg-primaryButton dark:bg-primaryButtonDark text-toggleDark dark:text-toggleDarkText"
+                                        : "bg-borderSoft dark:bg-borderSoftDark text-textMuted dark:text-textMutedDark";
 
                                   return (
                                     <span className={`${badgeBase} ${badgeColor}`}>
@@ -1716,7 +1717,7 @@ export default function Dashboard() {
                                   maximumFractionDigits: 2,
                                 })}
                               </div>
-                              <div className="text-[11px] text-textSubtle">
+                              <div className="text-[11px] text-textSubtle dark:text-textSubtleDark">
                                 {bill.frequency === "weekly"
                                   ? "Weekly"
                                   : bill.frequency === "biweekly"
@@ -1728,7 +1729,7 @@ export default function Dashboard() {
                               <button
                                 type="button"
                                 onClick={() => handleMarkBillPaid(bill)}
-                                className="mt-1 rounded-full border border-borderMedium px-3 py-1 text-[11px] font-semibold text-textPrimary hover:bg-primaryButton"
+                                className="mt-1 rounded-full border border-borderMedium dark:border-borderMediumDark px-3 py-1 text-[11px] font-semibold text-textPrimary dark:text-textPrimaryDark hover:bg-primaryButtonBorder dark:hover:bg-primaryButtonBorderDark"
                               >
                                 Mark paid
                               </button>
@@ -1738,7 +1739,7 @@ export default function Dashboard() {
                     </div>
 
                     {unpaidBills.length > 3 && (
-                      <p className="pt-1 text-[11px] text-textSubtle">
+                      <p className="pt-1 text-[11px] text-textSubtle dark:text-textSubtleDark">
                         + {unpaidBills.length - 3} more bill
                         {unpaidBills.length - 3 === 1 ? "" : "s"} not shown
                       </p>
@@ -1750,16 +1751,16 @@ export default function Dashboard() {
           </div>
 
           {/* BOTTOM ROW: DEBT PAYOFF PROGRESS (placeholder) */}
-          <section className="mb-2 flex items-center justify-between rounded-2xl bg-cardDebt px-6 py-4 shadow-md">
+          <section className="mb-2 flex items-center justify-between rounded-2xl bg-cardDebt dark:bg-cardDebtDark px-6 py-4 shadow-md">
             <div className="flex flex-1 flex-col gap-2">
               <button
                 type="button"
                 onClick={() => setIsDebtPayoffOpen(true)}
-                className="w-fit rounded-md text-left text-sm font-semibold text-textPrimary outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-transparent"
+                className="w-fit rounded-md text-left text-sm font-semibold text-textPrimary dark:text-textPrimaryDark outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-transparent"
               >
                 Debt Payoff Progress
               </button>
-              <div className="h-4 w-full rounded-full border border-borderSoft bg-borderSoft">
+              <div className="h-4 w-full rounded-full border border-borderSoft dark:border-borderSoftDark bg-borderSoft dark:bg-borderSoftDark">
                 <div
                   className="h-4 rounded-full bg-accent transition-[width] duration-300 ease-out"
                   style={{ width: `${debtProgressPercent}%` }}
@@ -1769,7 +1770,7 @@ export default function Dashboard() {
                 className={`text-[11px] ${
                   debtPayoffSummary?.insufficientAllocation
                     ? "text-red-700"
-                    : "text-textMuted"
+                    : "text-textMuted dark:text-textMutedDark"
                 }`}
               >
                 {debtStatusText}
@@ -1778,7 +1779,7 @@ export default function Dashboard() {
             <button
               type="button"
               onClick={() => setIsDebtPayoffOpen(true)}
-              className="ml-4 rounded-full border border-primaryButtonBorder bg-primaryButton px-3 py-2 text-xs font-semibold text-toggleDark transition hover:bg-primaryButtonBorder"
+              className="ml-4 rounded-full border border-primaryButtonBorder dark:border-primaryButtonBorderDark bg-primaryButton dark:bg-primaryButtonDark px-3 py-2 text-xs font-semibold text-toggleDark dark:text-toggleDarkText transition hover:bg-primaryButtonBorder dark:hover:bg-primaryButtonBorderDark"
               >
                 Edit
               </button>
@@ -1811,7 +1812,7 @@ export default function Dashboard() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
           <div className={`w-full max-w-md ${modalCardBase} p-6 backdrop-blur-sm`}>
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
+              <h2 className="text-lg font-semibold text-textPrimary dark:text-textPrimaryDark">
                 Confirm Overpayment
               </h2>
               <button
@@ -1823,9 +1824,9 @@ export default function Dashboard() {
               </button>
             </div>
 
-            <p className="text-sm text-[var(--color-text-secondary)]">
+            <p className="text-sm text-textMuted dark:text-textMutedDark">
               Paying {formatCurrency(Math.abs(pendingOverpay.delta))} will push{" "}
-              <span className="font-semibold text-[var(--color-text-primary)]">
+              <span className="font-semibold text-textPrimary dark:text-textPrimaryDark">
                 {pendingOverpay.accountName}
               </span>{" "}
               above $0 (new balance {formatCurrency(pendingOverpay.nextBalance)}). Continue?
@@ -2043,11 +2044,7 @@ export default function Dashboard() {
       <button
         type="button"
         onClick={() => setIsThemePickerOpen(true)}
-        className={`fixed bottom-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-colors duration-200 ${
-          theme === "dark"
-            ? "bg-toggleDark text-background hover:bg-toggleDark/90"
-            : "bg-primaryButton text-toggleDark hover:bg-primaryButtonBorder"
-        }`}
+        className="fixed bottom-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-toggleDark text-textPrimaryDark shadow-md backdrop-blur-sm transition-colors duration-200 hover:brightness-110 dark:bg-toggleDarkBg dark:text-toggleDarkText"
         aria-label="Open appearance settings"
         title="Open appearance settings"
       >
@@ -2073,23 +2070,23 @@ export default function Dashboard() {
 /* ---------- MODALS ---------- */
 
 const modalCardBase =
-  "rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] shadow-xl";
+  "rounded-2xl border border-borderSoft dark:border-borderSoftDark bg-cardDebt dark:bg-cardDebtDark text-textPrimary dark:text-textPrimaryDark shadow-xl";
 const modalSurfaceAltCard =
-  "rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)] text-[var(--color-text-primary)]";
+  "rounded-xl border border-borderSoft dark:border-borderSoftDark bg-sidebar dark:bg-sidebarDark text-textPrimary dark:text-textPrimaryDark";
 const modalInputClass =
-  "w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)] placeholder:text-[var(--color-text-secondary)]";
+  "w-full rounded-lg border border-borderSoft dark:border-borderSoftDark bg-sidebar dark:bg-sidebarDark px-3 py-2 text-sm text-textPrimary dark:text-textPrimaryDark outline-none focus:ring-2 focus:ring-accent dark:focus:ring-accentDark placeholder:text-textMuted dark:placeholder-textMutedDark";
 const modalLabelClass =
-  "mb-1 block text-xs font-semibold text-[var(--color-text-secondary)]";
-const modalSubtleTextClass = "text-sm text-[var(--color-text-secondary)]";
+  "mb-1 block text-xs font-semibold text-textMuted dark:text-textMutedDark";
+const modalSubtleTextClass = "text-sm text-textMuted dark:text-textMutedDark";
 const modalCloseButtonClass =
-  "rounded-full px-2 py-1 text-sm font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]";
+  "rounded-full px-2 py-1 text-sm font-semibold text-textMuted dark:text-textMutedDark hover:text-textPrimary dark:hover:text-textPrimaryDark";
 const modalPrimaryButtonClass =
-  "rounded-full bg-[var(--color-accent)] px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[var(--color-accent-strong)]";
+  "rounded-full bg-accent dark:bg-accentDark px-5 py-2 text-xs font-semibold text-toggleDark dark:text-toggleDarkText shadow-sm hover:bg-toggleDark dark:hover:bg-toggleDarkBg";
 const modalGhostButtonClass =
-  "rounded-full px-4 py-2 text-xs font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-alt)]";
-const modalToggleActiveClass = "bg-[var(--color-accent)] text-white shadow-sm";
+  "rounded-full px-4 py-2 text-xs font-semibold text-textMuted dark:text-textMutedDark hover:bg-sidebar dark:hover:bg-sidebarDark";
+const modalToggleActiveClass = "bg-accent dark:bg-accentDark text-white shadow-sm";
 const modalToggleInactiveClass =
-  "border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]";
+  "border border-borderSoft dark:border-borderSoftDark bg-cardDebt dark:bg-cardDebtDark text-textMuted dark:text-textMutedDark hover:border-accent dark:hover:border-accentDark";
 
 type DebtPayoffModalProps = {
   onClose: () => void;
@@ -2162,13 +2159,13 @@ function DebtPayoffModal({
       <div className={`relative z-40 w-full max-w-4xl ${modalCardBase} p-6`}>
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--color-text-secondary)]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-textMuted dark:text-textMutedDark">
               Debt tools
             </p>
-            <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
+            <h2 className="text-xl font-semibold text-textPrimary dark:text-textPrimaryDark">
               Debt Payoff Progress
             </h2>
-            <p className="text-xs text-[var(--color-text-secondary)]">
+            <p className="text-xs text-textMuted dark:text-textMutedDark">
               Switch modes, adjust your monthly allocation, and see estimated payoff dates.
             </p>
           </div>
@@ -2183,7 +2180,7 @@ function DebtPayoffModal({
         </div>
 
         <div className="mb-4 flex flex-wrap items-center gap-3">
-          <div className="flex items-center rounded-full bg-[var(--color-surface-alt)] px-1 py-1 text-xs font-semibold">
+          <div className="flex items-center rounded-full bg-sidebar dark:bg-sidebarDark px-1 py-1 text-xs font-semibold">
             <button
               type="button"
               onClick={() => onModeChange("snowball")}
@@ -2235,7 +2232,7 @@ function DebtPayoffModal({
           <button
             type="button"
             onClick={() => setIsPadOpen(true)}
-            className="mt-1 text-[11px] font-semibold text-[var(--color-accent)] hover:text-[var(--color-accent-strong)]"
+            className="mt-1 text-[11px] font-semibold text-accent dark:text-accentDark hover:text-toggleDark dark:text-toggleDarkText dark:hover:text-toggleDark dark:text-toggleDarkTextText"
           >
             Open number pad
           </button>
@@ -2248,16 +2245,16 @@ function DebtPayoffModal({
 
         <div className="mb-4">
           <div className="mb-2 flex items-center justify-between">
-            <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+            <p className="text-sm font-semibold text-textPrimary dark:text-textPrimaryDark">
               Debts
             </p>
-            <span className="text-[11px] text-[var(--color-text-secondary)]">
+            <span className="text-[11px] text-textMuted dark:text-textMutedDark">
               Progress: {progressPercent}%
             </span>
           </div>
           <div className="max-h-[320px] space-y-2 overflow-y-auto pr-1">
             {displayDebts.length === 0 ? (
-              <div className={`${modalSurfaceAltCard} px-3 py-3 text-sm text-[var(--color-text-secondary)]`}>
+              <div className={`${modalSurfaceAltCard} px-3 py-3 text-sm text-textMuted dark:text-textMutedDark`}>
                 Mark an account as credit to start tracking payoff progress.
               </div>
             ) : (
@@ -2267,39 +2264,39 @@ function DebtPayoffModal({
                   className={`grid gap-3 rounded-xl ${modalSurfaceAltCard} px-4 py-3 text-sm ${settings.showInterest ? "sm:grid-cols-4" : "sm:grid-cols-3"}`}
                 >
                   <div className="sm:col-span-1">
-                    <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                    <p className="text-sm font-semibold text-textPrimary dark:text-textPrimaryDark">
                       {debt.name}
                     </p>
-                    <p className="text-xs text-[var(--color-text-secondary)]">
+                    <p className="text-xs text-textMuted dark:text-textMutedDark">
                       Balance: {formatCurrency(-debt.balance)}
                     </p>
                   </div>
                   <div>
-                    <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-secondary)]">
+                    <p className="text-[11px] uppercase tracking-wide text-textMuted dark:text-textMutedDark">
                       Minimum
                     </p>
-                    <p className="font-semibold text-[var(--color-text-primary)]">
+                    <p className="font-semibold text-textPrimary dark:text-textPrimaryDark">
                       {formatCurrency(debt.minimumPayment)}
                     </p>
                   </div>
                   {settings.showInterest && (
                     <div>
-                      <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-secondary)]">
+                      <p className="text-[11px] uppercase tracking-wide text-textMuted dark:text-textMutedDark">
                         APR
                       </p>
-                      <p className="font-semibold text-[var(--color-text-primary)]">
+                      <p className="font-semibold text-textPrimary dark:text-textPrimaryDark">
                         {(debt.apr * 100).toFixed(2)}%
                       </p>
-                      <p className="text-[11px] text-[var(--color-text-secondary)]">
+                      <p className="text-[11px] text-textMuted dark:text-textMutedDark">
                         Est. monthly {formatCurrency(debt.balance * (debt.apr / 12))}
                       </p>
                     </div>
                   )}
                   <div className="sm:text-right">
-                    <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-secondary)]">
+                    <p className="text-[11px] uppercase tracking-wide text-textMuted dark:text-textMutedDark">
                       Est. payoff
                     </p>
-                    <p className="font-semibold text-[var(--color-text-primary)]">
+                    <p className="font-semibold text-textPrimary dark:text-textPrimaryDark">
                       {formatFriendlyDate(debt.estimatedPayoffDate)}
                     </p>
                   </div>
@@ -2309,31 +2306,31 @@ function DebtPayoffModal({
           </div>
         </div>
 
-        <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-alt)]/60 p-4">
-          <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+        <div className="rounded-xl border border-borderSoft dark:border-borderSoftDark bg-sidebar dark:bg-sidebarDark/60 p-4">
+          <p className="text-sm font-semibold text-textPrimary dark:text-textPrimaryDark">
             Summary
           </p>
           <div className="mt-2 grid gap-3 text-sm sm:grid-cols-2">
             <div>
-              <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-secondary)]">
+              <p className="text-[11px] uppercase tracking-wide text-textMuted dark:text-textMutedDark">
                 Mode
               </p>
               <p className="font-semibold capitalize">{settings.mode}</p>
               {settings.mode === "snowball" && (
-                <p className="text-[11px] text-[var(--color-text-secondary)]">
+                <p className="text-[11px] text-textMuted dark:text-textMutedDark">
                   Next payoff: {nextDebt?.name ?? "—"}
                 </p>
               )}
             </div>
             <div className="sm:text-right">
-              <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-secondary)]">
+              <p className="text-[11px] uppercase tracking-wide text-textMuted dark:text-textMutedDark">
                 Estimated debt-free
               </p>
-              <p className="font-semibold text-[var(--color-text-primary)]">
+              <p className="font-semibold text-textPrimary dark:text-textPrimaryDark">
                 {formatFriendlyDate(summary?.overallEstimatedDebtFreeDate ?? null)}
               </p>
               {settings.mode === "snowball" && (
-                <p className="text-[11px] text-[var(--color-text-secondary)]">
+                <p className="text-[11px] text-textMuted dark:text-textMutedDark">
                   Next debt est.:{" "}
                   {formatFriendlyDate(summary?.nextDebtEstimatedPayoffDate ?? null)}
                 </p>
@@ -2407,7 +2404,7 @@ function ResetDataModal({
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-text-secondary)]">
+            <p className="text-xs uppercase tracking-[0.3em] text-textMuted dark:text-textMutedDark">
               Reset
             </p>
             <h2
@@ -2528,7 +2525,7 @@ function DeleteProfilePrompt({ onStay, onDelete }: DeleteProfilePromptProps) {
       >
         <div className="mb-3 flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-text-secondary)]">
+            <p className="text-xs uppercase tracking-[0.3em] text-textMuted dark:text-textMutedDark">
               Next step
             </p>
             <h2
@@ -2606,7 +2603,7 @@ function LogoutPrompt({ onStay, onConfirm }: LogoutPromptProps) {
       >
         <div className="mb-3 flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-text-secondary)]">
+            <p className="text-xs uppercase tracking-[0.3em] text-textMuted dark:text-textMutedDark">
               Heads up
             </p>
             <h2
@@ -2683,7 +2680,7 @@ function AboutModal({ onClose }: AboutModalProps) {
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-text-secondary)]">
+            <p className="text-xs uppercase tracking-[0.3em] text-textMuted dark:text-textMutedDark">
               About
             </p>
             <h2
@@ -2750,7 +2747,7 @@ function FeedbackModal({ onClose }: FeedbackModalProps) {
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-text-secondary)]">
+            <p className="text-xs uppercase tracking-[0.3em] text-textMuted dark:text-textMutedDark">
               Feedback
             </p>
             <h2
@@ -2831,11 +2828,7 @@ function ThemePickerModal({ onClose }: ThemePickerModalProps) {
     >
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       <div
-        className="relative z-40 w-full max-w-3xl rounded-2xl p-6 shadow-xl backdrop-blur-sm"
-        style={{
-          backgroundColor: "var(--color-surface)",
-          color: "var(--color-text-primary)",
-        }}
+        className="relative z-40 w-full max-w-3xl rounded-2xl bg-cardDebt dark:bg-cardDebtDark p-6 text-textPrimary dark:text-textPrimaryDark shadow-xl backdrop-blur-sm"
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
@@ -2848,14 +2841,14 @@ function ThemePickerModal({ onClose }: ThemePickerModalProps) {
             >
               Theme & mode
             </h2>
-            <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+            <p className="mt-1 text-sm text-textMuted dark:text-textMutedDark">
               Pick a palette, then choose whether light or dark feels best.
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full px-2 py-1 text-sm font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+            className="rounded-full px-2 py-1 text-sm font-semibold text-textMuted dark:text-textMutedDark hover:text-textPrimary dark:text-textPrimaryDark dark:hover:text-textPrimary dark:text-textPrimaryDark"
             aria-label="Close appearance dialog"
           >
             <svg
@@ -2891,10 +2884,10 @@ function ThemePickerModal({ onClose }: ThemePickerModalProps) {
                     key={option.key}
                     type="button"
                     onClick={() => setThemeKey(option.key)}
-                    className={`flex flex-col gap-3 rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-accent)] ${
+                    className={`flex flex-col gap-3 rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-accent dark:ring-accentDark ${
                       isActive
-                        ? "border-[var(--color-accent)]"
-                        : "border-[var(--color-border)] hover:border-[var(--color-accent)]"
+                        ? "border-accent dark:border-accentDark"
+                        : "border border-borderSoft dark:border-borderSoftDark hover:border-accent dark:hover:border-accentDark"
                     }`}
                     style={{
                       backgroundColor: palette.surfaceAlt,
@@ -2906,10 +2899,10 @@ function ThemePickerModal({ onClose }: ThemePickerModalProps) {
                   >
                     <ThemePreview palette={palette} />
                     <div className="space-y-1">
-                      <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                      <p className="text-sm font-semibold text-textPrimary dark:text-textPrimaryDark">
                         {option.name}
                       </p>
-                      <p className="text-xs text-[var(--color-text-secondary)]">
+                      <p className="text-xs text-textMuted dark:text-textMutedDark">
                         {option.description}
                       </p>
                     </div>
@@ -2935,8 +2928,8 @@ function ThemePickerModal({ onClose }: ThemePickerModalProps) {
                     onClick={() => setTheme(modeOption.value)}
                     className={`flex-1 rounded-full px-4 py-2 text-xs font-semibold transition ${
                       isActive
-                        ? "bg-[var(--color-accent)] text-white shadow-sm"
-                        : "border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]"
+                        ? "bg-accent dark:bg-accentDark text-white shadow-sm"
+                        : "border border-borderSoft dark:border-borderSoftDark text-textMuted dark:text-textMutedDark hover:border-accent dark:hover:border-accentDark"
                     }`}
                     aria-pressed={isActive}
                   >
@@ -3100,7 +3093,7 @@ function NewTransactionModal({
                 <button
                   type="button"
                   onClick={() => setIsPadOpen(true)}
-                  className="mt-1 text-[11px] font-semibold text-[var(--color-accent)] hover:text-[var(--color-accent-strong)]"
+                  className="mt-1 text-[11px] font-semibold text-accent dark:text-accentDark hover:text-toggleDark dark:text-toggleDarkText dark:hover:text-toggleDark dark:text-toggleDarkTextText"
                 >
                   Open number pad
                 </button>
@@ -3243,7 +3236,7 @@ function AccountsListModal({
       <div className={`w-full max-w-lg ${modalCardBase} p-6`}>
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[var(--color-text-secondary)]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-textMuted dark:text-textMutedDark">
               {showDeleted ? "Deleted accounts" : "Active accounts"}
             </p>
             <h2 className="text-xl font-semibold">Accounts</h2>
@@ -3294,12 +3287,12 @@ function AccountsListModal({
                   showDeleted ? "" : "cursor-pointer transition hover:shadow-md"
                 }`}
               >
-                <div className="w-28 text-right text-lg font-extrabold text-[var(--color-text-primary)]">
+                <div className="w-28 text-right text-lg font-extrabold text-textPrimary dark:text-textPrimaryDark">
                   {formatCurrency(account.balance)}
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-[var(--color-text-primary)]">{account.name}</p>
-                  <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-secondary)]">
+                  <p className="text-sm font-semibold text-textPrimary dark:text-textPrimaryDark">{account.name}</p>
+                  <p className="text-[11px] uppercase tracking-wide text-textMuted dark:text-textMutedDark">
                     {getAccountCategoryLabel(account.accountCategory)}
                   </p>
                 </div>
@@ -3307,7 +3300,7 @@ function AccountsListModal({
                   <button
                     type="button"
                     onClick={() => onRestore(account.id)}
-                    className="rounded-full bg-[var(--color-accent)] px-3 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-[var(--color-accent-strong)]"
+                    className="rounded-full bg-accent dark:bg-accentDark px-3 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-toggleDark dark:bg-toggleDarkBg dark:hover:bg-toggleDark dark:bg-toggleDarkBgBg"
                   >
                     Restore
                   </button>
@@ -3319,7 +3312,7 @@ function AccountsListModal({
                       e.stopPropagation();
                       onDelete(account.id);
                     }}
-                    className="rounded-full border border-red-300/70 bg-[var(--color-surface)] px-4 py-2 text-xs font-semibold text-red-500 transition hover:bg-red-500/10"
+                    className="rounded-full border border-red-300/70 bg-cardDebt dark:bg-cardDebtDark px-4 py-2 text-xs font-semibold text-red-500 transition hover:bg-red-500/10"
                   >
                     Delete account
                   </button>
@@ -3528,14 +3521,14 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
               <button
                 type="button"
                 onClick={() => setIsPadOpen(true)}
-                className="mt-1 text-[11px] font-semibold text-[var(--color-accent)] hover:text-[var(--color-accent-strong)]"
+                className="mt-1 text-[11px] font-semibold text-accent dark:text-accentDark hover:text-toggleDark dark:text-toggleDarkText dark:hover:text-toggleDark dark:text-toggleDarkTextText"
               >
                 Open number pad
               </button>
               {balanceError && (
                 <p className="mt-1 text-xs text-red-500">{balanceError}</p>
               )}
-              <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
+              <p className="mt-1 text-[11px] text-textMuted dark:text-textMutedDark">
                 {accountCategory === "debt"
                   ? "For credit accounts, enter the amount you owe as a negative number (e.g. -500) or 0 if it’s fully paid."
                   : "Balances are stored as positive numbers and add to your net worth."}
@@ -3565,8 +3558,8 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                     key={option.value}
                     className={`flex cursor-pointer flex-col ${modalSurfaceAltCard} px-3 py-2 transition ${
                       accountCategory === option.value
-                        ? "border-[var(--color-accent)] ring-2 ring-[var(--color-accent)]"
-                        : "hover:border-[var(--color-accent)]"
+                        ? "border-accent dark:border-accentDark ring-2 ring-accent dark:ring-accentDark"
+                        : "hover:border-accent dark:hover:border-accentDark"
                     }`}
                   >
                     <input
@@ -3577,10 +3570,10 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                       onChange={() => setAccountCategory(option.value)}
                       className="sr-only"
                     />
-                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">
+                    <span className="text-sm font-semibold text-textPrimary dark:text-textPrimaryDark">
                       {option.label}
                     </span>
-                    <span className="text-[11px] text-[var(--color-text-secondary)]">
+                    <span className="text-[11px] text-textMuted dark:text-textMutedDark">
                       {option.hint}
                     </span>
                   </label>
@@ -3607,7 +3600,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                       {creditLimitError}
                     </p>
                   )}
-                  <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
+                  <p className="mt-1 text-[11px] text-textMuted dark:text-textMutedDark">
                     Total available credit on this account (optional).
                   </p>
                 </div>
@@ -3625,12 +3618,12 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                       className={modalInputClass}
                       placeholder="e.g. 19.99"
                     />
-                    <span className="text-sm font-semibold text-[var(--color-text-secondary)]">%</span>
+                    <span className="text-sm font-semibold text-textMuted dark:text-textMutedDark">%</span>
                   </div>
                   {aprError && (
                     <p className="mt-1 text-xs text-red-500">{aprError}</p>
                   )}
-                  <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
+                  <p className="mt-1 text-[11px] text-textMuted dark:text-textMutedDark">
                     Annual interest rate in percent (optional).
                   </p>
                 </div>
@@ -3652,7 +3645,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                       {minimumPaymentError}
                     </p>
                   )}
-                  <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
+                  <p className="mt-1 text-[11px] text-textMuted dark:text-textMutedDark">
                     Leave blank to calculate or update later.
                   </p>
                 </div>
@@ -3674,7 +3667,7 @@ function NewAccountModal({ onClose, onSave }: NewAccountModalProps) {
                       {startingBalanceError}
                     </p>
                   )}
-                  <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
+                  <p className="mt-1 text-[11px] text-textMuted dark:text-textMutedDark">
                     Used to measure progress toward payoff.
                   </p>
                 </div>
@@ -3888,7 +3881,7 @@ function EditAccountModal({
       <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4">
         <div className={`w-full max-w-md ${modalCardBase} p-6`}>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
+            <h2 className="text-lg font-semibold text-textPrimary dark:text-textPrimaryDark">
               Edit Account
             </h2>
             <button
@@ -3931,14 +3924,14 @@ function EditAccountModal({
               <button
                 type="button"
                 onClick={() => setIsPadOpen(true)}
-                className="mt-1 text-[11px] font-semibold text-[var(--color-accent)] hover:text-[var(--color-accent-strong)]"
+                className="mt-1 text-[11px] font-semibold text-accent dark:text-accentDark hover:text-toggleDark dark:text-toggleDarkText dark:hover:text-toggleDark dark:text-toggleDarkTextText"
               >
                 Open number pad
               </button>
               {balanceError && (
                 <p className="mt-1 text-xs text-red-500">{balanceError}</p>
               )}
-              <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
+              <p className="mt-1 text-[11px] text-textMuted dark:text-textMutedDark">
                 {accountCategory === "debt"
                   ? "For credit accounts, enter the amount you owe as a negative number (e.g. -500) or 0 if it’s fully paid."
                   : "Balances are stored as positive numbers and add to your net worth."}
@@ -3968,8 +3961,8 @@ function EditAccountModal({
                     key={option.value}
                     className={`flex cursor-pointer flex-col ${modalSurfaceAltCard} px-3 py-2 transition ${
                       accountCategory === option.value
-                        ? "border-[var(--color-accent)] ring-2 ring-[var(--color-accent)]"
-                        : "hover:border-[var(--color-accent)]"
+                        ? "border-accent dark:border-accentDark ring-2 ring-accent dark:ring-accentDark"
+                        : "hover:border-accent dark:hover:border-accentDark"
                     }`}
                   >
                     <input
@@ -3980,10 +3973,10 @@ function EditAccountModal({
                       onChange={() => setAccountCategory(option.value)}
                       className="sr-only"
                     />
-                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">
+                    <span className="text-sm font-semibold text-textPrimary dark:text-textPrimaryDark">
                       {option.label}
                     </span>
-                    <span className="text-[11px] text-[var(--color-text-secondary)]">
+                    <span className="text-[11px] text-textMuted dark:text-textMutedDark">
                       {option.hint}
                     </span>
                   </label>
@@ -4010,7 +4003,7 @@ function EditAccountModal({
                         {creditLimitError}
                       </p>
                     )}
-                    <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
+                    <p className="mt-1 text-[11px] text-textMuted dark:text-textMutedDark">
                       Total available credit on this account (optional).
                     </p>
                   </div>
@@ -4028,12 +4021,12 @@ function EditAccountModal({
                         className={modalInputClass}
                         placeholder="e.g. 19.99"
                       />
-                      <span className="text-sm font-semibold text-[var(--color-text-secondary)]">%</span>
+                      <span className="text-sm font-semibold text-textMuted dark:text-textMutedDark">%</span>
                     </div>
                     {aprError && (
                       <p className="mt-1 text-xs text-red-500">{aprError}</p>
                     )}
-                    <p className="mt-1 text-[11px] text-[var(--color-text-secondary)]">
+                    <p className="mt-1 text-[11px] text-textMuted dark:text-textMutedDark">
                       Annual interest rate in percent (optional).
                     </p>
                   </div>
@@ -4045,7 +4038,7 @@ function EditAccountModal({
                 <button
                   type="button"
                   onClick={onDelete}
-                  className="rounded-full border border-red-300/70 bg-[var(--color-surface)] px-4 py-2 text-xs font-semibold text-red-500 transition hover:bg-red-500/10"
+                  className="rounded-full border border-red-300/70 bg-cardDebt dark:bg-cardDebtDark px-4 py-2 text-xs font-semibold text-red-500 transition hover:bg-red-500/10"
                 >
                   Delete account
                 </button>
@@ -4148,7 +4141,7 @@ function NewTransferModal({
       <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
         <div className={`w-full max-w-md ${modalCardBase} p-6`}>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
+            <h2 className="text-lg font-semibold text-textPrimary dark:text-textPrimaryDark">
               New Transfer
             </h2>
             <button
@@ -4215,7 +4208,7 @@ function NewTransferModal({
               <button
                 type="button"
                 onClick={() => setIsPadOpen(true)}
-                className="mt-1 text-[11px] font-semibold text-[var(--color-accent)] hover:text-[var(--color-accent-strong)]"
+                className="mt-1 text-[11px] font-semibold text-accent dark:text-accentDark hover:text-toggleDark dark:text-toggleDarkText dark:hover:text-toggleDark dark:text-toggleDarkTextText"
               >
                 Open number pad
               </button>
@@ -4338,7 +4331,7 @@ function NewBillModal({
       <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
         <div className={`w-full max-w-md ${modalCardBase} p-6`}>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">New Bill</h2>
+            <h2 className="text-lg font-semibold text-textPrimary dark:text-textPrimaryDark">New Bill</h2>
             <button
               type="button"
               onClick={onClose}
@@ -4356,7 +4349,7 @@ function NewBillModal({
               <input
                 name="name"
                 placeholder="e.g. Phone bill"
-                className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                className="w-full rounded-lg border border-borderSoft dark:border-borderSoftDark bg-sidebar dark:bg-sidebarDark px-3 py-2 text-sm text-textPrimary dark:text-textPrimaryDark outline-none focus:ring-2 focus:ring-accent dark:focus:ring-accentDark"
               />
             </div>
 
@@ -4373,13 +4366,13 @@ function NewBillModal({
                       setAmount(e.target.value.replace(/[^0-9.]/g, ""))
                     }
                     placeholder="0.00"
-                    className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                    className="w-full rounded-lg border border-borderSoft dark:border-borderSoftDark bg-sidebar dark:bg-sidebarDark px-3 py-2 text-sm text-textPrimary dark:text-textPrimaryDark outline-none focus:ring-2 focus:ring-accent dark:focus:ring-accentDark"
                   />
 
                   <button
                     type="button"
                     onClick={() => setIsPadOpen(true)}
-                    className="self-start text-[11px] text-[var(--color-accent)] underline hover:text-[var(--color-accent-strong)]"
+                    className="self-start text-[11px] text-accent dark:text-accentDark underline hover:text-toggleDark dark:text-toggleDarkText dark:hover:text-toggleDark dark:text-toggleDarkTextText"
                   >
                     Open number pad
                   </button>
@@ -4397,7 +4390,7 @@ function NewBillModal({
                   type="date"
                   name="dueDate"
                   defaultValue={today}
-                  className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                  className="w-full rounded-lg border border-borderSoft dark:border-borderSoftDark bg-sidebar dark:bg-sidebarDark px-3 py-2 text-sm text-textPrimary dark:text-textPrimaryDark outline-none focus:ring-2 focus:ring-accent dark:focus:ring-accentDark"
                 />
               </div>
             </div>
@@ -4410,7 +4403,7 @@ function NewBillModal({
                 <select
                   name="accountId"
                   defaultValue={selectedAccountId}
-                  className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                  className="w-full rounded-lg border border-borderSoft dark:border-borderSoftDark bg-sidebar dark:bg-sidebarDark px-3 py-2 text-sm text-textPrimary dark:text-textPrimaryDark outline-none focus:ring-2 focus:ring-accent dark:focus:ring-accentDark"
                 >
                   {accounts.map((acc) => (
                     <option key={acc.id} value={acc.id}>
@@ -4527,8 +4520,8 @@ function BillsListModal({
       <div className={`flex w-full max-w-2xl max-h-[70vh] flex-col ${modalCardBase} p-6`}>
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">All Bills</h2>
-            <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
+            <h2 className="text-lg font-semibold text-textPrimary dark:text-textPrimaryDark">All Bills</h2>
+            <p className="mt-1 text-xs text-textMuted dark:text-textMutedDark">
               Tap a bill to edit it, or mark it as paid.
             </p>
           </div>
@@ -4542,7 +4535,7 @@ function BillsListModal({
         </div>
 
         {sorted.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center text-xs text-[var(--color-text-secondary)]">
+          <div className="flex flex-1 items-center justify-center text-xs text-textMuted dark:text-textMutedDark">
             No bills added yet.
           </div>
         ) : (
@@ -4555,7 +4548,7 @@ function BillsListModal({
                 return (
                   <div
                     key={bill.id}
-                    className="flex items-center justify-between rounded-xl bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-primary)]"
+                    className="flex items-center justify-between rounded-xl bg-sidebar dark:bg-sidebarDark px-3 py-2 text-sm text-textPrimary dark:text-textPrimaryDark"
                   >
                     <button
                       type="button"
@@ -4563,7 +4556,7 @@ function BillsListModal({
                       className="flex flex-1 flex-col text-left"
                     >
                       <span className="font-semibold">{bill.name}</span>
-                      <span className="text-[11px] text-[var(--color-text-secondary)]">
+                      <span className="text-[11px] text-textMuted dark:text-textMutedDark">
                         Due {bill.dueDate} · {accountName(bill.accountId)}
                       </span>
                     </button>
@@ -4576,7 +4569,7 @@ function BillsListModal({
                           maximumFractionDigits: 2,
                         })}
                       </div>
-                      <div className="text-[11px] text-[var(--color-text-secondary)]">
+                      <div className="text-[11px] text-textMuted dark:text-textMutedDark">
                         {bill.frequency === "weekly"
                           ? "Weekly"
                           : bill.frequency === "biweekly"
@@ -4591,7 +4584,7 @@ function BillsListModal({
                         <button
                           type="button"
                           onClick={() => onMarkPaid(bill)}
-                          className="mt-1 rounded-full border border-[var(--color-border)] px-3 py-1 text-[11px] font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]"
+                          className="mt-1 rounded-full border border-borderSoft dark:border-borderSoftDark px-3 py-1 text-[11px] font-semibold text-textMuted dark:text-textMutedDark hover:bg-cardDebt dark:bg-cardDebtDark"
                         >
                           Mark paid
                         </button>
@@ -4650,7 +4643,7 @@ function EditBillModal({
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4">
       <div className={`w-full max-w-md ${modalCardBase} p-6`}>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
+          <h2 className="text-lg font-semibold text-textPrimary dark:text-textPrimaryDark">
             Edit Bill
           </h2>
           <button
@@ -4671,7 +4664,7 @@ function EditBillModal({
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+              className="w-full rounded-lg border border-borderSoft dark:border-borderSoftDark bg-sidebar dark:bg-sidebarDark px-3 py-2 text-sm text-textPrimary dark:text-textPrimaryDark outline-none focus:ring-2 focus:ring-accent dark:focus:ring-accentDark"
             />
           </div>
 
@@ -4688,7 +4681,7 @@ function EditBillModal({
                   setAmount(e.target.value.replace(/[^0-9.]/g, ""))
                 }
                 placeholder="0.00"
-                className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                className="w-full rounded-lg border border-borderSoft dark:border-borderSoftDark bg-sidebar dark:bg-sidebarDark px-3 py-2 text-sm text-textPrimary dark:text-textPrimaryDark outline-none focus:ring-2 focus:ring-accent dark:focus:ring-accentDark"
               />
               {amountError && (
                 <p className="mt-1 text-xs text-red-700">{amountError}</p>
@@ -4703,7 +4696,7 @@ function EditBillModal({
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                className="w-full rounded-lg border border-borderSoft dark:border-borderSoftDark bg-sidebar dark:bg-sidebarDark px-3 py-2 text-sm text-textPrimary dark:text-textPrimaryDark outline-none focus:ring-2 focus:ring-accent dark:focus:ring-accentDark"
               />
             </div>
           </div>
@@ -4716,7 +4709,7 @@ function EditBillModal({
               <select
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
-                className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-sm text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+                className="w-full rounded-lg border border-borderSoft dark:border-borderSoftDark bg-sidebar dark:bg-sidebarDark px-3 py-2 text-sm text-textPrimary dark:text-textPrimaryDark outline-none focus:ring-2 focus:ring-accent dark:focus:ring-accentDark"
               >
                 {accounts.map((acc) => (
                   <option key={acc.id} value={acc.id}>
@@ -4845,7 +4838,7 @@ function TransactionsHistoryModal({
   });
 
   const sortBtnBase =
-    "ml-2 rounded-full border border-[var(--color-border)] px-2 py-1 text-xs font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-alt)]";
+    "ml-2 rounded-full border border-borderSoft dark:border-borderSoftDark px-2 py-1 text-xs font-semibold text-textMuted dark:text-textMutedDark hover:bg-sidebar dark:bg-sidebarDark";
 
   return (
     <div className="fixed inset-0 z-20 flex items-center justify-center bg-black/50 px-4">
@@ -4853,7 +4846,7 @@ function TransactionsHistoryModal({
         <div className="mb-4 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
+              <h2 className="text-lg font-semibold text-textPrimary dark:text-textPrimaryDark">
                 Transactions – {account.name}
               </h2>
               <button
@@ -4887,7 +4880,7 @@ function TransactionsHistoryModal({
                 +$
               </button>
             </div>
-            <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
+            <p className="mt-1 text-xs text-textMuted dark:text-textMutedDark">
               Full history for this account.
             </p>
           </div>
@@ -4901,7 +4894,7 @@ function TransactionsHistoryModal({
         </div>
 
         {sorted.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center text-xs text-[var(--color-text-secondary)]">
+          <div className="flex flex-1 items-center justify-center text-xs text-textMuted dark:text-textMutedDark">
             No transactions yet for this account.
           </div>
         ) : (
@@ -4910,7 +4903,7 @@ function TransactionsHistoryModal({
               {sorted.map((tx) => (
                 <div
                   key={tx.id}
-                  className="flex items-center justify-between rounded-xl bg-[var(--color-surface-alt)] px-3 py-2 text-[var(--color-text-primary)]"
+                  className="flex items-center justify-between rounded-xl bg-sidebar dark:bg-sidebarDark px-3 py-2 text-textPrimary dark:text-textPrimaryDark"
                 >
                   <button
                     type="button"
@@ -4920,7 +4913,7 @@ function TransactionsHistoryModal({
                     <span className="font-semibold">
                       {tx.description || "Transaction"}
                     </span>
-                    <span className="text-xs text-[var(--color-text-secondary)]">
+                    <span className="text-xs text-textMuted dark:text-textMutedDark">
                       {tx.date}
                     </span>
                   </button>
@@ -4997,7 +4990,7 @@ function EditTransactionDetailsModal({
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4">
       <div className={`w-full max-w-md ${modalCardBase} p-6`}>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
+          <h2 className="text-lg font-semibold text-textPrimary dark:text-textPrimaryDark">
             Edit Transaction
           </h2>
           <button
@@ -5048,7 +5041,7 @@ function EditTransactionDetailsModal({
             <button
               type="button"
               onClick={() => setIsPadOpen(true)}
-              className="mt-1 text-[11px] font-semibold text-[var(--color-accent)] hover:text-[var(--color-accent-strong)]"
+              className="mt-1 text-[11px] font-semibold text-accent dark:text-accentDark hover:text-toggleDark dark:text-toggleDarkText dark:hover:text-toggleDark dark:text-toggleDarkTextText"
             >
               Open number pad
             </button>
@@ -5133,7 +5126,7 @@ function EditTransactionAmountModal({
       <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 px-4">
         <div className={`w-full max-w-sm ${modalCardBase} p-6`}>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-[var(--color-text-primary)]">
+            <h2 className="text-lg font-semibold text-textPrimary dark:text-textPrimaryDark">
               Edit Amount
             </h2>
             <button
@@ -5161,7 +5154,7 @@ function EditTransactionAmountModal({
               <button
                 type="button"
                 onClick={() => setIsPadOpen(true)}
-                className="mt-1 text-[11px] font-semibold text-[var(--color-accent)] hover:text-[var(--color-accent-strong)]"
+                className="mt-1 text-[11px] font-semibold text-accent dark:text-accentDark hover:text-toggleDark dark:text-toggleDarkText dark:hover:text-toggleDark dark:text-toggleDarkTextText"
               >
                 Open number pad
               </button>
@@ -5233,7 +5226,7 @@ function NumberPad({ value, onChange, onClose }: NumberPadProps) {
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-4">
       <div className={`w-full max-w-xs ${modalCardBase} p-4`}>
         <div className="mb-3 flex items-center justify-between">
-          <span className="text-sm font-semibold text-[var(--color-text-primary)]">
+          <span className="text-sm font-semibold text-textPrimary dark:text-textPrimaryDark">
             Number pad
           </span>
           <button
@@ -5245,7 +5238,7 @@ function NumberPad({ value, onChange, onClose }: NumberPadProps) {
           </button>
         </div>
 
-        <div className="mb-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-right text-lg font-semibold text-[var(--color-text-primary)]">
+        <div className="mb-3 rounded-lg border border-borderSoft dark:border-borderSoftDark bg-sidebar dark:bg-sidebarDark px-3 py-2 text-right text-lg font-semibold text-textPrimary dark:text-textPrimaryDark">
           {value || "0"}
         </div>
 
@@ -5255,7 +5248,7 @@ function NumberPad({ value, onChange, onClose }: NumberPadProps) {
               key={k}
               type="button"
               onClick={() => handlePress(k)}
-              className="flex h-10 items-center justify-center rounded-lg bg-[var(--color-surface-alt)] text-sm font-semibold text-[var(--color-text-primary)] shadow-sm hover:bg-[var(--color-surface)]"
+              className="flex h-10 items-center justify-center rounded-lg bg-sidebar dark:bg-sidebarDark text-sm font-semibold text-textPrimary dark:text-textPrimaryDark shadow-sm hover:bg-cardDebt dark:bg-cardDebtDark"
             >
               {k}
             </button>
@@ -5266,14 +5259,14 @@ function NumberPad({ value, onChange, onClose }: NumberPadProps) {
           <button
             type="button"
             onClick={() => handlePress("C")}
-            className="flex-1 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-xs font-semibold text-[var(--color-text-primary)] hover:border-[var(--color-accent)]"
+            className="flex-1 rounded-full border border-borderSoft dark:border-borderSoftDark bg-sidebar dark:bg-sidebarDark px-3 py-2 text-xs font-semibold text-textPrimary dark:text-textPrimaryDark hover:border-accent dark:hover:border-accentDark"
           >
             Clear
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 rounded-full bg-[var(--color-accent)] px-3 py-2 text-xs font-semibold text-white hover:bg-[var(--color-accent-strong)]"
+            className="flex-1 rounded-full bg-accent dark:bg-accentDark px-3 py-2 text-xs font-semibold text-white hover:bg-toggleDark dark:bg-toggleDarkBg dark:hover:bg-toggleDark dark:bg-toggleDarkBgBg"
           >
             Done
           </button>
@@ -5282,3 +5275,13 @@ function NumberPad({ value, onChange, onClose }: NumberPadProps) {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
