@@ -16,7 +16,7 @@ import { loadDashboardData, saveDashboardData } from "../lib/dashboardStore";
 import type { Bill } from "../lib/financeTypes";
 import { calculateNetWorthFromAccounts } from "../lib/netWorth";
 import { MoneyVisibilityProvider } from "../MoneyVisibilityContext";
-import { NetWorthCard } from "../components/dashboard/NetWorthCard";
+import { NetWorthCard } from "../components/dashboard/net-worth/NetWorthCard";
 import { deleteProfile, updateProfileName } from "../lib/profiles";
 import {
   calculateDebtPayoff,
