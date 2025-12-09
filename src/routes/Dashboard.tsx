@@ -1470,7 +1470,7 @@ export default function Dashboard() {
                 </section>
 
                 {/* UPCOMING BILLS CARD */}
-                <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md min-h-[260px] md:col-span-1 md:order-4 xl:px-7 xl:py-7 xl:min-h-[300px]">
+                <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md min-h-[260px] md:col-span-1 md:order-4 xl:px-7 xl:py-7 xl:min-h-[360px]">
                   <div className="mb-3 flex items-center justify-between">
                     <p className="text-sm font-semibold">Upcoming Bills</p>
                     <div className="flex items-center gap-3">
@@ -1593,7 +1593,7 @@ export default function Dashboard() {
                 </section>
 
                 {/* DEBT PAYOFF PROGRESS */}
-                <section className="flex flex-col gap-4 rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md md:col-span-3 md:order-5 md:flex-row md:items-center md:justify-between xl:px-7 xl:py-5 xl:min-h-[110px]">
+                <section className="flex flex-col gap-4 rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md md:col-span-3 md:order-5 md:flex-row md:items-center md:justify-between xl:px-7 xl:py-5 xl:min-h-[140px]">
                   <div className="flex flex-1 flex-col gap-2">
                     <button
                       type="button"

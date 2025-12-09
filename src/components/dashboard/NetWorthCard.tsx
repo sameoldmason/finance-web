@@ -68,7 +68,8 @@ export function NetWorthCard({
   const isDetailed = viewMode === "detailed";
 
   return (
-    <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md h-full xl:px-7 xl:py-7 xl:min-h-[320px]">
+    <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md xl:px-7 xl:py-7 h-full xl:min-h-[360px]
+">
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm font-semibold">Net Worth</p>
 
