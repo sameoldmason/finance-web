@@ -1,5 +1,4 @@
 // src/routes/Dashboard.tsx
-import { DashboardHeader } from "../components/dashboard/DashboardHeader";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ThemeMode, ThemePalette, useTheme } from "../ThemeProvider";
@@ -24,6 +23,8 @@ import {
   DebtInput,
   DebtPayoffResult,
 } from "../lib/debtPayoffMath";
+import { AccountsSection } from "../components/dashboard/accounts/AccountsSection";
+import { DashboardHeader } from "../components/dashboard/DashboardHeader";
 
 // New profiles should start with NO accounts
 const INITIAL_ACCOUNTS: Account[] = [];
@@ -42,6 +43,24 @@ type ResetChoice =
 function isTransferTransaction(tx: Transaction) {
   if (tx.kind === "transfer") return true;
   const description = tx.description?.toLowerCase() ?? "";
+
+  const formattedCurrentBalance = formatCurrency(selectedAccount?.balance ?? 0);
+
+  const accountsSectionProps = {
+    selectedAccount,
+    visibleAccounts,
+    editButtonForId,
+    theme,
+    formattedBalance: formattedCurrentBalance,
+    onNewAccount: () => setIsNewAccountOpen(true),
+    onNewTransaction: () => setIsNewTxOpen(true),
+    onNewTransfer: () => setIsTransferOpen(true),
+    onPrevAccount: handlePrevAccount,
+    onNextAccount: handleNextAccount,
+    onAccountClick: handleAccountClick,
+    onEditAccount: (account: Account) => setEditingAccount(account),
+  };
+
   return (
     description.startsWith("transfer") ||
     description.includes("transfer in") ||
@@ -1233,130 +1252,7 @@ export default function Dashboard() {
             <div className="w-full mx-auto px-4 pb-6 pt-6 sm:px-6 lg:px-8 space-y-8">
               <div className="grid grid-cols-1 gap-x-6 gap-y-8 md:grid-cols-3">
                 {/* CURRENT BALANCE CARD */}
-                <section className="rounded-2xl bg-black/10 px-6 pt-5 pb-2 backdrop-blur-sm shadow-md md:col-span-2 md:order-1 xl:px-8 xl:pt-7 xl:pb-4 xl:min-h-[30vh]">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.2em] opacity-80">
-                        Current Balance
-                      </p>
-                      <p className="mt-1 text-3xl font-extrabold">
-                        {formatCurrency(selectedAccount?.balance ?? 0)}
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setIsNewAccountOpen(true)}
-                      className="mt-1 flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-surface-alt)]/20 text-sm font-bold text-[#F5FEFA] hover:bg-[var(--color-surface-alt)]/30"
-                      aria-label="Add account"
-                    >
-                      +
-                    </button>
-                  </div>
-
-                  {/* ACTION BUTTONS */}
-                  <div className="mt-4 grid grid-cols-2 gap-4">
-                    {(() => {
-                      const newActionBase =
-                        "w-full rounded-full bg-[#F5FEFA] py-3 text-sm font-semibold shadow-sm transition hover:bg-[#454545] hover:text-[#F5FEFA]";
-                      const newActionText =
-                        theme === "dark"
-                          ? "text-[#1f1f1f]"
-                          : "text-[var(--color-text-primary)]";
-                      const newActionClasses = `${newActionBase} ${newActionText}`;
-
-                      return (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => setIsNewTxOpen(true)}
-                            className={newActionClasses}
-                          >
-                            <span className="btn-label-full">
-                              New Transaction
-                            </span>
-                            <span className="btn-label-wrap">
-                              New
-                              <br />
-                              Transaction
-                            </span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => setIsTransferOpen(true)}
-                            className={newActionClasses}
-                          >
-                            <span className="btn-label-full">New Transfer</span>
-                            <span className="btn-label-wrap">
-                              New
-                              <br />
-                              Transfer
-                            </span>
-                          </button>
-                        </>
-                      );
-                    })()}
-                  </div>
-
-                  {/* ACCOUNT CAROUSEL */}
-                  <div className="mt-6 flex items-center gap-3">
-                    {/* Left arrow */}
-                    <button
-                      type="button"
-                      onClick={handlePrevAccount}
-                      className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-[var(--color-surface-alt)]/10 text-white/80 hover:bg-[var(--color-surface-alt)]/20 hover:text-white transition"
-                    >
-                      {"<"}
-                    </button>
-
-                    {/* Account pills */}
-                    <div className="flex-1">
-                      <div className="grid grid-cols-2 gap-3">
-                        {visibleAccounts.map((account) => (
-                          <div
-                            key={account.id}
-                            className="flex items-center gap-2"
-                          >
-                            <button
-                              type="button"
-                              onClick={() => handleAccountClick(account.id)}
-                              className={`h-10 w-full rounded-2xl text-sm font-semibold transition ${
-                                selectedAccount &&
-                                account.id === selectedAccount.id
-                                  ? "bg-[var(--color-surface-alt)]/20 text-[#F5FEFA]"
-                                  : "bg-[var(--color-surface-alt)]/10 text-[#F5FEFA]/80 hover:bg-[var(--color-surface-alt)]/16"
-                              }`}
-                            >
-                              {account.name}
-                            </button>
-                            {selectedAccount &&
-                              selectedAccount.id === account.id &&
-                              editButtonForId === account.id && (
-                                <button
-                                  type="button"
-                                  onClick={() => setEditingAccount(account)}
-                                  className="flex h-7 w-7 items-center justify-center rounded-full bg.white/20 text-xs text-[#F5FEFA] hover:bg-[var(--color-surface-alt)]/30"
-                                  title="Edit account"
-                                >
-                                  ƒoZ
-                                </button>
-                              )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Right arrow */}
-                    <button
-                      type="button"
-                      onClick={handleNextAccount}
-                      className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-[var(--color-surface-alt)]/10 text-white/80 hover:bg-[var(--color-surface-alt)]/20 hover:text-white transition"
-                    >
-                      {">"}
-                    </button>
-                  </div>
-                </section>
+                <AccountsSection {...accountsSectionProps} />
 
                 {/* TRANSACTIONS CARD */}
                 <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md md:col-span-1 md:order-2 xl:px-7 xl:py-7 xl:min-h-[30vh]">
