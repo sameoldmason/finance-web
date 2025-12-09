@@ -44,23 +44,6 @@ function isTransferTransaction(tx: Transaction) {
   if (tx.kind === "transfer") return true;
   const description = tx.description?.toLowerCase() ?? "";
 
-  const formattedCurrentBalance = formatCurrency(selectedAccount?.balance ?? 0);
-
-  const accountsSectionProps = {
-    selectedAccount,
-    visibleAccounts,
-    editButtonForId,
-    theme,
-    formattedBalance: formattedCurrentBalance,
-    onNewAccount: () => setIsNewAccountOpen(true),
-    onNewTransaction: () => setIsNewTxOpen(true),
-    onNewTransfer: () => setIsTransferOpen(true),
-    onPrevAccount: handlePrevAccount,
-    onNextAccount: handleNextAccount,
-    onAccountClick: handleAccountClick,
-    onEditAccount: (account: Account) => setEditingAccount(account),
-  };
-
   return (
     description.startsWith("transfer") ||
     description.includes("transfer in") ||
@@ -1194,6 +1177,23 @@ export default function Dashboard() {
     const second = accounts[(carouselStartIndex + 1) % accounts.length];
     visibleAccounts = [first, second].filter(Boolean) as Account[];
   }
+
+  const formattedCurrentBalance = formatCurrency(selectedAccount?.balance ?? 0);
+
+  const accountsSectionProps = {
+    selectedAccount,
+    visibleAccounts,
+    editButtonForId,
+    theme,
+    formattedBalance: formattedCurrentBalance,
+    onNewAccount: () => setIsNewAccountOpen(true),
+    onNewTransaction: () => setIsNewTxOpen(true),
+    onNewTransfer: () => setIsTransferOpen(true),
+    onPrevAccount: handlePrevAccount,
+    onNextAccount: handleNextAccount,
+    onAccountClick: handleAccountClick,
+    onEditAccount: (account: Account) => setEditingAccount(account),
+  };
 
   const appMenuItems = [
     { label: "Accounts", onClick: () => setIsAccountsListOpen(true) },
