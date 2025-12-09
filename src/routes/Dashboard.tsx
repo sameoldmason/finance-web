@@ -25,6 +25,7 @@ import {
 } from "../lib/debtPayoffMath";
 import { AccountsSection } from "../components/dashboard/accounts/AccountsSection";
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
+import { BillsSection } from "../components/dashboard/bills/BillsSection";
 
 // New profiles should start with NO accounts
 const INITIAL_ACCOUNTS: Account[] = [];
@@ -103,12 +104,6 @@ function formatCurrency(amount: number) {
   });
 }
 
-function startOfToday() {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
 function getNextDueDate(bill: Bill, paidOn: string) {
   const baseDate = bill.dueDate || paidOn;
   const d = new Date(`${baseDate}T00:00:00`);
@@ -131,39 +126,6 @@ function getNextDueDate(bill: Bill, paidOn: string) {
   }
 
   return d.toISOString().slice(0, 10);
-}
-
-function getDueStatus(dueDate: string) {
-  const due = new Date(`${dueDate}T00:00:00`);
-  const diffDays = Math.ceil(
-    (due.getTime() - startOfToday().getTime()) / (1000 * 60 * 60 * 24)
-  );
-
-  if (Number.isNaN(diffDays)) {
-    return { label: "No due date", tone: "muted" as const };
-  }
-
-  if (diffDays < 0) {
-    const overdueBy = Math.abs(diffDays);
-    return {
-      label: `Overdue by ${overdueBy} day${overdueBy === 1 ? "" : "s"}`,
-      tone: "danger" as const,
-    };
-  }
-
-  if (diffDays === 0) {
-    return { label: "Due today", tone: "warning" as const };
-  }
-
-  if (diffDays === 1) {
-    return { label: "Due tomorrow", tone: "warning" as const };
-  }
-
-  if (diffDays <= 7) {
-    return { label: `Due in ${diffDays} days`, tone: "warning" as const };
-  }
-
-  return { label: `Due ${dueDate}`, tone: "muted" as const };
 }
 
 function isDebtAccount(account: Account) {
@@ -400,6 +362,15 @@ export default function Dashboard() {
     accounts.find((a) => a.id === selectedAccountId) || accounts[0];
 
   const unpaidBills = bills.filter((b) => !b.isPaid);
+
+  const billsSectionProps = {
+    accountsCount: accounts.length,
+    unpaidBills,
+    onOpenNewBill: () => setIsNewBillOpen(true),
+    onOpenBillsModal: () => setIsBillsModalOpen(true),
+    onEditBill: (bill: Bill) => setEditingBill(bill),
+    onMarkBillPaid: handleMarkBillPaid,
+  };
 
   const visibleTransactions = selectedAccount
     ? transactions.filter((tx) => tx.accountId === selectedAccount.id)
@@ -1301,131 +1272,7 @@ export default function Dashboard() {
                 </section>
 
                 {/* UPCOMING BILLS CARD */}
-                <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md min-h-[260px] md:col-span-1 md:order-4 xl:px-7 xl:py-7 xl:min-h-[30vh]">
-                  <div className="mb-3 flex items-center justify-between">
-                    <p className="text-sm font-semibold">Upcoming Bills</p>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          accounts.length > 0 && setIsNewBillOpen(true)
-                        }
-                        disabled={accounts.length === 0}
-                        className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold transition ${
-                          accounts.length === 0
-                            ? "bg-[var(--color-surface-alt)]/10 text-white/30 cursor-not-allowed"
-                            : "bg-[var(--color-surface-alt)]/20 text-[#F5FEFA] hover:bg-[var(--color-surface-alt)]/30"
-                        }`}
-                        aria-label="Add bill"
-                        title={
-                          accounts.length === 0
-                            ? "Create an account first"
-                            : "Add new bill"
-                        }
-                      >
-                        +
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsBillsModalOpen(true)}
-                        className="text-xs text-white/60 hover:text-white transition"
-                      >
-                        more
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex min-h-[232px] flex-col">
-                    {unpaidBills.length === 0 ? (
-                      <div className="flex flex-1 items-center justify-center rounded-xl bg-[var(--color-surface-alt)]/5 text-xs text-white/60">
-                        No upcoming bills yet. Add your first bill to get
-                        reminders here.
-                      </div>
-                    ) : (
-                      <div className="flex flex-1 flex-col">
-                        <div className="space-y-2">
-                          {[...unpaidBills]
-                            .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
-                            .slice(0, 3)
-                            .map((bill) => (
-                              <div
-                                key={bill.id}
-                                className="flex items-center justify-between rounded-xl bg-[var(--color-surface-alt)]/5 px-4 py-3 text-xs"
-                              >
-                                <button
-                                  type="button"
-                                  onClick={() => setEditingBill(bill)}
-                                  className="flex flex-1 flex-col text-left"
-                                >
-                                  <span className="font-semibold">
-                                    {bill.name}
-                                  </span>
-                                  <span className="flex items-center gap-2 text-[11px] text-white/60">
-                                    <span>Due {bill.dueDate}</span>
-
-                                    {(() => {
-                                      const status = getDueStatus(bill.dueDate);
-
-                                      const badgeBase =
-                                        "rounded-full px-2 py-0.5 text-[10px] font-semibold";
-
-                                      const badgeColor =
-                                        status.tone === "danger"
-                                          ? "bg-[var(--color-surface-alt)]/20 text-[#FBD5D5]"
-                                          : status.tone === "warning"
-                                          ? "bg-[var(--color-surface-alt)]/15 text-[#F2E2BE]"
-                                          : "bg-[var(--color-surface-alt)]/10 text-white/70";
-
-                                      return (
-                                        <span
-                                          className={`${badgeBase} ${badgeColor}`}
-                                        >
-                                          {status.label}
-                                        </span>
-                                      );
-                                    })()}
-                                  </span>
-                                </button>
-
-                                <div className="ml-4 text-right">
-                                  <div className="text-sm font-semibold text-[#E89A9A]">
-                                    -$
-                                    {bill.amount.toLocaleString("en-CA", {
-                                      minimumFractionDigits: 2,
-                                      maximumFractionDigits: 2,
-                                    })}
-                                  </div>
-                                  <div className="text-[11px] text-white/60">
-                                    {bill.frequency === "weekly"
-                                      ? "Weekly"
-                                      : bill.frequency === "biweekly"
-                                      ? "Bi-weekly"
-                                      : bill.frequency === "once"
-                                      ? "One-time"
-                                      : "Monthly"}
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleMarkBillPaid(bill)}
-                                    className="mt-1 rounded-full border border-white/30 px-3 py-1 text-[11px] font-semibold text-white/80 hover:bg-[var(--color-surface-alt)]/10"
-                                  >
-                                    Mark paid
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
-                        </div>
-
-                        {unpaidBills.length > 3 && (
-                          <p className="pt-1 text-[11px] text-white/60">
-                            + {unpaidBills.length - 3} more bill
-                            {unpaidBills.length - 3 === 1 ? "" : "s"} not shown
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </section>
+                <BillsSection {...billsSectionProps} />
 
                 {/* DEBT PAYOFF PROGRESS */}
                 <section className="flex flex-col gap-4 rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md md:col-span-3 md:order-5 md:flex-row md:items-center md:justify-between xl:px-7 xl:py-5 xl:min-h-[16vh]">
