@@ -1210,7 +1210,7 @@ export default function Dashboard() {
         <div className="flex min-h-[100svh] flex-col">
           {/* TOP BAR */}
           <header className="w-full bg-black/10 px-4 py-4 shadow-md backdrop-blur-sm sm:px-6 lg:px-8">
-            <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-between gap-4">
+            <div className="mx-auto flex w-full items-center justify-between gap-4">
               <div className="flex flex-1 items-center gap-4">
                 <button
                   type="button"
@@ -1299,8 +1299,8 @@ export default function Dashboard() {
           </header>
 
           <main className="w-full flex-1">
-            <div className="w-full max-w-[1440px] mx-auto px-4 pb-10 pt-6 sm:px-6 lg:px-8">
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="w-full mx-auto px-4 pb-10 pt-6 sm:px-6 lg:px-8 space-y-10">
+              <div className="grid grid-cols-1 gap-x-6 gap-y-10 md:grid-cols-3">
                 {/* CURRENT BALANCE CARD */}
                 <section className="rounded-2xl bg-black/10 px-6 pt-5 pb-2 backdrop-blur-sm shadow-md md:col-span-2 md:order-1">
                   <div className="flex items-start justify-between">
