@@ -27,12 +27,6 @@ export default function UnlockProfile() {
     setPasswordHint(p.hint?.trim() || null);
   }, [id, navigate]);
 
-  const lightBg =
-    "bg-background bg-gradient-to-b from-background via-cardDebt to-sidebar";
-  const darkBg =
-    "bg-toggleDark bg-gradient-to-b from-toggleDark via-toggleDark to-toggleDark";
-  const textTone = theme === "dark" ? "text-background" : "text-textPrimary";
-
   const initials = useMemo(() => {
     const parts = profileName.trim().split(/\s+/).filter(Boolean);
     return (
@@ -64,14 +58,12 @@ export default function UnlockProfile() {
 
   return (
     <div
-      className={`min-h-[100svh] w-full flex items-center justify-center ${
-        theme === "dark" ? darkBg : lightBg
-      } ${textTone} relative`}
+      className="min-h-[100svh] w-full flex items-center justify-center bg-background text-textPrimary dark:bg-backgroundDark dark:text-textPrimaryDark relative"
     >
       {/* Back */}
       <button
         onClick={() => navigate("/profiles")}
-        className="absolute top-4 left-4 flex items-center justify-center w-10 h-10 rounded-full border border-borderMedium bg-primaryButton text-toggleDark hover:bg-primaryButtonBorder transition"
+        className="absolute top-4 left-4 flex items-center justify-center w-10 h-10 rounded-full border border-borderMedium bg-primaryButton text-toggleDark hover:bg-primaryButtonBorder transition dark:border-borderMediumDark dark:bg-primaryButtonDark dark:text-toggleDarkText dark:hover:bg-primaryButtonBorderDark"
         aria-label="Back"
         title="Back"
       >
@@ -90,19 +82,19 @@ export default function UnlockProfile() {
         </svg>
       </button>
 
-      <div className="-translate-y-6 w-full max-w-[760px] rounded-2xl bg-cardDebt p-8 shadow-md">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-center tracking-tight text-textPrimary">
+      <div className="-translate-y-6 w-full max-w-[760px] rounded-2xl bg-cardDebt p-8 shadow-md dark:bg-cardDebtDark dark:text-textPrimaryDark">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-center tracking-tight text-textPrimary dark:text-textPrimaryDark">
           Welcome Back!
         </h1>
-        <p className="text-center text-textMuted mt-1 mb-8">Enter Password</p>
+        <p className="text-center text-textMuted dark:text-textMutedDark mt-1 mb-8">Enter Password</p>
 
         <form
           onSubmit={onSubmit}
           className="flex items-start justify-center gap-6"
         >
           {/* Avatar */}
-          <div className="relative h-16 w-16 md:h-20 md:w-20 rounded-full ring-2 ring-primaryButtonBorder overflow-hidden bg-cardDebt flex items-center justify-center">
-            <span className="text-2xl md:text-3xl font-semibold text-toggleDark">
+          <div className="relative h-16 w-16 md:h-20 md:w-20 rounded-full ring-2 ring-primaryButtonBorder overflow-hidden bg-cardDebt flex items-center justify-center dark:ring-primaryButtonBorderDark dark:bg-cardDebtDark">
+            <span className="text-2xl md:text-3xl font-semibold text-toggleDark dark:text-toggleDarkText">
               {initials}
             </span>
           </div>
@@ -116,11 +108,11 @@ export default function UnlockProfile() {
                 autoFocus
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-[300px] md:w-[360px] rounded-lg border border-borderSoft bg-background px-3 py-2 text-textPrimary placeholder-textSubtle outline-none focus:ring-2 focus:ring-accent"
+                className="w-[300px] md:w-[360px] rounded-lg border border-borderSoft bg-background px-3 py-2 text-textPrimary placeholder-textSubtle outline-none focus:ring-2 focus:ring-accent dark:border-borderSoftDark dark:bg-backgroundDark dark:text-textPrimaryDark dark:placeholder-textSubtleDark dark:focus:ring-accentDark"
                 placeholder="Password"
                 aria-label="Password"
               />
-              <p className="px-1 text-xs leading-snug text-textSubtle">
+              <p className="px-1 text-xs leading-snug text-textSubtle dark:text-textSubtleDark">
                 {passwordHint ? `Hint: ${passwordHint}` : "No hint saved for this profile."}
               </p>
             </div>
@@ -129,8 +121,8 @@ export default function UnlockProfile() {
               disabled={!password || busy}
               className={`rounded-xl border px-4 py-2 transition ${
                 !password || busy
-                  ? "border-borderSoft bg-borderSoft text-textSubtle cursor-not-allowed"
-                  : "border-primaryButtonBorder bg-primaryButton text-toggleDark hover:bg-primaryButtonBorder active:brightness-95"
+                  ? "cursor-not-allowed border-borderSoft bg-borderSoft text-textSubtle dark:border-borderSoftDark dark:bg-borderSoftDark dark:text-textSubtleDark"
+                  : "border-primaryButtonBorder bg-primaryButton text-toggleDark hover:bg-primaryButtonBorder active:brightness-95 dark:border-primaryButtonBorderDark dark:bg-primaryButtonDark dark:text-toggleDarkText dark:hover:bg-primaryButtonBorderDark"
               }`}
             >
               {busy ? "…" : "Unlock"}
@@ -140,7 +132,7 @@ export default function UnlockProfile() {
 
         {error && (
           <p
-            className="text-sm text-red-700 text-center mt-4"
+            className="text-sm text-red-700 text-center mt-4 dark:text-red-300"
             role="alert"
             aria-live="assertive"
           >
@@ -152,11 +144,7 @@ export default function UnlockProfile() {
       {/* Theme toggle */}
       <button
         onClick={toggle}
-        className={`fixed bottom-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-md backdrop-blur-sm transition-colors duration-200 ${
-          theme === "dark"
-            ? "bg-toggleDark text-background hover:bg-toggleDark/90"
-            : "bg-primaryButton text-toggleDark hover:bg-primaryButtonBorder"
-        }`}
+        className="fixed bottom-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center bg-toggleDark text-textPrimaryDark shadow-md backdrop-blur-sm transition-colors duration-200 hover:brightness-110 dark:bg-toggleDarkBg dark:text-toggleDarkText"
         aria-label="Toggle theme"
         aria-pressed={theme === "dark"}
         title={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}

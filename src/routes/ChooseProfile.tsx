@@ -108,8 +108,8 @@ export default function ChooseProfile() {
             onClick={() => setDeleteMode((v) => !v)}
             className={`fixed bottom-4 left-4 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-md backdrop-blur-sm transition ${
               deleteMode
-                ? "bg-red-500/90 text-white hover:bg-red-500"
-                : "bg-primaryButton text-toggleDark hover:bg-primaryButtonBorder"
+                ? "bg-red-500/90 text-white hover:bg-red-500 dark:bg-red-500/90 dark:hover:bg-red-500"
+                : "bg-primaryButton text-toggleDark hover:bg-primaryButtonBorder dark:bg-primaryButtonDark dark:text-toggleDarkText dark:hover:bg-primaryButtonBorderDark"
             }`}
             aria-pressed={deleteMode}
             aria-label={deleteMode ? "Exit delete mode" : "Delete profiles"}
@@ -128,11 +128,7 @@ export default function ChooseProfile() {
       {/* Theme toggle (global) */}
       <button
         onClick={toggle}
-        className={`fixed bottom-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center shadow-md backdrop-blur-sm transition-colors duration-200 ${
-          theme === "dark"
-            ? "bg-toggleDark text-background hover:bg-toggleDark/90"
-            : "bg-primaryButton text-toggleDark hover:bg-primaryButtonBorder"
-        }`}
+        className="fixed bottom-4 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center bg-toggleDark text-textPrimaryDark shadow-md backdrop-blur-sm transition-colors duration-200 hover:brightness-110 dark:bg-toggleDarkBg dark:text-toggleDarkText"
         aria-label="Toggle theme"
         aria-pressed={theme === "dark"}
         title={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
@@ -151,18 +147,18 @@ export default function ChooseProfile() {
         )}
       </button>
 
-      {/* Confirm Modal (unchanged)… */}
+      {/* Confirm Modal */}
       {confirmFor && (
         <div role="dialog" aria-modal="true" className="fixed inset-0 z-20 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setConfirmFor(null)} />
-          <div className="relative z-30 w-[92vw] max-w-md rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-text-primary)] shadow-xl p-6">
+          <div className="absolute inset-0 bg-black/50 dark:bg-toggleDarkText/70" onClick={() => setConfirmFor(null)} />
+          <div className="relative z-30 w-[92vw] max-w-md rounded-2xl border border-borderMedium bg-cardDebt text-textPrimary shadow-xl p-6 dark:border-borderMediumDark dark:bg-cardDebtDark dark:text-textPrimaryDark">
             <h2 className="text-xl font-semibold mb-2">Delete profile?</h2>
-            <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-              You’re about to delete <span className="font-medium">{confirmFor.name}</span> and all local data for this profile. This can’t be undone.
+            <p className="text-sm text-textMuted dark:text-textMutedDark mb-4">
+              You're about to delete <span className="font-medium">{confirmFor.name}</span> and all local data for this profile. This can't be undone.
             </p>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setConfirmFor(null)} className="rounded-xl px-4 py-2 border border-[var(--color-border)] bg-[var(--color-surface-alt)] text-[var(--color-text-primary)] hover:border-[var(--color-accent)]">Cancel</button>
-              <button onClick={confirmDelete} className="rounded-xl px-4 py-2 bg-red-500 text-white hover:bg-red-600">Delete</button>
+              <button onClick={() => setConfirmFor(null)} className="rounded-xl px-4 py-2 border border-borderMedium bg-sidebar text-textPrimary hover:border-accent dark:border-borderMediumDark dark:bg-sidebarDark dark:text-textPrimaryDark dark:hover:border-accentDark">Cancel</button>
+              <button onClick={confirmDelete} className="rounded-xl px-4 py-2 bg-accent text-background hover:bg-accent/80 dark:bg-accentDark dark:text-background dark:hover:bg-accentDark/80">Delete</button>
             </div>
           </div>
         </div>

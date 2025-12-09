@@ -1,5 +1,5 @@
 // src/routes/Dashboard.tsx
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState, type SVGProps } from "react";
 import { useNavigate } from "react-router-dom";
 import { ThemeMode, ThemePalette, useTheme } from "../ThemeProvider";
 import { useActiveProfile } from "../ActiveProfileContext";
@@ -24,21 +24,6 @@ import {
   DebtPayoffResult,
 } from "../lib/debtPayoffMath";
 
-const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
 // New profiles should start with NO accounts
 const INITIAL_ACCOUNTS: Account[] = [];
 const DEFAULT_DEBT_SETTINGS: DebtPayoffSettings = {
@@ -52,6 +37,99 @@ type ResetChoice =
   | "transfers"
   | "transactions-transfers"
   | "accounts-all";
+
+type IconProps = SVGProps<SVGSVGElement>;
+
+function WalletIcon(props: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M4 7h15a2 2 0 0 1 2 2v7a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V9a2 2 0 0 1 2-2Z" />
+      <path d="M5 7V6a2 2 0 0 1 2-2h8" />
+      <path d="M17 12h3" />
+      <path d="M17 15a2 2 0 1 1 0-4" />
+    </svg>
+  );
+}
+
+function InfoIcon(props: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 16v-4" />
+      <path d="M12 8h.01" />
+    </svg>
+  );
+}
+
+function PencilIcon(props: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="m12.6 5.4 2-2a2 2 0 0 1 2.8 0l3.2 3.2a2 2 0 0 1 0 2.8l-2 2" />
+      <path d="m3 16 9.6-9.6 4 4L7 20H3z" />
+      <path d="M3 20h4" />
+    </svg>
+  );
+}
+
+function RefreshIcon(props: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M21 4v6h-6" />
+      <path d="M3 20v-6h6" />
+      <path d="M5.5 8.5a7 7 0 0 1 12.5-2.5" />
+      <path d="M18.5 15.5A7 7 0 0 1 6 18" />
+    </svg>
+  );
+}
+
+function PowerIcon(props: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M12 3v9" />
+      <path d="M6.6 5.6a7 7 0 1 0 10.8 0" />
+    </svg>
+  );
+}
 
 function isTransferTransaction(tx: Transaction) {
   if (tx.kind === "transfer") return true;
@@ -1213,31 +1291,79 @@ export default function Dashboard() {
     { label: "Log Out", onClick: handleLogout },
   ];
 
+  const sidebarButtonBase =
+    "h-10 w-10 rounded-full flex items-center justify-center text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100 transition-colors";
+  const activeSidebarButtonClass = "bg-neutral-800 text-neutral-100";
+
   return (
     <MoneyVisibilityProvider
       initialHideMoney={hideMoney}
       onChange={(next) => setHideMoney(next)}
     >
-      <div
-        className="min-h-[100svh] w-full bg-background text-textPrimary"
-      >
-        <div className="mx-auto flex h-full max-w-[1280px] px-6 py-6">
-        {/* LEFT SIDEBAR – months */}
-        <aside className="mr-6 flex w-40 shrink-0 flex-col justify-end rounded-2xl bg-sidebar px-4 py-6 shadow-md">
-          {MONTHS.map((m) => (
-            <button
-              key={m}
-              type="button"
-              className="w-full mb-2 flex items-center rounded-xl px-3 py-2 text-base font-bold tracking-wide bg-transparent text-textMuted hover:bg-borderSoft hover:text-textPrimary transition-all duration-150"
-            >
-              <span className="mr-3 h-6 w-1.5 rounded-full bg-accent" />
-              <span className="truncate">{m}</span>
-            </button>
-          ))}
-        </aside>
+      <div className="min-h-[100svh] w-full bg-background text-textPrimary">
+        <div className="mx-auto flex min-h-[100svh] max-w-[1280px] gap-6 px-6 py-6">
+          {/* LEFT SIDEBAR – collapsed nav */}
+          <aside className="flex min-h-[calc(100svh-3rem)] w-16 shrink-0 flex-col items-center justify-between border-r border-neutral-800 bg-neutral-900 py-4">
+            <div className="flex flex-col items-center gap-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-800 text-sm font-semibold text-neutral-100">
+                B
+              </div>
+            </div>
 
-        {/* MAIN AREA */}
-        <div className="flex min-h-[calc(100svh-3rem)] flex-1 flex-col gap-6">
+            <div className="flex flex-1 flex-col items-center justify-center gap-3">
+              <button
+                type="button"
+                aria-label="Accounts"
+                title="Accounts"
+                onClick={() => console.log("TODO: Accounts")}
+                className={`${sidebarButtonBase} ${activeSidebarButtonClass}`}
+              >
+                <WalletIcon className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                aria-label="About"
+                title="About"
+                onClick={() => console.log("TODO: About")}
+                className={sidebarButtonBase}
+              >
+                <InfoIcon className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                aria-label="Feedback"
+                title="Feedback"
+                onClick={() => console.log("TODO: Feedback")}
+                className={sidebarButtonBase}
+              >
+                <PencilIcon className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                aria-label="Reset"
+                title="Reset"
+                onClick={() => console.log("TODO: Reset")}
+                className={sidebarButtonBase}
+              >
+                <RefreshIcon className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="flex flex-col items-center gap-3">
+              <button
+                type="button"
+                aria-label="Log out"
+                title="Log out"
+                onClick={handleLogout}
+                className={sidebarButtonBase}
+              >
+                <PowerIcon className="h-5 w-5" />
+              </button>
+            </div>
+          </aside>
+
+          {/* MAIN AREA */}
+          <main className="flex min-h-[calc(100svh-3rem)] flex-1 flex-col gap-6">
           {/* TOP BAR */}
           <header className="flex items-center justify-between rounded-2xl bg-cardDebt px-6 py-4 shadow-md">
             <div className="flex flex-1 items-center gap-4">
@@ -1653,12 +1779,12 @@ export default function Dashboard() {
               type="button"
               onClick={() => setIsDebtPayoffOpen(true)}
               className="ml-4 rounded-full border border-primaryButtonBorder bg-primaryButton px-3 py-2 text-xs font-semibold text-toggleDark transition hover:bg-primaryButtonBorder"
-            >
-              Edit
-            </button>
+              >
+                Edit
+              </button>
           </section>
+          </main>
         </div>
-      </div>
 
       {/* NEW TRANSACTION MODAL */}
       {isNewTxOpen && selectedAccount && (
