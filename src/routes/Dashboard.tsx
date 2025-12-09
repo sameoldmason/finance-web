@@ -1299,351 +1299,347 @@ export default function Dashboard() {
           </header>
 
           <main className="w-full flex-1">
-            <div className="mx-auto w-full max-w-screen-2xl px-4 pb-10 pt-6 sm:px-6 lg:px-8">
-              {/* MAIN AREA */}
-              <div className="flex min-h-[calc(100svh-3rem)] flex-1 flex-col gap-6">
-                {/* TOP ROW: BALANCE + TRANSACTIONS */}
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-              {/* CURRENT BALANCE CARD */}
-            <section className="rounded-2xl bg-black/10 px-6 pt-5 pb-2 backdrop-blur-sm shadow-md">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] opacity-80">
-                    Current Balance
-                  </p>
-                  <p className="mt-1 text-3xl font-extrabold">
-                    {formatCurrency(selectedAccount?.balance ?? 0)}
-                  </p>
-                </div>
+            <div className="w-full max-w-[1440px] mx-auto px-4 pb-10 pt-6 sm:px-6 lg:px-8">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                {/* CURRENT BALANCE CARD */}
+                <section className="rounded-2xl bg-black/10 px-6 pt-5 pb-2 backdrop-blur-sm shadow-md md:col-span-2 md:order-1">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.2em] opacity-80">
+                        Current Balance
+                      </p>
+                      <p className="mt-1 text-3xl font-extrabold">
+                        {formatCurrency(selectedAccount?.balance ?? 0)}
+                      </p>
+                    </div>
 
-                <button
-                  type="button"
-                  onClick={() => setIsNewAccountOpen(true)}
-                  className="mt-1 flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-surface-alt)]/20 text-sm font-bold text-[#F5FEFA] hover:bg-[var(--color-surface-alt)]/30"
-                  aria-label="Add account"
-                >
-                  +
-                </button>
-              </div>
-
-              {/* ACTION BUTTONS */}
-              <div className="mt-4 grid grid-cols-2 gap-4">
-                {(() => {
-                  const newActionBase =
-                    "w-full rounded-full bg-[#F5FEFA] py-3 text-sm font-semibold shadow-sm transition hover:bg-[#454545] hover:text-[#F5FEFA]";
-                  const newActionText =
-                    theme === "dark"
-                      ? "text-[#1f1f1f]"
-                      : "text-[var(--color-text-primary)]";
-                  const newActionClasses = `${newActionBase} ${newActionText}`;
-
-                  return (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => setIsNewTxOpen(true)}
-                        className={newActionClasses}
-                      >
-                        <span className="btn-label-full">New Transaction</span>
-                        <span className="btn-label-wrap">
-                          New
-                          <br />
-                          Transaction
-                        </span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setIsTransferOpen(true)}
-                        className={newActionClasses}
-                      >
-                        <span className="btn-label-full">New Transfer</span>
-                        <span className="btn-label-wrap">
-                          New
-                          <br />
-                          Transfer
-                        </span>
-                      </button>
-                    </>
-                  );
-                })()}
-              </div>
-
-              {/* ACCOUNT CAROUSEL */}
-              <div className="mt-6 flex items-center gap-3">
-                {/* Left arrow */}
-                <button
-                  type="button"
-                  onClick={handlePrevAccount}
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-[var(--color-surface-alt)]/10 text-white/80 hover:bg-[var(--color-surface-alt)]/20 hover:text-white transition"
-                >
-                  {"<"}
-                </button>
-
-                {/* Account pills */}
-                <div className="flex-1">
-                  <div className="grid grid-cols-2 gap-3">
-                    {visibleAccounts.map((account) => (
-                      <div
-                        key={account.id}
-                        className="flex items-center gap-2"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => handleAccountClick(account.id)}
-                          className={`h-10 w-full rounded-2xl text-sm font-semibold transition ${
-                            selectedAccount &&
-                            account.id === selectedAccount.id
-                              ? "bg-[var(--color-surface-alt)]/20 text-[#F5FEFA]"
-                              : "bg-[var(--color-surface-alt)]/10 text-[#F5FEFA]/80 hover:bg-[var(--color-surface-alt)]/16"
-                          }`}
-                        >
-                          {account.name}
-                        </button>
-                        {selectedAccount &&
-                          selectedAccount.id === account.id &&
-                          editButtonForId === account.id && (
-                            <button
-                              type="button"
-                              onClick={() => setEditingAccount(account)}
-                              className="flex h-7 w-7 items-center justify-center rounded-full bg.white/20 text-xs text-[#F5FEFA] hover:bg-[var(--color-surface-alt)]/30"
-                              title="Edit account"
-                            >
-                              ✎
-                            </button>
-                          )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Right arrow */}
-                <button
-                  type="button"
-                  onClick={handleNextAccount}
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-[var(--color-surface-alt)]/10 text-white/80 hover:bg-[var(--color-surface-alt)]/20 hover:text-white transition"
-                >
-                  {">"}
-                </button>
-              </div>
-            </section>
-
-            {/* TRANSACTIONS CARD */}
-            <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md">
-              <div className="mb-3 flex items-center justify-between">
-                <p className="text-sm font-semibold">Transactions</p>
-                <button
-                  type="button"
-                  onClick={() => setIsTransactionsModalOpen(true)}
-                  className="text-xs text-white/80 hover:text-white"
-                >
-                  more
-                </button>
-              </div>
-
-              <div className="space-y-2 text-sm opacity-90">
-                {visibleTransactions.length === 0 && (
-                  <div className="text-xs opacity-60">
-                    No transactions yet for this account.
-                  </div>
-                )}
-
-                {visibleTransactions
-                  .slice()
-                  .reverse()
-                  .slice(0, 3)
-                  .map((tx) => (
                     <button
-                      key={tx.id}
                       type="button"
-                      onClick={() => setEditingDetailsTx(tx)}
-                      className="flex w-full items-center justify-between rounded-xl bg-[var(--color-surface-alt)]/5 px-3 py-2 text-left hover:bg-[var(--color-surface-alt)]/10"
+                      onClick={() => setIsNewAccountOpen(true)}
+                      className="mt-1 flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-surface-alt)]/20 text-sm font-bold text-[#F5FEFA] hover:bg-[var(--color-surface-alt)]/30"
+                      aria-label="Add account"
                     >
-                      <span>{tx.description || "Transaction"}</span>
-                      <span
-                        className={
-                          tx.amount < 0 ? "text-red-200" : "text-emerald-200"
-                        }
-                      >
-                        {formatCurrency(tx.amount)}
-                      </span>
+                      +
                     </button>
-                  ))}
-              </div>
-            </section>
-          </div>
-
-          {/* MIDDLE ROW: NET WORTH + UPCOMING BILLS */}
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-            <NetWorthCard
-              accounts={accounts}
-              netWorthHistory={netWorthHistory}
-              viewMode={netWorthViewMode}
-              onViewModeChange={(mode) => setNetWorthViewMode(mode)}
-            />
-
-            {/* UPCOMING BILLS CARD */}
-            <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md min-h-[260px]">
-              <div className="mb-3 flex items-center justify-between">
-                <p className="text-sm font-semibold">Upcoming Bills</p>
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      accounts.length > 0 && setIsNewBillOpen(true)
-                    }
-                    disabled={accounts.length === 0}
-                    className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold transition ${
-                      accounts.length === 0
-                        ? "bg-[var(--color-surface-alt)]/10 text-white/30 cursor-not-allowed"
-                        : "bg-[var(--color-surface-alt)]/20 text-[#F5FEFA] hover:bg-[var(--color-surface-alt)]/30"
-                    }`}
-                    aria-label="Add bill"
-                    title={
-                      accounts.length === 0
-                        ? "Create an account first"
-                        : "Add new bill"
-                    }
-                  >
-                    +
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsBillsModalOpen(true)}
-                    className="text-xs text-white/60 hover:text-white transition"
-                  >
-                    more
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex min-h-[232px] flex-col">
-                {unpaidBills.length === 0 ? (
-                  <div className="flex flex-1 items-center justify-center rounded-xl bg-[var(--color-surface-alt)]/5 text-xs text-white/60">
-                    No upcoming bills yet. Add your first bill to get reminders
-                    here.
                   </div>
-                ) : (
-                  <div className="flex flex-1 flex-col">
-                    <div className="space-y-2">
-                      {[...unpaidBills]
-                        .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
-                        .slice(0, 3)
-                        .map((bill) => (
+
+                  {/* ACTION BUTTONS */}
+                  <div className="mt-4 grid grid-cols-2 gap-4">
+                    {(() => {
+                      const newActionBase =
+                        "w-full rounded-full bg-[#F5FEFA] py-3 text-sm font-semibold shadow-sm transition hover:bg-[#454545] hover:text-[#F5FEFA]";
+                      const newActionText =
+                        theme === "dark"
+                          ? "text-[#1f1f1f]"
+                          : "text-[var(--color-text-primary)]";
+                      const newActionClasses = `${newActionBase} ${newActionText}`;
+
+                      return (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setIsNewTxOpen(true)}
+                            className={newActionClasses}
+                          >
+                            <span className="btn-label-full">New Transaction</span>
+                            <span className="btn-label-wrap">
+                              New
+                              <br />
+                              Transaction
+                            </span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setIsTransferOpen(true)}
+                            className={newActionClasses}
+                          >
+                            <span className="btn-label-full">New Transfer</span>
+                            <span className="btn-label-wrap">
+                              New
+                              <br />
+                              Transfer
+                            </span>
+                          </button>
+                        </>
+                      );
+                    })()}
+                  </div>
+
+                  {/* ACCOUNT CAROUSEL */}
+                  <div className="mt-6 flex items-center gap-3">
+                    {/* Left arrow */}
+                    <button
+                      type="button"
+                      onClick={handlePrevAccount}
+                      className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-[var(--color-surface-alt)]/10 text-white/80 hover:bg-[var(--color-surface-alt)]/20 hover:text-white transition"
+                    >
+                      {"<"}
+                    </button>
+
+                    {/* Account pills */}
+                    <div className="flex-1">
+                      <div className="grid grid-cols-2 gap-3">
+                        {visibleAccounts.map((account) => (
                           <div
-                            key={bill.id}
-                            className="flex items-center justify-between rounded-xl bg-[var(--color-surface-alt)]/5 px-4 py-3 text-xs"
+                            key={account.id}
+                            className="flex items-center gap-2"
                           >
                             <button
                               type="button"
-                              onClick={() => setEditingBill(bill)}
-                              className="flex flex-1 flex-col text-left"
+                              onClick={() => handleAccountClick(account.id)}
+                              className={`h-10 w-full rounded-2xl text-sm font-semibold transition ${
+                                selectedAccount &&
+                                account.id === selectedAccount.id
+                                  ? "bg-[var(--color-surface-alt)]/20 text-[#F5FEFA]"
+                                  : "bg-[var(--color-surface-alt)]/10 text-[#F5FEFA]/80 hover:bg-[var(--color-surface-alt)]/16"
+                              }`}
                             >
-                              <span className="font-semibold">{bill.name}</span>
-                              <span className="flex items-center gap-2 text-[11px] text-white/60">
-                                <span>Due {bill.dueDate}</span>
-
-                                {(() => {
-                                  const status = getDueStatus(bill.dueDate);
-
-                                  const badgeBase =
-                                    "rounded-full px-2 py-0.5 text-[10px] font-semibold";
-
-                                  const badgeColor =
-                                    status.tone === "danger"
-                                      ? "bg-[var(--color-surface-alt)]/20 text-[#FBD5D5]"
-                                      : status.tone === "warning"
-                                        ? "bg-[var(--color-surface-alt)]/15 text-[#F2E2BE]"
-                                        : "bg-[var(--color-surface-alt)]/10 text-white/70";
-
-                                  return (
-                                    <span className={`${badgeBase} ${badgeColor}`}>
-                                      {status.label}
-                                    </span>
-                                  );
-                                })()}
-                              </span>
+                              {account.name}
                             </button>
-
-                            <div className="ml-4 text-right">
-                              <div className="text-sm font-semibold text-[#E89A9A]">
-                                -$
-                                {bill.amount.toLocaleString("en-CA", {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2,
-                                })}
-                              </div>
-                              <div className="text-[11px] text-white/60">
-                                {bill.frequency === "weekly"
-                                  ? "Weekly"
-                                  : bill.frequency === "biweekly"
-                                    ? "Bi-weekly"
-                                    : bill.frequency === "once"
-                                      ? "One-time"
-                                      : "Monthly"}
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => handleMarkBillPaid(bill)}
-                                className="mt-1 rounded-full border border-white/30 px-3 py-1 text-[11px] font-semibold text-white/80 hover:bg-[var(--color-surface-alt)]/10"
-                              >
-                                Mark paid
-                              </button>
-                            </div>
+                            {selectedAccount &&
+                              selectedAccount.id === account.id &&
+                              editButtonForId === account.id && (
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingAccount(account)}
+                                  className="flex h-7 w-7 items-center justify-center rounded-full bg.white/20 text-xs text-[#F5FEFA] hover:bg-[var(--color-surface-alt)]/30"
+                                  title="Edit account"
+                                >
+                                  ƒoZ
+                                </button>
+                              )}
                           </div>
                         ))}
+                      </div>
                     </div>
 
-                    {unpaidBills.length > 3 && (
-                      <p className="pt-1 text-[11px] text-white/60">
-                        + {unpaidBills.length - 3} more bill
-                        {unpaidBills.length - 3 === 1 ? "" : "s"} not shown
-                      </p>
+                    {/* Right arrow */}
+                    <button
+                      type="button"
+                      onClick={handleNextAccount}
+                      className="flex h-7 w-7 items-center justify-center rounded-full text-xs bg-[var(--color-surface-alt)]/10 text-white/80 hover:bg-[var(--color-surface-alt)]/20 hover:text-white transition"
+                    >
+                      {">"}
+                    </button>
+                  </div>
+                </section>
+
+                {/* TRANSACTIONS CARD */}
+                <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md md:col-span-1 md:order-2">
+                  <div className="mb-3 flex items-center justify-between">
+                    <p className="text-sm font-semibold">Transactions</p>
+                    <button
+                      type="button"
+                      onClick={() => setIsTransactionsModalOpen(true)}
+                      className="text-xs text-white/80 hover:text-white"
+                    >
+                      more
+                    </button>
+                  </div>
+
+                  <div className="space-y-2 text-sm opacity-90">
+                    {visibleTransactions.length === 0 && (
+                      <div className="text-xs opacity-60">
+                        No transactions yet for this account.
+                      </div>
+                    )}
+
+                    {visibleTransactions
+                      .slice()
+                      .reverse()
+                      .slice(0, 3)
+                      .map((tx) => (
+                        <button
+                          key={tx.id}
+                          type="button"
+                          onClick={() => setEditingDetailsTx(tx)}
+                          className="flex w-full items-center justify-between rounded-xl bg-[var(--color-surface-alt)]/5 px-3 py-2 text-left hover:bg-[var(--color-surface-alt)]/10"
+                        >
+                          <span>{tx.description || "Transaction"}</span>
+                          <span
+                            className={
+                              tx.amount < 0 ? "text-red-200" : "text-emerald-200"
+                            }
+                          >
+                            {formatCurrency(tx.amount)}
+                          </span>
+                        </button>
+                      ))}
+                  </div>
+                </section>
+
+                {/* UPCOMING BILLS CARD */}
+                <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md min-h-[260px] md:col-span-1 md:order-4">
+                  <div className="mb-3 flex items-center justify-between">
+                    <p className="text-sm font-semibold">Upcoming Bills</p>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          accounts.length > 0 && setIsNewBillOpen(true)
+                        }
+                        disabled={accounts.length === 0}
+                        className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold transition ${
+                          accounts.length === 0
+                            ? "bg-[var(--color-surface-alt)]/10 text-white/30 cursor-not-allowed"
+                            : "bg-[var(--color-surface-alt)]/20 text-[#F5FEFA] hover:bg-[var(--color-surface-alt)]/30"
+                        }`}
+                        aria-label="Add bill"
+                        title={
+                          accounts.length === 0
+                            ? "Create an account first"
+                            : "Add new bill"
+                        }
+                      >
+                        +
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsBillsModalOpen(true)}
+                        className="text-xs text-white/60 hover:text-white transition"
+                      >
+                        more
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex min-h-[232px] flex-col">
+                    {unpaidBills.length === 0 ? (
+                      <div className="flex flex-1 items-center justify-center rounded-xl bg-[var(--color-surface-alt)]/5 text-xs text-white/60">
+                        No upcoming bills yet. Add your first bill to get reminders
+                        here.
+                      </div>
+                    ) : (
+                      <div className="flex flex-1 flex-col">
+                        <div className="space-y-2">
+                          {[...unpaidBills]
+                            .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
+                            .slice(0, 3)
+                            .map((bill) => (
+                              <div
+                                key={bill.id}
+                                className="flex items-center justify-between rounded-xl bg-[var(--color-surface-alt)]/5 px-4 py-3 text-xs"
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingBill(bill)}
+                                  className="flex flex-1 flex-col text-left"
+                                >
+                                  <span className="font-semibold">{bill.name}</span>
+                                  <span className="flex items-center gap-2 text-[11px] text-white/60">
+                                    <span>Due {bill.dueDate}</span>
+
+                                    {(() => {
+                                      const status = getDueStatus(bill.dueDate);
+
+                                      const badgeBase =
+                                        "rounded-full px-2 py-0.5 text-[10px] font-semibold";
+
+                                      const badgeColor =
+                                        status.tone === "danger"
+                                          ? "bg-[var(--color-surface-alt)]/20 text-[#FBD5D5]"
+                                          : status.tone === "warning"
+                                            ? "bg-[var(--color-surface-alt)]/15 text-[#F2E2BE]"
+                                            : "bg-[var(--color-surface-alt)]/10 text-white/70";
+
+                                      return (
+                                        <span className={`${badgeBase} ${badgeColor}`}>
+                                          {status.label}
+                                        </span>
+                                      );
+                                    })()}
+                                  </span>
+                                </button>
+
+                                <div className="ml-4 text-right">
+                                  <div className="text-sm font-semibold text-[#E89A9A]">
+                                    -$
+                                    {bill.amount.toLocaleString("en-CA", {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    })}
+                                  </div>
+                                  <div className="text-[11px] text-white/60">
+                                    {bill.frequency === "weekly"
+                                      ? "Weekly"
+                                      : bill.frequency === "biweekly"
+                                        ? "Bi-weekly"
+                                        : bill.frequency === "once"
+                                          ? "One-time"
+                                          : "Monthly"}
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleMarkBillPaid(bill)}
+                                    className="mt-1 rounded-full border border-white/30 px-3 py-1 text-[11px] font-semibold text-white/80 hover:bg-[var(--color-surface-alt)]/10"
+                                  >
+                                    Mark paid
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+
+                        {unpaidBills.length > 3 && (
+                          <p className="pt-1 text-[11px] text-white/60">
+                            + {unpaidBills.length - 3} more bill
+                            {unpaidBills.length - 3 === 1 ? "" : "s"} not shown
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
-                )}
-              </div>
-            </section>
-          </div>
+                </section>
 
-          {/* BOTTOM ROW: DEBT PAYOFF PROGRESS (placeholder) */}
-          <section className="mb-2 flex flex-col gap-4 rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md md:flex-row md:items-center md:justify-between">
-            <div className="flex flex-1 flex-col gap-2">
-              <button
-                type="button"
-                onClick={() => setIsDebtPayoffOpen(true)}
-                className="w-fit rounded-md text-left text-sm font-semibold text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:ring-offset-2 focus:ring-offset-transparent"
-              >
-                Debt Payoff Progress
-              </button>
-              <div className="h-4 w-full rounded-full border border-[var(--color-border)] bg-[var(--color-surface-alt)]">
-                <div
-                  className="h-4 rounded-full bg-[var(--color-accent)] transition-[width] duration-300 ease-out"
-                  style={{ width: `${debtProgressPercent}%` }}
-                />
+                {/* DEBT PAYOFF PROGRESS */}
+                <section className="mb-2 flex flex-col gap-4 rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md md:col-span-3 md:order-5 md:flex-row md:items-center md:justify-between">
+                  <div className="flex flex-1 flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsDebtPayoffOpen(true)}
+                      className="w-fit rounded-md text-left text-sm font-semibold text-[var(--color-text-primary)] outline-none focus:ring-2 focus:ring-[var(--color-accent)] focus:ring-offset-2 focus:ring-offset-transparent"
+                    >
+                      Debt Payoff Progress
+                    </button>
+                    <div className="h-4 w-full rounded-full border border-[var(--color-border)] bg-[var(--color-surface-alt)]">
+                      <div
+                        className="h-4 rounded-full bg-[var(--color-accent)] transition-[width] duration-300 ease-out"
+                        style={{ width: `${debtProgressPercent}%` }}
+                      />
+                    </div>
+                    <p
+                      className={`text-[11px] ${
+                        debtPayoffSummary?.insufficientAllocation
+                          ? "text-[#FBD5D5]"
+                          : "text-white/70"
+                      }`}
+                    >
+                      {debtStatusText}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsDebtPayoffOpen(true)}
+                    className="ml-4 rounded-full px-3 py-2 text-xs font-semibold text-white/80 transition hover:text-white"
+                  >
+                    Edit
+                  </button>
+                </section>
+
+                {/* NET WORTH */}
+                <div className="md:col-span-2 md:order-3">
+                  <NetWorthCard
+                    accounts={accounts}
+                    netWorthHistory={netWorthHistory}
+                    viewMode={netWorthViewMode}
+                    onViewModeChange={(mode) => setNetWorthViewMode(mode)}
+                  />
+                </div>
               </div>
-              <p
-                className={`text-[11px] ${
-                  debtPayoffSummary?.insufficientAllocation
-                    ? "text-[#FBD5D5]"
-                    : "text-white/70"
-                }`}
-              >
-                {debtStatusText}
-              </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setIsDebtPayoffOpen(true)}
-              className="ml-4 rounded-full px-3 py-2 text-xs font-semibold text-white/80 transition hover:text-white"
-            >
-              Edit
-            </button>
-          </section>
+          </main>
         </div>
-      </div>
-    </main>
-  </div>
 
       {/* NEW TRANSACTION MODAL */}
       {isNewTxOpen && selectedAccount && (
