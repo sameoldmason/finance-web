@@ -24,21 +24,6 @@ import {
   DebtPayoffResult,
 } from "../lib/debtPayoffMath";
 
-const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
 // New profiles should start with NO accounts
 const INITIAL_ACCOUNTS: Account[] = [];
 const DEFAULT_DEBT_SETTINGS: DebtPayoffSettings = {
@@ -1223,111 +1208,99 @@ export default function Dashboard() {
         style={{ backgroundColor: currentPalette.background }}
       >
         <div className="mx-auto flex h-full max-w-[1280px] px-6 py-6">
-        {/* LEFT SIDEBAR – months */}
-        <aside className="mr-6 flex w-40 shrink-0 flex-col justify-end rounded-2xl bg-black/10 px-4 py-6 backdrop-blur-sm shadow-md">
-          {MONTHS.map((m) => (
-            <button
-              key={m}
-              type="button"
-              className="w-full mb-2 flex items-center rounded-xl px-3 py-2 text-base font-bold tracking-wide bg-transparent text-[#F5FEFA]/80 hover:bg-[var(--color-surface-alt)]/10 hover:text-white transition-all duration-150"
-            >
-              <span className="mr-3 h-6 w-1.5 rounded-full bg-[var(--color-surface-alt)]/10" />
-              <span className="truncate">{m}</span>
-            </button>
-          ))}
-        </aside>
+          {/* MAIN AREA */}
+          <div className="flex min-h-[calc(100svh-3rem)] flex-1 flex-col gap-6">
+            {/* TOP BAR */}
+            <header className="flex items-center justify-between rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md">
+              <div className="flex flex-1 items-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => setIsAppMenuOpen((prev) => !prev)}
+                  aria-expanded={isAppMenuOpen}
+                  aria-controls="app-menu-pills"
+                  className="rounded-full px-4 py-2.5 text-left text-lg font-semibold text-white/90 transition hover:bg-[var(--color-surface-alt)]/5"
+                >
+                  <span className="tracking-wide">bare</span>
+                </button>
 
-        {/* MAIN AREA */}
-        <div className="flex min-h-[calc(100svh-3rem)] flex-1 flex-col gap-6">
-          {/* TOP BAR */}
-          <header className="flex items-center justify-between rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md">
-            <div className="flex flex-1 items-center gap-4">
-              <button
-                type="button"
-                onClick={() => setIsAppMenuOpen((prev) => !prev)}
-                aria-expanded={isAppMenuOpen}
-                aria-controls="app-menu-pills"
-                className="rounded-full px-4 py-2.5 text-left text-lg font-semibold text-white/90 transition hover:bg-[var(--color-surface-alt)]/5"
-              >
-                <span className="tracking-wide">bare</span>
-              </button>
-
-              <div
-                id="app-menu-pills"
-                className={`flex items-center gap-2 overflow-hidden transition-[max-width,opacity,transform] duration-300 ${
-                  isAppMenuOpen
-                    ? "max-w-[640px] opacity-100 translate-x-0"
-                    : "max-w-0 opacity-0 -translate-x-2 pointer-events-none"
-                }`}
-              >
-                {appMenuItems.map((item, index) => (
-                  <button
-                    key={item.label}
-                    type="button"
-                    onClick={() => {
-                      item.onClick();
-                    }}
-                    style={{
-                      transitionDelay: isAppMenuOpen
-                        ? `${index * 80}ms`
-                        : "0ms",
-                    }}
-                    className={`rounded-full bg-[var(--color-surface-alt)]/15 px-3 py-1 text-xs font-semibold text-white/80 shadow-sm transition-all duration-300 ${
-                      isAppMenuOpen
-                        ? "translate-x-0 opacity-100"
-                        : "-translate-x-2 opacity-0"
-                    } hover:bg-[var(--color-surface-alt)]/25`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-4">
-              <div className="flex items-center gap-3 rounded-full px-3 py-1 text-left text-sm">
-                <div className="flex flex-col">
-                  {isEditingProfileName ? (
-                    <form
-                      onSubmit={handleProfileNameSubmit}
-                      className="flex items-center gap-2"
-                    >
-                      <input
-                        value={profileNameInput}
-                        onChange={(event) => setProfileNameInput(event.target.value)}
-                        onBlur={() => handleProfileNameSubmit()}
-                        className="w-40 rounded-lg bg-[var(--color-surface-alt)]/10 px-2 py-1 text-sm text-white placeholder-white/50 shadow-inner outline-none ring-1 ring-white/20 focus:ring-white/50"
-                        placeholder="Enter name"
-                        autoFocus
-                      />
-                      <button type="submit" className="sr-only">
-                        Save profile name
-                      </button>
-                    </form>
-                  ) : (
+                <div
+                  id="app-menu-pills"
+                  className={`flex items-center gap-2 overflow-hidden transition-[max-width,opacity,transform] duration-300 ${
+                    isAppMenuOpen
+                      ? "max-w-[640px] opacity-100 translate-x-0"
+                      : "max-w-0 opacity-0 -translate-x-2 pointer-events-none"
+                  }`}
+                >
+                  {appMenuItems.map((item, index) => (
                     <button
+                      key={item.label}
                       type="button"
-                      onClick={handleStartEditingProfileName}
-                      disabled={!activeProfile}
-                      className="text-sm font-semibold text-white/90 transition hover:text-white disabled:cursor-not-allowed disabled:text-white/40"
+                      onClick={() => {
+                        item.onClick();
+                      }}
+                      style={{
+                        transitionDelay: isAppMenuOpen
+                          ? `${index * 80}ms`
+                          : "0ms",
+                      }}
+                      className={`rounded-full bg-[var(--color-surface-alt)]/15 px-3 py-1 text-xs font-semibold text-white/80 shadow-sm transition-all duration-300 ${
+                        isAppMenuOpen
+                          ? "translate-x-0 opacity-100"
+                          : "-translate-x-2 opacity-0"
+                      } hover:bg-[var(--color-surface-alt)]/25`}
                     >
-                      {profileName}
+                      {item.label}
                     </button>
-                  )}
-                  {profileNameError && (
-                    <span className="mt-1 text-xs text-red-300">{profileNameError}</span>
-                  )}
-                </div>
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-surface-alt)]/80 text-[var(--color-text-primary)]">
-                  <span className="text-xs font-semibold">{avatarInitial}</span>
+                  ))}
                 </div>
               </div>
-            </div>
-          </header>
 
-          {/* TOP ROW: BALANCE + TRANSACTIONS */}
-          <div className="mt-6 grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] gap-6">
-            {/* CURRENT BALANCE CARD */}
+              <div className="flex items-center justify-end gap-4">
+                <div className="flex items-center gap-3 rounded-full px-3 py-1 text-left text-sm">
+                  <div className="flex flex-col">
+                    {isEditingProfileName ? (
+                      <form
+                        onSubmit={handleProfileNameSubmit}
+                        className="flex items-center gap-2"
+                      >
+                        <input
+                          value={profileNameInput}
+                          onChange={(event) => setProfileNameInput(event.target.value)}
+                          onBlur={() => handleProfileNameSubmit()}
+                          className="w-40 rounded-lg bg-[var(--color-surface-alt)]/10 px-2 py-1 text-sm text-white placeholder-white/50 shadow-inner outline-none ring-1 ring-white/20 focus:ring-white/50"
+                          placeholder="Enter name"
+                          autoFocus
+                        />
+                        <button type="submit" className="sr-only">
+                          Save profile name
+                        </button>
+                      </form>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleStartEditingProfileName}
+                        disabled={!activeProfile}
+                        className="text-sm font-semibold text-white/90 transition hover:text-white disabled:cursor-not-allowed disabled:text-white/40"
+                      >
+                        {profileName}
+                      </button>
+                    )}
+                    {profileNameError && (
+                      <span className="mt-1 text-xs text-red-300">
+                        {profileNameError}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-surface-alt)]/80 text-[var(--color-text-primary)]">
+                    <span className="text-xs font-semibold">{avatarInitial}</span>
+                  </div>
+                </div>
+              </div>
+            </header>
+
+            {/* TOP ROW: BALANCE + TRANSACTIONS */}
+            <div className="mt-6 grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] gap-6">
+              {/* CURRENT BALANCE CARD */}
             <section className="rounded-2xl bg-black/10 px-6 pt-5 pb-2 backdrop-blur-sm shadow-md">
               <div className="flex items-start justify-between">
                 <div>
