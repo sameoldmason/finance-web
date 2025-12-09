@@ -1300,7 +1300,7 @@ export default function Dashboard() {
 
           <main className="w-full flex-1">
             <div className="w-full mx-auto px-4 pb-10 pt-6 sm:px-6 lg:px-8 space-y-10">
-              <div className="grid grid-cols-1 gap-x-6 gap-y-10 md:grid-cols-3">
+              <div className="grid grid-cols-1 gap-x-6 gap-y-10 md:grid-cols-3 content-between min-h-[calc(100svh-220px)]">
                 {/* CURRENT BALANCE CARD */}
                 <section className="rounded-2xl bg-black/10 px-6 pt-5 pb-2 backdrop-blur-sm shadow-md md:col-span-2 md:order-1">
                   <div className="flex items-start justify-between">
