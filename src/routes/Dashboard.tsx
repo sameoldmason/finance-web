@@ -1207,11 +1207,10 @@ export default function Dashboard() {
         className="min-h-[100svh] w-full text-brand-accent"
         style={{ backgroundColor: currentPalette.background }}
       >
-        <div className="mx-auto flex h-full max-w-[1280px] px-6 py-6">
-          {/* MAIN AREA */}
-          <div className="flex min-h-[calc(100svh-3rem)] flex-1 flex-col gap-6">
-            {/* TOP BAR */}
-            <header className="flex items-center justify-between rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md">
+        <div className="flex min-h-[100svh] flex-col">
+          {/* TOP BAR */}
+          <header className="w-full bg-black/10 px-4 py-4 shadow-md backdrop-blur-sm sm:px-6 lg:px-8">
+            <div className="mx-auto flex w-full max-w-screen-2xl items-center justify-between gap-4">
               <div className="flex flex-1 items-center gap-4">
                 <button
                   type="button"
@@ -1296,10 +1295,15 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
-            </header>
+            </div>
+          </header>
 
-            {/* TOP ROW: BALANCE + TRANSACTIONS */}
-            <div className="mt-6 grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] gap-6">
+          <main className="w-full flex-1">
+            <div className="mx-auto w-full max-w-screen-2xl px-4 pb-10 pt-6 sm:px-6 lg:px-8">
+              {/* MAIN AREA */}
+              <div className="flex min-h-[calc(100svh-3rem)] flex-1 flex-col gap-6">
+                {/* TOP ROW: BALANCE + TRANSACTIONS */}
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
               {/* CURRENT BALANCE CARD */}
             <section className="rounded-2xl bg-black/10 px-6 pt-5 pb-2 backdrop-blur-sm shadow-md">
               <div className="flex items-start justify-between">
@@ -1470,7 +1474,7 @@ export default function Dashboard() {
           </div>
 
           {/* MIDDLE ROW: NET WORTH + UPCOMING BILLS */}
-          <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
             <NetWorthCard
               accounts={accounts}
               netWorthHistory={netWorthHistory}
@@ -1603,7 +1607,7 @@ export default function Dashboard() {
           </div>
 
           {/* BOTTOM ROW: DEBT PAYOFF PROGRESS (placeholder) */}
-          <section className="mb-2 flex items-center justify-between rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md">
+          <section className="mb-2 flex flex-col gap-4 rounded-2xl bg-black/10 px-6 py-4 backdrop-blur-sm shadow-md md:flex-row md:items-center md:justify-between">
             <div className="flex flex-1 flex-col gap-2">
               <button
                 type="button"
@@ -1638,6 +1642,8 @@ export default function Dashboard() {
           </section>
         </div>
       </div>
+    </main>
+  </div>
 
       {/* NEW TRANSACTION MODAL */}
       {isNewTxOpen && selectedAccount && (
