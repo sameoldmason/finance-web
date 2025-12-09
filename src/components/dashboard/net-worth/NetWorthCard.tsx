@@ -11,10 +11,10 @@ import { useMemo } from "react";
 import {
   calculateNetWorthFromAccounts,
   NET_WORTH_MAX_POINTS,
-} from "../../lib/netWorth";
-import { formatMoney } from "../../lib/money";
-import type { Account, NetWorthSnapshot } from "../../lib/financeTypes";
-import { useMoneyVisibility } from "../../MoneyVisibilityContext";
+} from "../../../lib/netWorth";
+import { formatMoney } from "../../../lib/money";
+import type { Account, NetWorthSnapshot } from "../../../lib/financeTypes";
+import { useMoneyVisibility } from "../../../MoneyVisibilityContext";
 
 const chartFormatter = new Intl.DateTimeFormat("en-CA", {
   month: "short",
@@ -57,7 +57,9 @@ export function NetWorthCard({
   const trimmedHistory = sortedHistory.slice(-NET_WORTH_MAX_POINTS);
   const latestSnapshot = trimmedHistory[trimmedHistory.length - 1];
   const previousSnapshot =
-    trimmedHistory.length > 1 ? trimmedHistory[trimmedHistory.length - 2] : null;
+    trimmedHistory.length > 1
+      ? trimmedHistory[trimmedHistory.length - 2]
+      : null;
 
   const changeSincePrevious =
     latestSnapshot && previousSnapshot
@@ -68,8 +70,10 @@ export function NetWorthCard({
   const isDetailed = viewMode === "detailed";
 
   return (
-    <section className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md xl:px-7 xl:py-7 h-full xl:min-h-[30vh]
-">
+    <section
+      className="rounded-2xl bg-black/10 px-6 py-5 backdrop-blur-sm shadow-md xl:px-7 xl:py-7 h-full xl:min-h-[30vh]
+"
+    >
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm font-semibold">Net Worth</p>
 
@@ -143,7 +147,8 @@ export function NetWorthCard({
 
       {!hasData ? (
         <div className="flex h-56 items-center justify-center rounded-xl bg-white/5 text-center text-xs text-white/70">
-          Add your first account or transaction to start tracking your net worth.
+          Add your first account or transaction to start tracking your net
+          worth.
         </div>
       ) : (
         <div className="space-y-4">
@@ -161,10 +166,10 @@ export function NetWorthCard({
                         : "text-red-200"
                     }
                   >
-                    {changeSincePrevious >= 0 ? "↑" : "↓"} {" "}
+                    {changeSincePrevious >= 0 ? "↑" : "↓"}{" "}
                     {formatMoney(Math.abs(changeSincePrevious), {
                       hide: hideMoney,
-                    })} {" "}
+                    })}{" "}
                     vs last snapshot
                   </span>
                 ) : (
@@ -178,12 +183,21 @@ export function NetWorthCard({
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={trimmedHistory} margin={{ top: 10, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="netWorthGradient" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient
+                    id="netWorthGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
                     <stop offset="5%" stopColor="#F5FEFA" stopOpacity={0.6} />
                     <stop offset="95%" stopColor="#F5FEFA" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="rgba(255,255,255,0.1)"
+                />
                 <XAxis
                   dataKey="date"
                   tickFormatter={formatDateLabel}
@@ -192,7 +206,9 @@ export function NetWorthCard({
                 />
                 <YAxis
                   stroke="rgba(255,255,255,0.6)"
-                  tickFormatter={(value) => formatMoney(value as number, { hide: hideMoney })}
+                  tickFormatter={(value) =>
+                    formatMoney(value as number, { hide: hideMoney })
+                  }
                   tick={{ fontSize: 11 }}
                   width={70}
                 />
