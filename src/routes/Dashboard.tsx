@@ -51,15 +51,6 @@ import {
   type ResetChoice,
 } from "../components/dashboard/GlobalDashboardModals/GlobalDashboardModals";
 
-const [isDebtPayoffOpen, setIsDebtPayoffOpen] = useState(false);
-const [isResetModalOpen, setIsResetModalOpen] = useState(false);
-const [isDeleteProfilePromptOpen, setIsDeleteProfilePromptOpen] =
-  useState(false);
-const [isLogoutPromptOpen, setIsLogoutPromptOpen] = useState(false);
-const [isAboutOpen, setIsAboutOpen] = useState(false);
-const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-const [isThemePickerOpen, setIsThemePickerOpen] = useState(false);
-
 // New profiles should start with NO accounts
 const INITIAL_ACCOUNTS: Account[] = [];
 const DEFAULT_DEBT_SETTINGS: DebtPayoffSettings = {
@@ -218,6 +209,14 @@ export default function Dashboard() {
   const [profileNameInput, setProfileNameInput] = useState("");
 
   // Modals
+  const [isDebtPayoffOpen, setIsDebtPayoffOpen] = useState(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [isDeleteProfilePromptOpen, setIsDeleteProfilePromptOpen] =
+    useState(false);
+  const [isLogoutPromptOpen, setIsLogoutPromptOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [isThemePickerOpen, setIsThemePickerOpen] = useState(false);
 
   // Edit-transaction modals
   const [editingDetailsTx, setEditingDetailsTx] = useState<Transaction | null>(
