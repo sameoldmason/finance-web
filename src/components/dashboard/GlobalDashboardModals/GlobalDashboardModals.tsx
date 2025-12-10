@@ -1,5 +1,6 @@
 // src/components/dashboard/GlobalDashboardModals/GlobalDashboardModals.tsx
 import { useEffect, useState } from "react";
+
 import {
   modalCardBase,
   modalSurfaceAltCard,
@@ -12,10 +13,24 @@ import {
   modalToggleActiveClass,
   modalToggleInactiveClass,
 } from "../modals/modalStyles";
+
 import { NumberPad } from "../modals/NumberPad";
-import { useTheme, ThemeMode, ThemePalette } from "../../../ThemeProvider";
-import { DebtPayoffSettings, DebtPayoffMode } from "../../../lib/financeTypes";
-import { DebtInput, DebtPayoffResult } from "../../../lib/debtPayoffMath";
+
+import {
+  useTheme,
+  type ThemeMode,
+  type ThemePalette,
+} from "../../../ThemeProvider";
+
+import {
+  type DebtPayoffSettings,
+  type DebtPayoffMode,
+} from "../../../lib/financeTypes";
+
+import {
+  type DebtInput,
+  type DebtPayoffResult,
+} from "../../../lib/debtPayoffMath";
 
 // ---- shared helpers (local copy, no dependency on Dashboard.tsx) ----
 
