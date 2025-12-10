@@ -27,6 +27,29 @@ import { AccountsSection } from "../components/dashboard/accounts/AccountsSectio
 import { DashboardHeader } from "../components/dashboard/DashboardHeader";
 import { BillsSection } from "../components/dashboard/bills/BillsSection";
 import { DebtPayoffSection } from "../components/dashboard/debt/DebtPayoffSection";
+import {
+  modalCardBase,
+  modalSurfaceAltCard,
+  modalInputClass,
+  modalLabelClass,
+  modalSubtleTextClass,
+  modalCloseButtonClass,
+  modalPrimaryButtonClass,
+  modalGhostButtonClass,
+  modalToggleActiveClass,
+  modalToggleInactiveClass,
+} from "../components/dashboard/modals/modalStyles";
+import { NumberPad } from "../components/dashboard/modals/NumberPad";
+import {
+  DebtPayoffModal,
+  ResetDataModal,
+  DeleteProfilePrompt,
+  LogoutPrompt,
+  AboutModal,
+  FeedbackModal,
+  ThemePickerModal,
+  type ResetChoice,
+} from "../components/dashboard/GlobalDashboardModals/GlobalDashboardModals";
 
 // New profiles should start with NO accounts
 const INITIAL_ACCOUNTS: Account[] = [];
@@ -35,12 +58,6 @@ const DEFAULT_DEBT_SETTINGS: DebtPayoffSettings = {
   monthlyAllocation: 0,
   showInterest: false,
 };
-
-type ResetChoice =
-  | "transactions"
-  | "transfers"
-  | "transactions-transfers"
-  | "accounts-all";
 
 function isTransferTransaction(tx: Transaction) {
   if (tx.kind === "transfer") return true;
@@ -192,21 +209,6 @@ export default function Dashboard() {
   const [profileNameInput, setProfileNameInput] = useState("");
 
   // Modals
-  const [isNewTxOpen, setIsNewTxOpen] = useState(false);
-  const [isTransferOpen, setIsTransferOpen] = useState(false);
-  const [isAccountsListOpen, setIsAccountsListOpen] = useState(false);
-  const [isNewAccountOpen, setIsNewAccountOpen] = useState(false);
-  const [isTransactionsModalOpen, setIsTransactionsModalOpen] = useState(false);
-  const [isNewBillOpen, setIsNewBillOpen] = useState(false);
-  const [isBillsModalOpen, setIsBillsModalOpen] = useState(false);
-  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
-  const [resetChoice, setResetChoice] = useState<ResetChoice | null>(null);
-  const [isDeleteProfilePromptOpen, setIsDeleteProfilePromptOpen] =
-    useState(false);
-  const [isLogoutPromptOpen, setIsLogoutPromptOpen] = useState(false);
-  const [isThemePickerOpen, setIsThemePickerOpen] = useState(false);
-  const [editingBill, setEditingBill] = useState<Bill | null>(null);
-  const [isDebtPayoffOpen, setIsDebtPayoffOpen] = useState(false);
 
   // Edit-transaction modals
   const [editingDetailsTx, setEditingDetailsTx] = useState<Transaction | null>(
@@ -1429,20 +1431,6 @@ export default function Dashboard() {
           />
         )}
 
-        {/* DEBT PAYOFF MODAL */}
-        {isDebtPayoffOpen && (
-          <DebtPayoffModal
-            onClose={() => setIsDebtPayoffOpen(false)}
-            debts={debtInputs}
-            summary={debtPayoffSummary}
-            settings={debtPayoffSettings}
-            totalMinimumPayments={totalMinimumPayments}
-            onModeChange={updateDebtPayoffMode}
-            onMonthlyAllocationChange={updateDebtMonthlyAllocation}
-            onShowInterestChange={updateDebtShowInterest}
-          />
-        )}
-
         {/* NEW BILL MODAL */}
         {isNewBillOpen && accounts.length > 0 && (
           <NewBillModal
@@ -1516,23 +1504,6 @@ export default function Dashboard() {
               handleUpdateTransaction(editingAmountTx.id, { amount });
               setEditingAmountTx(null);
             }}
-          />
-        )}
-
-        {isResetModalOpen && (
-          <ResetDataModal
-            selected={resetChoice}
-            onSelect={setResetChoice}
-            onConfirm={() => {
-              if (resetChoice) {
-                performReset(resetChoice);
-              }
-            }}
-            onClose={() => {
-              setIsResetModalOpen(false);
-              setResetChoice(null);
-            }}
-            disableConfirm={!resetChoice || !activeProfile}
           />
         )}
 
@@ -2048,514 +2019,10 @@ function ResetDataModal({
   );
 }
 
-type DeleteProfilePromptProps = {
-  onStay: () => void;
-  onDelete: () => void;
-};
-
-function DeleteProfilePrompt({ onStay, onDelete }: DeleteProfilePromptProps) {
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="delete-profile-title"
-      className="fixed inset-0 z-30 flex items-center justify-center px-4"
-    >
-      <div className="absolute inset-0 bg-black/50" onClick={onStay} />
-      <div
-        className={`relative z-40 w-full max-w-xl ${modalCardBase} p-6 backdrop-blur-sm`}
-      >
-        <div className="mb-3 flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-text-secondary)]">
-              Next step
-            </p>
-            <h2
-              id="delete-profile-title"
-              className="mt-1 text-2xl font-semibold leading-tight"
-            >
-              Delete this profile?
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onStay}
-            className={modalCloseButtonClass}
-            aria-label="Stay on dashboard"
-          >
-            <svg
-              aria-hidden="true"
-              focusable="false"
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-
-        <p className={modalSubtleTextClass}>
-          Accounts, transactions, and transfers are cleared. Stay to rebuild the
-          dashboard, or delete the profile to head back to the profile selector.
-        </p>
-
-        <div className="mt-5 flex items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={onStay}
-            className={modalGhostButtonClass}
-          >
-            Stay in dashboard
-          </button>
-          <button
-            type="button"
-            onClick={onDelete}
-            className="rounded-full bg-red-500/90 px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-red-500"
-          >
-            Delete profile
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-type LogoutPromptProps = {
-  onStay: () => void;
-  onConfirm: () => void;
-};
-
-function LogoutPrompt({ onStay, onConfirm }: LogoutPromptProps) {
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="logout-title"
-      className="fixed inset-0 z-30 flex items-center justify-center px-4"
-    >
-      <div className="absolute inset-0 bg-black/50" onClick={onStay} />
-      <div
-        className={`relative z-40 w-full max-w-md ${modalCardBase} p-6 backdrop-blur-sm`}
-      >
-        <div className="mb-3 flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-text-secondary)]">
-              Heads up
-            </p>
-            <h2
-              id="logout-title"
-              className="mt-1 text-2xl font-semibold leading-tight"
-            >
-              Log out of this profile?
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onStay}
-            className={modalCloseButtonClass}
-            aria-label="Stay signed in"
-          >
-            <svg
-              aria-hidden="true"
-              focusable="false"
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-
-        <p className={modalSubtleTextClass}>
-          We&apos;ll take you back to the profile screen. Your data stays saved
-          for the next sign in.
-        </p>
-
-        <div className="mt-5 flex items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={onStay}
-            className={modalGhostButtonClass}
-          >
-            Stay here
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            className={modalPrimaryButtonClass}
-          >
-            Log out
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-type AboutModalProps = {
-  onClose: () => void;
-};
-
-function AboutModal({ onClose }: AboutModalProps) {
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="about-bare-title"
-      className="fixed inset-0 z-30 flex items-center justify-center px-4"
-    >
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div
-        className={`relative z-40 w-full max-w-3xl ${modalCardBase} p-6 backdrop-blur-sm`}
-      >
-        <div className="mb-4 flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-text-secondary)]">
-              About
-            </p>
-            <h2
-              id="about-bare-title"
-              className="mt-1 text-2xl font-semibold leading-tight"
-            >
-              About bare (aka: my little finance side-project)
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className={`${modalCloseButtonClass} transition`}
-            aria-label="Close about dialog"
-          >
-            ✕
-          </button>
-        </div>
-
-        <div className="space-y-3 leading-relaxed">
-          <p className={modalSubtleTextClass}>
-            bare.money is a simple personal finance dashboard I'm building for
-            myself.
-            <br />
-            In Toronto, "bare" means a lot - and that's what money usually feels
-            like. A lot to think about. A lot to manage. A lot to learn. I
-            wanted something that made all of that feel lighter. Something
-            clean, fast, and not packed with features I'd never touch. So I made
-            my own.
-          </p>
-          <p className={modalSubtleTextClass}>
-            The app keeps everything straightforward. You can create profiles,
-            manage accounts, track income and expenses, move money around, and
-            see your activity at a glance. Everything stays stored locally in
-            your browser - your data is yours. No sign-ups. No syncing. No
-            servers. Just a calm, simple tool that helps you understand where
-            your money is going.
-          </p>
-          <p className={modalSubtleTextClass}>
-            bare.money is still growing. Soon, it'll include recurring bills,
-            net-worth tracking, and debt payoff tools. The goal is for all of it
-            to feel soft, minimal, and personal - something that supports your
-            life instead of overwhelming it.
-          </p>
-          <p className={modalSubtleTextClass}>
-            You don't need to be a finance expert. You don't need perfect
-            habits. You just need a place to start.
-          </p>
-          <p className={modalSubtleTextClass}>
-            This project isn't a company or a startup (at least not yet). It's
-            just me learning, building, and trying to get my money right. I want
-            bare.money to reflect that journey - real progress, real mistakes,
-            and real change. If it works for me, maybe it'll work for anyone
-            else who feels the same way.
-          </p>
-          <p className={modalSubtleTextClass}>
-            If you like this calm, honest approach to budgeting, stick around.
-            <br />
-            There's more coming, and we're only getting started.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-type FeedbackModalProps = {
-  onClose: () => void;
-};
-
-function FeedbackModal({ onClose }: FeedbackModalProps) {
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="feedback-bare-title"
-      className="fixed inset-0 z-30 flex items-center justify-center px-4"
-    >
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div
-        className={`relative z-40 w-full max-w-3xl ${modalCardBase} p-6 shadow-xl backdrop-blur-sm`}
-      >
-        <div className="mb-4 flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-[var(--color-text-secondary)]">
-              Feedback
-            </p>
-            <h2
-              id="feedback-bare-title"
-              className="mt-1 text-2xl font-semibold leading-tight"
-            >
-              Got feedback?
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className={`${modalCloseButtonClass} transition`}
-            aria-label="Close feedback dialog"
-          >
-            <svg
-              aria-hidden="true"
-              focusable="false"
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-
-        <div className="space-y-3 leading-relaxed">
-          <p className={modalSubtleTextClass}>Just text me lol</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-type ThemePickerModalProps = {
-  onClose: () => void;
-};
-
-function ThemePickerModal({ onClose }: ThemePickerModalProps) {
-  const {
-    theme,
-    setTheme,
-    currentThemeKey,
-    setThemeKey,
-    availableThemes,
-    getPalette,
-  } = useTheme();
-
-  useEffect(() => {
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onClose();
-      }
-    };
-
-    document.addEventListener("keydown", handleKey);
-    return () => document.removeEventListener("keydown", handleKey);
-  }, [onClose]);
-
-  const modeOptions: { value: ThemeMode; label: string }[] = [
-    { value: "light", label: "Light" },
-    { value: "dark", label: "Dark" },
-  ];
-
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="theme-picker-title"
-      className="fixed inset-0 z-30 flex items-center justify-center px-4"
-    >
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div
-        className="relative z-40 w-full max-w-3xl rounded-2xl p-6 shadow-xl backdrop-blur-sm"
-        style={{
-          backgroundColor: "var(--color-surface)",
-          color: "var(--color-text-primary)",
-        }}
-      >
-        <div className="mb-4 flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] opacity-60">
-              Appearance
-            </p>
-            <h2
-              id="theme-picker-title"
-              className="mt-1 text-2xl font-semibold leading-tight"
-            >
-              Theme & mode
-            </h2>
-            <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-              Pick a palette, then choose whether light or dark feels best.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full px-2 py-1 text-sm font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
-            aria-label="Close appearance dialog"
-          >
-            <svg
-              aria-hidden="true"
-              focusable="false"
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-
-        <div className="space-y-8">
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-xs uppercase tracking-[0.3em] opacity-60">
-                Theme
-              </p>
-            </div>
-            <div className="grid gap-3 md:grid-cols-2">
-              {availableThemes.map((option) => {
-                const palette = getPalette(option.key, theme);
-                const isActive = option.key === currentThemeKey;
-                return (
-                  <button
-                    key={option.key}
-                    type="button"
-                    onClick={() => setThemeKey(option.key)}
-                    className={`flex flex-col gap-3 rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-accent)] ${
-                      isActive
-                        ? "border-[var(--color-accent)]"
-                        : "border-[var(--color-border)] hover:border-[var(--color-accent)]"
-                    }`}
-                    style={{
-                      backgroundColor: palette.surfaceAlt,
-                      boxShadow: isActive
-                        ? "0 0 0 3px rgba(113, 91, 100, 0.35)"
-                        : undefined,
-                    }}
-                    aria-pressed={isActive}
-                  >
-                    <ThemePreview palette={palette} />
-                    <div className="space-y-1">
-                      <p className="text-sm font-semibold text-[var(--color-text-primary)]">
-                        {option.name}
-                      </p>
-                      <p className="text-xs text-[var(--color-text-secondary)]">
-                        {option.description}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          <section className="space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-xs uppercase tracking-[0.3em] opacity-60">
-                Mode
-              </p>
-            </div>
-            <div className="flex gap-3">
-              {modeOptions.map((modeOption) => {
-                const isActive = theme === modeOption.value;
-                return (
-                  <button
-                    key={modeOption.value}
-                    type="button"
-                    onClick={() => setTheme(modeOption.value)}
-                    className={`flex-1 rounded-full px-4 py-2 text-xs font-semibold transition ${
-                      isActive
-                        ? "bg-[var(--color-accent)] text-white shadow-sm"
-                        : "border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-accent)]"
-                    }`}
-                    aria-pressed={isActive}
-                  >
-                    {modeOption.label}
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ThemePreview({ palette }: { palette: ThemePalette }) {
-  return (
-    <div
-      className="rounded-2xl border p-2"
-      style={{ borderColor: palette.border, backgroundColor: palette.surface }}
-    >
-      <div
-        className="h-3 w-full rounded-full"
-        style={{ backgroundColor: palette.background }}
-      />
-      <div className="mt-2 flex gap-2">
-        <div
-          className="h-12 w-10 rounded"
-          style={{ backgroundColor: palette.neutral }}
-        />
-        <div className="flex-1 space-y-2">
-          <div
-            className="h-3 rounded"
-            style={{ backgroundColor: palette.surfaceAlt }}
-          />
-          <div
-            className="h-3 w-3/4 rounded"
-            style={{ backgroundColor: palette.surfaceAlt }}
-          />
-        </div>
-      </div>
-      <div className="mt-2 flex gap-1">
-        <span
-          className="h-2 flex-1 rounded"
-          style={{ backgroundColor: palette.accent }}
-        />
-        <span
-          className="h-2 flex-1 rounded"
-          style={{ backgroundColor: palette.accentStrong }}
-        />
-      </div>
-    </div>
-  );
-}
-
-type ModalPropsBase = {
+type NewTransactionModalProps = {
   onClose: () => void;
   accounts: Account[];
   selectedAccountId: string;
-};
-
-type NewTransactionModalProps = ModalPropsBase & {
   onSave: (t: Transaction) => void;
 };
 
@@ -3619,7 +3086,10 @@ function EditAccountModal({
   );
 }
 
-type NewTransferModalProps = ModalPropsBase & {
+type NewTransferModalProps = {
+  onClose: () => void;
+  accounts: Account[];
+  selectedAccountId: string;
   onTransfer: (args: TransferInput) => void;
 };
 
@@ -3803,7 +3273,10 @@ function NewTransferModal({
   );
 }
 
-type NewBillModalProps = ModalPropsBase & {
+type NewBillModalProps = {
+  onClose: () => void;
+  accounts: Account[];
+  selectedAccountId: string;
   onSave: (bill: Bill) => void;
 };
 
@@ -4694,88 +4167,5 @@ function EditTransactionAmountModal({
         />
       )}
     </>
-  );
-}
-
-/* SHARED NUMBER PAD */
-
-type NumberPadProps = {
-  value: string;
-  onChange: (value: string) => void;
-  onClose: () => void;
-};
-
-function NumberPad({ value, onChange, onClose }: NumberPadProps) {
-  const handlePress = (key: string) => {
-    if (key === "C") {
-      onChange("");
-      return;
-    }
-    if (key === "←") {
-      onChange(value.slice(0, -1));
-      return;
-    }
-    if (key === ".") {
-      if (value.includes(".")) return;
-      onChange(value === "" ? "0." : value + ".");
-      return;
-    }
-    // digits
-    onChange(value + key);
-  };
-
-  const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "←"];
-
-  return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-4">
-      <div className={`w-full max-w-xs ${modalCardBase} p-4`}>
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-sm font-semibold text-[var(--color-text-primary)]">
-            Number pad
-          </span>
-          <button
-            type="button"
-            onClick={onClose}
-            className={modalCloseButtonClass}
-          >
-            ✕
-          </button>
-        </div>
-
-        <div className="mb-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-right text-lg font-semibold text-[var(--color-text-primary)]">
-          {value || "0"}
-        </div>
-
-        <div className="grid grid-cols-3 gap-2">
-          {keys.map((k) => (
-            <button
-              key={k}
-              type="button"
-              onClick={() => handlePress(k)}
-              className="flex h-10 items-center justify-center rounded-lg bg-[var(--color-surface-alt)] text-sm font-semibold text-[var(--color-text-primary)] shadow-sm hover:bg-[var(--color-surface)]"
-            >
-              {k}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-3 flex gap-2">
-          <button
-            type="button"
-            onClick={() => handlePress("C")}
-            className="flex-1 rounded-full border border-[var(--color-border)] bg-[var(--color-surface-alt)] px-3 py-2 text-xs font-semibold text-[var(--color-text-primary)] hover:border-[var(--color-accent)]"
-          >
-            Clear
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 rounded-full bg-[var(--color-accent)] px-3 py-2 text-xs font-semibold text-white hover:bg-[var(--color-accent-strong)]"
-          >
-            Done
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
